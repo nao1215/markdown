@@ -4,6 +4,7 @@ package markdown
 import (
 	"fmt"
 	"os"
+	"reflect"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -288,7 +289,7 @@ func TestMarkdownTable(t *testing.T) {
 	})
 }
 
-func TestMarkdownError(t *testing.T) {
+func TestMarkdownBuildError(t *testing.T) {
 	t.Parallel()
 
 	t.Run("Error() return nil", func(t *testing.T) {
@@ -309,6 +310,48 @@ func TestMarkdownError(t *testing.T) {
 			Rows:   [][]string{{"David"}},
 		})
 		if err := m.Build(); err == nil {
+			t.Error("expected error, but not occurred")
+		}
+	})
+}
+
+func TestMarkdownLF(t *testing.T) {
+	t.Parallel()
+	t.Run("success Markdown.LF()", func(t *testing.T) {
+		t.Parallel()
+
+		m := NewMarkdown(os.Stdout)
+		m.LF()
+		want := []string{"  "}
+		got := m.body
+
+		if !reflect.DeepEqual(want, got) {
+			t.Errorf("value is mismatch want: %v, got: %v", want, got)
+		}
+	})
+}
+
+func TestMarkdownError(t *testing.T) {
+	t.Parallel()
+
+	t.Run("Error() return nil", func(t *testing.T) {
+		t.Parallel()
+
+		m := NewMarkdown(os.Stdout)
+		if err := m.H1("sample").Error(); err != nil {
+			t.Errorf("unexpected error: %s", err)
+		}
+	})
+
+	t.Run("Error() return error", func(t *testing.T) {
+		t.Parallel()
+
+		m := NewMarkdown(os.Stdout)
+		m.Table(TableSet{
+			Header: []string{"Name", "Age"},
+			Rows:   [][]string{{"David"}},
+		})
+		if err := m.Error(); err == nil {
 			t.Error("expected error, but not occurred")
 		}
 	})
