@@ -2,10 +2,13 @@
 coverage:
   if: true
   acceptable: 60%
+  badge:
+    path: docs/coverage.svg
 testExecutionTime:
   if: true
   acceptable: 1:1.1
-  acceptable: current <= 1min && diff <= 2sec
+  badge:
+    path: docs/time.svg
 diff:
   datastores:
     - artifact://${GITHUB_REPOSITORY}
@@ -17,12 +20,6 @@ report:
   if: is_default_branch
   datastores:
     - artifact://${GITHUB_REPOSITORY}
-coverage:
-  badge:
-    path: docs/coverage.svg
 codeToTestRatio:
   badge:
     path: docs/ratio.svg
-testExecutionTime:
-  badge:
-    path: docs/time.svg
