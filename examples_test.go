@@ -5,7 +5,7 @@ package markdown_test
 import (
 	"os"
 
-	"github.com/go-spectest/markdown"
+	md "github.com/go-spectest/markdown"
 )
 
 // Examle is example code. Skip this test on Windows.
@@ -13,14 +13,14 @@ import (
 // the expected values are written are represented as '\n',
 // causing failures when testing on Windows.
 func Example() {
-	markdown.NewMarkdown(os.Stdout).
+	md.NewMarkdown(os.Stdout).
 		H1("This is H1").
 		PlainText("This is plain text").
 		H2f("This is %s with text format", "H2").
-		PlainTextf("Package markdown provides functions for text formatting, such as %s and %s, %s styles.",
-			markdown.Bold("bold"), markdown.Italic("italic"), markdown.Code("code")).
+		PlainTextf("Text formatting, such as %s and %s, %s styles.",
+			md.Bold("bold"), md.Italic("italic"), md.Code("code")).
 		H2("Code Block").
-		CodeBlocks(markdown.SyntaxHighlightGo,
+		CodeBlocks(md.SyntaxHighlightGo,
 			`package main
 import "fmt"
 
@@ -31,17 +31,17 @@ func main() {
 		BulletList("Bullet Item 1", "Bullet Item 2", "Bullet Item 3").
 		OrderedList("Ordered Item 1", "Ordered Item 2", "Ordered Item 3").
 		H2("CheckBox").
-		CheckBox([]markdown.CheckBoxSet{
-			{Checked: false, Text: markdown.Code("sample code")},
-			{Checked: true, Text: markdown.Link("Go", "https://golang.org")},
-			{Checked: false, Text: markdown.Strikethrough("strikethrough")},
+		CheckBox([]md.CheckBoxSet{
+			{Checked: false, Text: md.Code("sample code")},
+			{Checked: true, Text: md.Link("Go", "https://golang.org")},
+			{Checked: false, Text: md.Strikethrough("strikethrough")},
 		}).
 		H2("Blockquote").
-		Blockquote("Your time is limited, don't waste it living someone else's life.").
+		Blockquote("If you can dream it, you can do it.").
 		H3("Horizontal Rule").
 		HorizontalRule().
 		H2("Table").
-		Table(markdown.TableSet{
+		Table(md.TableSet{
 			Header: []string{"Name", "Age", "Country"},
 			Rows: [][]string{
 				{"David", "23", "USA"},
@@ -50,14 +50,14 @@ func main() {
 			},
 		}).
 		H2("Image").
-		PlainTextf(markdown.Image("sample_image", "./sample.png")).
+		PlainTextf(md.Image("sample_image", "./sample.png")).
 		Build()
 
 	// Output:
 	// # This is H1
 	// This is plain text
 	// ## This is H2 with text format
-	// Package markdown provides functions for text formatting, such as **bold** and *italic*, `code` styles.
+	// Text formatting, such as **bold** and *italic*, `code` styles.
 	// ## Code Block
 	// ```go
 	// package main
@@ -79,7 +79,7 @@ func main() {
 	// - [x] [Go](https://golang.org)
 	// - [ ] ~~strikethrough~~
 	// ## Blockquote
-	// > Your time is limited, don't waste it living someone else's life.
+	// > If you can dream it, you can do it.
 	// ### Horizontal Rule
 	// ---
 	// ## Table

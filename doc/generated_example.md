@@ -2,7 +2,7 @@
 This is plain text
   
 ## This is H2 with text format
-Package markdown provides functions for text formatting, such as **bold** and *italic*, `code` styles.
+Text formatting, such as **bold** and *italic*, `code` styles.
   
 ## Code Block
 ```go
@@ -28,7 +28,7 @@ func main() {
 - [ ] ~~strikethrough~~
   
 ## Blockquote
-> Your time is limited, don't waste it living someone else's life.
+> If you can dream it, you can do it.
   
 ### Horizontal Rule
 ---
