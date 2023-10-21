@@ -149,7 +149,7 @@ func (m *Markdown) PlainTextf(format string, args ...interface{}) *Markdown {
 func (m *Markdown) Build() error {
 	if _, err := fmt.Fprint(m.dest, m.String()); err != nil {
 		if m.err != nil {
-			return fmt.Errorf("failed to write markdown text: %w: %s", err, m.err)
+			return fmt.Errorf("failed to write markdown text: %w: %s", err, m.err) //nolint:wrapcheck
 		}
 		return fmt.Errorf("failed to write markdown text: %w", err)
 	}
@@ -337,7 +337,7 @@ func (m *Markdown) Table(t TableSet) *Markdown {
 	if err := t.ValidateColumns(); err != nil {
 		// NOTE: If go version is 1.20, use errors.Join
 		if m.err != nil {
-			m.err = fmt.Errorf("failed to validate columns: %w: %s", err, m.err)
+			m.err = fmt.Errorf("failed to validate columns: %w: %s", err, m.err) //nolint:wrapcheck
 		} else {
 			m.err = fmt.Errorf("failed to validate columns: %w", err)
 		}

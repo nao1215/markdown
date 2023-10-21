@@ -160,7 +160,6 @@ func TestMarkdownNumberList(t *testing.T) {
 }
 
 func TestMarkdownCheckBoxf(t *testing.T) {
-
 	t.Run("success CheckBoxf(); check [x]", func(t *testing.T) {
 		t.Parallel()
 
@@ -171,8 +170,8 @@ func TestMarkdownCheckBoxf(t *testing.T) {
 		}
 		m.CheckBox(set)
 		want := []string{
-			fmt.Sprintf("- [x] Hello"),
-			fmt.Sprintf("- [ ] World"),
+			"- [x] Hello",
+			"- [ ] World",
 		}
 		got := m.body
 
@@ -191,9 +190,9 @@ func TestMarkdownBlockquote(t *testing.T) {
 		m := NewMarkdown(os.Stdout)
 		m.Blockquote(fmt.Sprintf("%s%s%s%s%s", "Hello", lineFeed(), "Good", lineFeed(), "World"))
 		want := []string{
-			fmt.Sprintf("> Hello"),
-			fmt.Sprintf("> Good"),
-			fmt.Sprintf("> World"),
+			"> Hello",
+			"> Good",
+			"> World",
 		}
 		got := m.body
 
