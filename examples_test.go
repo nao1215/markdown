@@ -1,5 +1,4 @@
-//go:build windows
-// +build windows
+//go:build linux || darwin
 
 package markdown_test
 
