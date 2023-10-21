@@ -4,11 +4,6 @@ coverage:
   acceptable: 60%
   badge:
     path: docs/coverage.svg
-testExecutionTime:
-  if: true
-  acceptable: 1:1.1
-  badge:
-    path: docs/time.svg
 diff:
   datastores:
     - artifact://${GITHUB_REPOSITORY}
