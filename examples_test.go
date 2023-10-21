@@ -2,11 +2,20 @@ package markdown_test
 
 import (
 	"os"
+	"runtime"
 
 	"github.com/go-spectest/markdown"
 )
 
 func Example() {
+	// Skip this test on Windows.
+	// The newline codes in the comment section where
+	// the expected values are written are represented as '\n',
+	// causing failures when testing on Windows.
+	if runtime.GOOS == "windows" {
+		return
+	}
+
 	markdown.NewMarkdown(os.Stdout).
 		H1("This is H1").
 		PlainText("This is plain text").

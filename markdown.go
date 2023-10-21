@@ -345,6 +345,7 @@ func (m *Markdown) Table(t TableSet) *Markdown {
 
 	buf := &strings.Builder{}
 	table := tablewriter.NewWriter(buf)
+	table.SetNewLine(lineFeed())
 	table.SetBorders(tablewriter.Border{Left: true, Top: false, Right: true, Bottom: false})
 	table.SetCenterSeparator("|")
 	table.SetHeader(t.Header)
