@@ -1,3 +1,4 @@
+[![Go Reference](https://pkg.go.dev/badge/github.com/go-spectest/markdown.svg)](https://pkg.go.dev/github.com/go-spectest/markdown)
 [![LinuxUnitTest](https://github.com/go-spectest/markdown/actions/workflows/linux_test.yml/badge.svg)](https://github.com/go-spectest/markdown/actions/workflows/linux_test.yml)
 [![MacUnitTest](https://github.com/go-spectest/markdown/actions/workflows/mac_test.yml/badge.svg)](https://github.com/go-spectest/markdown/actions/workflows/mac_test.yml)
 [![WindowsUnitTest](https://github.com/go-spectest/markdown/actions/workflows/windows_test.yml/badge.svg)](https://github.com/go-spectest/markdown/actions/workflows/windows_test.yml)
@@ -5,7 +6,7 @@
 [![Gosec](https://github.com/go-spectest/markdown/actions/workflows/gosec.yml/badge.svg)](https://github.com/go-spectest/markdown/actions/workflows/gosec.yml)
 ![Coverage](https://raw.githubusercontent.com/go-spectest/octocovs-central-repo/main/badges/go-spectest/markdown/coverage.svg)
 # What is markdown package
-The Package markdown is a simple markdown builder from Go code. This library assembles Markdown using method chaining, not uses a template engine like [html/template](https://pkg.go.dev/html/template). 
+The Package markdown is a simple markdown builder in golang. This library assembles Markdown using method chaining, not uses a template engine like [html/template](https://pkg.go.dev/html/template). 
   
 This library was initially developed to display test results in [go-spectest/spectest](https://github.com/go-spectest/spectest). Therefore, it implements the features required by spectest, but there are no plans to add additional functionalities unless requested by someone.
   
