@@ -14,7 +14,7 @@ GO_PACKAGES = $(shell $(GO_LIST) $(GO_PKGROOT))
 GO_LDFLAGS  = 
 
 clean: ## Clean project
-	-rm -rf $(APP) cover.out cover.html
+	-rm -rf $(APP) coverage.out coverage.html
 
 test: ## Start unit test for server
 	env GOOS=$(GOOS) $(GO_TEST) -cover -coverpkg=$(GO_PKGROOT) -coverprofile=coverage.out $(GO_PKGROOT)
