@@ -31,7 +31,7 @@ Additionally, complex code that increases the complexity of the library, such as
 - [x] plain text
 - [x] details 
 
-### Not in Markdown syntax
+### Features not in Markdown syntax
 - Generate badges; RedBadge(), YellowBadge(), GreenBadge().
 - Generate an index for a directory full of markdown files; GenerateIndex()
   
