@@ -92,7 +92,7 @@ func (i *Index) walk() error {
 // write writes the index to the provided io.Writer.
 func (i *Index) write() (err error) {
 	if i.w == nil {
-		if i.w, err = os.OpenFile(filepath.Clean(filepath.Join(i.targetDir, "index.md")), os.O_WRONLY|os.O_CREATE, 0666); err != nil {
+		if i.w, err = os.OpenFile(filepath.Clean(filepath.Join(i.targetDir, "index.md")), os.O_WRONLY|os.O_CREATE, 0600); err != nil {
 			return err
 		}
 	}
@@ -166,15 +166,15 @@ type dir struct {
 func GenerateIndex(targetDir string, opts ...IndexOption) error {
 	i, err := newIndex(targetDir, opts...)
 	if err != nil {
-		return fmt.Errorf("%w: %s", ErrInitMarkdownIndex, err)
+		return fmt.Errorf("%w: %s", ErrInitMarkdownIndex, err.Error())
 	}
 
 	if err := i.walk(); err != nil {
-		return fmt.Errorf("%w: %s", ErrCreateMarkdownIndex, err)
+		return fmt.Errorf("%w: %s", ErrCreateMarkdownIndex, err.Error())
 	}
 
 	if err := i.write(); err != nil {
-		return fmt.Errorf("%w: %s", ErrWriteMarkdownIndex, err)
+		return fmt.Errorf("%w: %s", ErrWriteMarkdownIndex, err.Error())
 	}
 	return nil
 }
@@ -188,11 +188,16 @@ func GenerateIndex(targetDir string, opts ...IndexOption) error {
 // above pattern, it returns "H1".
 // If the file doesn't have H1(H2) or error happen, it returns an empty string.
 func firstH1orH2(markdownFilePath string) string {
-	file, err := os.Open(markdownFilePath)
+	file, err := os.Open(filepath.Clean(markdownFilePath))
 	if err != nil {
 		return ""
 	}
-	defer file.Close()
+	defer func() {
+		if err := file.Close(); err != nil {
+			fmt.Printf("Failed to close file: %s", err.Error())
+			return
+		}
+	}()
 
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
