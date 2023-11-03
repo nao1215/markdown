@@ -92,7 +92,8 @@ func (i *Index) walk() error {
 // write writes the index to the provided io.Writer.
 func (i *Index) write() (err error) {
 	if i.w == nil {
-		if i.w, err = os.OpenFile(filepath.Clean(filepath.Join(i.targetDir, "index.md")), os.O_WRONLY|os.O_CREATE, 0600); err != nil {
+		const readUserOnly = 0600
+		if i.w, err = os.OpenFile(filepath.Clean(filepath.Join(i.targetDir, "index.md")), os.O_WRONLY|os.O_CREATE, readUserOnly); err != nil {
 			return err
 		}
 	}
