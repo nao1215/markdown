@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 
@@ -26,7 +27,11 @@ func TestGenerateIndex(t *testing.T) {
 			t.Fatalf("failed to generate index: %v", err)
 		}
 
-		want, err := os.ReadFile(filepath.Join("testdata", "expected", "index.md"))
+		f := filepath.Join("testdata", "expected", "index.md")
+		if runtime.GOOS == "windows" {
+			f = filepath.Join("testdata", "expected", "index.windows")
+		}
+		want, err := os.ReadFile(filepath.Clean(f))
 		if err != nil {
 			t.Fatalf("failed to read expected index: %v", err)
 		}
