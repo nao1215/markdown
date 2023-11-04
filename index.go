@@ -112,7 +112,13 @@ func (i *Index) write() (err error) {
 		if len(d.files) == 0 {
 			continue
 		}
-		markdown.H3(filepath.Base(d.path))
+
+		subTitle := filepath.Base(d.path)
+		if subTitle == "." {
+			subTitle = "top"
+		}
+		markdown.H3(subTitle)
+
 		for _, f := range d.files {
 			if h1 := firstH1orH2(f); h1 != "" {
 				markdown.BulletList(Link(h1, strings.Replace(f, i.targetDir+string(filepath.Separator), "", 1)))
