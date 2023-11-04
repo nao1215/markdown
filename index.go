@@ -112,6 +112,9 @@ func (i *Index) write() (err error) {
 		if len(d.files) == 0 {
 			continue
 		}
+		if len(d.files) == 1 && d.files[0] == filepath.Join(i.targetDir, "index.md") {
+			continue
+		}
 
 		subTitle := filepath.Base(d.path)
 		if subTitle == "." {
