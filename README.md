@@ -266,9 +266,5 @@ Next Description
 ## Contribution
 First off, thanks for taking the time to contribute! Contributions are not only related to development. For example, GitHub Star motivates me to develop! Please feel free to contribute to this project.
 
-### Star History
-[![Star History Chart](https://api.star-history.com/svg?repos=go-spectest/markdown&type=Date)](https://star-history.com/#go-spectest/markdown&Date)
-
-
 ## License
 [MIT License](./LICENSE)
