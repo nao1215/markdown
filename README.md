@@ -175,7 +175,6 @@ The markdown package can create alerts. Alerts are useful for displaying importa
 ````
 
 Your alert will look like this;
-# Alert example
 > [!NOTE]  
 > This is note
   
