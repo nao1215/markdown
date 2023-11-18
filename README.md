@@ -6,7 +6,7 @@
 [![Gosec](https://github.com/go-spectest/markdown/actions/workflows/gosec.yml/badge.svg)](https://github.com/go-spectest/markdown/actions/workflows/gosec.yml)
 ![Coverage](https://raw.githubusercontent.com/go-spectest/octocovs-central-repo/main/badges/go-spectest/markdown/coverage.svg)
 # What is markdown package
-The Package markdown is a simple markdown builder in golang. This library assembles Markdown using method chaining, not uses a template engine like [html/template](https://pkg.go.dev/html/template). 
+The Package markdown is a simple markdown builder in golang. This library assembles Markdown using method chaining, not uses a template engine like [html/template](https://pkg.go.dev/html/template). The syntax of Markdown follows GitHub Markdown.
   
 This library was initially developed to display test results in [go-spectest/spectest](https://github.com/go-spectest/spectest). Therefore, it implements the features required by spectest, but there are no plans to add additional functionalities unless requested by someone.
   
@@ -26,10 +26,11 @@ Additionally, complex code that increases the complexity of the library, such as
 - [x] Horizontal rule 
 - [x] Table
 - [x] Text formatting; bold, italic, code, strikethrough, bold italic
-- [x] text with link
-- [x] text with image
-- [x] plain text
-- [x] details 
+- [x] Text with link
+- [x] Text with image
+- [x] Plain text
+- [x] Details 
+- [x] Alerts; NOTE, TIP, IMPORTANT, CAUTION, WARNING
 
 ### Features not in Markdown syntax
 - Generate badges; RedBadge(), YellowBadge(), GreenBadge().
@@ -139,6 +140,56 @@ func main() {
 
 If you want to see how it looks in Markdown, please refer to the following link.
 - [sample.md](./doc/generated_example.md)
+
+### Generate alerts
+The markdown package can create alerts. Alerts are useful for displaying important information in Markdown. This syntax is supported by GitHub.
+[Code example:](./doc/alert/main.go)
+```go
+	md.NewMarkdown(f).
+		H1("Alert example").
+		Note("This is note").LF().
+		Tip("This is tip").LF().
+		Important("This is important").LF().
+		Warning("This is warning").LF().
+		Caution("This is caution").LF().
+		Build()
+```
+  
+[Output:](./doc/alert/generated.md)
+````text
+# Alert example
+> [!NOTE]  
+> This is note
+  
+> [!TIP]  
+> This is tip
+  
+> [!IMPORTANT]  
+> This is important
+  
+> [!WARNING]  
+> This is warning
+  
+> [!CAUTION]  
+> This is caution
+````
+
+Your alert will look like this;
+# Alert example
+> [!NOTE]  
+> This is note
+  
+> [!TIP]  
+> This is tip
+  
+> [!IMPORTANT]  
+> This is important
+  
+> [!WARNING]  
+> This is warning
+  
+> [!CAUTION]  
+> This is caution
 
 ### Generate status badge
 The markdown package can create red, yellow, and green status badges.
