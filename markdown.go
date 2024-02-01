@@ -358,8 +358,13 @@ func (m *Markdown) Table(t TableSet) *Markdown {
 	return m
 }
 
-// CustomTable is markdown table. Which exposes tablewriter
-func (m *Markdown) CustomTable(t TableSet, tablewriterCallBack func(t *tablewriter.Table)) *Markdown {
+type TableOptions struct {
+	// AutoWrapText is whether to wrap the text automatically.
+	AutoWrapText bool
+}
+
+// CustomTable is markdown table. This is so not break the original Table function. with Possible breaking changes.
+func (m *Markdown) CustomTable(t TableSet, options TableOptions) *Markdown {
 	if err := t.ValidateColumns(); err != nil {
 		// NOTE: If go version is 1.20, use errors.Join
 		if m.err != nil {
@@ -374,13 +379,13 @@ func (m *Markdown) CustomTable(t TableSet, tablewriterCallBack func(t *tablewrit
 	table.SetNewLine(lineFeed())
 	table.SetBorders(tablewriter.Border{Left: true, Top: false, Right: true, Bottom: false})
 	table.SetCenterSeparator("|")
+	table.SetAutoWrapText(options.AutoWrapText)
 
 	table.SetHeader(t.Header)
 	for _, v := range t.Rows {
 		table.Append(v)
 	}
 	// This is so if the user wants to change the table settings they can
-	tablewriterCallBack(table)
 	table.Render()
 
 	m.body = append(m.body, buf.String())
