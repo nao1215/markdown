@@ -358,6 +358,35 @@ func (m *Markdown) Table(t TableSet) *Markdown {
 	return m
 }
 
+// CustomTable is markdown table. Which exposes tablewriter
+func (m *Markdown) CustomTable(t TableSet, tablewriterCallBack func(t *tablewriter.Table)) *Markdown {
+	if err := t.ValidateColumns(); err != nil {
+		// NOTE: If go version is 1.20, use errors.Join
+		if m.err != nil {
+			m.err = fmt.Errorf("failed to validate columns: %w: %s", err, m.err) //nolint:wrapcheck
+		} else {
+			m.err = fmt.Errorf("failed to validate columns: %w", err)
+		}
+	}
+
+	buf := &strings.Builder{}
+	table := tablewriter.NewWriter(buf)
+	table.SetNewLine(lineFeed())
+	table.SetBorders(tablewriter.Border{Left: true, Top: false, Right: true, Bottom: false})
+	table.SetCenterSeparator("|")
+
+	table.SetHeader(t.Header)
+	for _, v := range t.Rows {
+		table.Append(v)
+	}
+	// This is so if the user wants to change the table settings they can
+	tablewriterCallBack(table)
+	table.Render()
+
+	m.body = append(m.body, buf.String())
+	return m
+}
+
 // LF is line feed.
 func (m *Markdown) LF() *Markdown {
 	m.body = append(m.body, "  ")
