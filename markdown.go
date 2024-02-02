@@ -368,9 +368,9 @@ func (m *Markdown) CustomTable(t TableSet, options TableOptions) *Markdown {
 	if err := t.ValidateColumns(); err != nil {
 		// NOTE: If go version is 1.20, use errors.Join
 		if m.err != nil {
-			m.err = fmt.Errorf("failed to validate columns: %w: %s", err, m.err) //nolint:wrapcheck
+			m.err = fmt.Errorf("failed to validate columns: %s: %s", err, m.err) //nolint:wrapcheck
 		} else {
-			m.err = fmt.Errorf("failed to validate columns: %w", err)
+			m.err = fmt.Errorf("failed to validate columns: %s", err)
 		}
 	}
 
