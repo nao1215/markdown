@@ -355,4 +355,44 @@ func TestMarkdownError(t *testing.T) {
 			t.Error("expected error, but not occurred")
 		}
 	})
+
+	t.Run("Error() return error Custom Table", func(t *testing.T) {
+		t.Parallel()
+
+		m := NewMarkdown(os.Stdout)
+		m.CustomTable(TableSet{
+			Header: []string{"Name", "Age"},
+			Rows:   [][]string{{"David"}},
+		}, TableOptions{
+			AutoWrapText: false,
+		})
+		if err := m.Error(); err == nil {
+			t.Error("expected error, but not occurred")
+		}
+	})
+}
+
+func TestMarkdownCustomTable(t *testing.T) {
+	t.Parallel()
+	t.Run("success Table()", func(t *testing.T) {
+		t.Parallel()
+
+		m := NewMarkdown(os.Stdout)
+		set := TableSet{
+			Header: []string{"Name", "Age"},
+			Rows:   [][]string{{"David", "23"}},
+		}
+		m.CustomTable(set, TableOptions{
+			AutoWrapText: false,
+		})
+		want := []string{
+			fmt.Sprintf("| NAME  | AGE |%s|-------|-----|%s| David |  23 |%s",
+				lineFeed(), lineFeed(), lineFeed()),
+		}
+		got := m.body
+
+		if diff := cmp.Diff(want, got); diff != "" {
+			t.Errorf("value is mismatch (-want +got):\n%s", diff)
+		}
+	})
 }
