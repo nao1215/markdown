@@ -383,10 +383,11 @@ func TestMarkdownCustomTable(t *testing.T) {
 			Rows:   [][]string{{"David", "23"}},
 		}
 		m.CustomTable(set, TableOptions{
-			AutoWrapText: false,
+			AutoWrapText:      false,
+			AutoFormatHeaders: false,
 		})
 		want := []string{
-			fmt.Sprintf("| NAME  | AGE |%s|-------|-----|%s| David |  23 |%s",
+			fmt.Sprintf("| Name  | Age |%s|-------|-----|%s| David |  23 |%s",
 				lineFeed(), lineFeed(), lineFeed()),
 		}
 		got := m.body
