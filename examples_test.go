@@ -5,7 +5,7 @@ package markdown_test
 import (
 	"os"
 
-	md "github.com/go-spectest/markdown"
+	md "github.com/nao1215/markdown"
 )
 
 // Examle is example code. Skip this test on Windows.

@@ -6,7 +6,7 @@ package main
 import (
 	"os"
 
-	md "github.com/go-spectest/markdown"
+	md "github.com/nao1215/markdown"
 )
 
 //go:generate go run main.go
