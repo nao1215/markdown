@@ -358,9 +358,11 @@ func (m *Markdown) Table(t TableSet) *Markdown {
 	return m
 }
 
+// TableOptions is markdown table options.
 type TableOptions struct {
 	// AutoWrapText is whether to wrap the text automatically.
-	AutoWrapText      bool
+	AutoWrapText bool
+	// AutoFormatHeaders is whether to format the header automatically.
 	AutoFormatHeaders bool
 }
 

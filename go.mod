@@ -1,4 +1,4 @@
-module github.com/go-spectest/markdown
+module github.com/nao1215/markdown
 
 go 1.18
 
