@@ -316,13 +316,13 @@ Next Description
 - [Test Title](expected/index.md)
 ```
   
-## Contribution
-First off, thanks for taking the time to contribute! Contributions are not only related to development. For example, GitHub Star motivates me to develop! Please feel free to contribute to this project.
-
 ## License
 [MIT License](./LICENSE)
 
-## Contributors ✨
+## Contribution
+First off, thanks for taking the time to contribute! Contributions are not only related to development. For example, GitHub Star motivates me to develop! Please feel free to contribute to this project.
+
+### Contributors ✨
 
 Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/docs/en/emoji-key)):
 
