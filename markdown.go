@@ -360,7 +360,8 @@ func (m *Markdown) Table(t TableSet) *Markdown {
 
 type TableOptions struct {
 	// AutoWrapText is whether to wrap the text automatically.
-	AutoWrapText bool
+	AutoWrapText      bool
+	AutoFormatHeaders bool
 }
 
 // CustomTable is markdown table. This is so not break the original Table function. with Possible breaking changes.
@@ -380,6 +381,7 @@ func (m *Markdown) CustomTable(t TableSet, options TableOptions) *Markdown {
 	table.SetBorders(tablewriter.Border{Left: true, Top: false, Right: true, Bottom: false})
 	table.SetCenterSeparator("|")
 	table.SetAutoWrapText(options.AutoWrapText)
+	table.SetAutoFormatHeaders(options.AutoFormatHeaders)
 
 	table.SetHeader(t.Header)
 	for _, v := range t.Rows {
