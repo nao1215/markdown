@@ -2,9 +2,6 @@
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
 [![All Contributors](https://img.shields.io/badge/all_contributors-3-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
-[![LinuxUnitTest](https://github.com/nao1215/markdown/actions/workflows/linux_test.yml/badge.svg)](https://github.com/nao1215/markdown/actions/workflows/linux_test.yml)
-[![MacUnitTest](https://github.com/nao1215/markdown/actions/workflows/mac_test.yml/badge.svg)](https://github.com/nao1215/markdown/actions/workflows/mac_test.yml)
-[![WindowsUnitTest](https://github.com/nao1215/markdown/actions/workflows/windows_test.yml/badge.svg)](https://github.com/nao1215/markdown/actions/workflows/windows_test.yml)
 [![reviewdog](https://github.com/nao1215/markdown/actions/workflows/reviewdog.yml/badge.svg)](https://github.com/nao1215/markdown/actions/workflows/reviewdog.yml)
 [![Gosec](https://github.com/nao1215/markdown/actions/workflows/gosec.yml/badge.svg)](https://github.com/nao1215/markdown/actions/workflows/gosec.yml)
 ![Coverage](https://raw.githubusercontent.com/nao1215/octocovs-central-repo/main/badges/nao1215/markdown/coverage.svg)
