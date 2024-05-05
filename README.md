@@ -9,7 +9,7 @@
 # What is markdown package
 The Package markdown is a simple markdown builder in golang. The markdown package assembles Markdown using method chaining, not uses a template engine like [html/template](https://pkg.go.dev/html/template). The syntax of Markdown follows **GitHub Markdown**.
   
-The markdown package was initially developed to save test results in [nao1215/spectest](https://github.com/nao1215/spectest). Therefore, the markdown package implements the features required by spectest. For example, the markdown package supports **mermaid sequence diagrams**, which was a necessary feature in spectest.
+The markdown package was initially developed to save test results in [nao1215/spectest](https://github.com/nao1215/spectest). Therefore, the markdown package implements the features required by spectest. For example, the markdown package supports **mermaid sequence diagrams (entity relationship diagram, sequence diagram, pie chart)**, which was a necessary feature in spectest.
   
 Additionally, complex code that increases the complexity of the library, such as generating nested lists, will not be added. I want to keep this library as simple as possible.
   
@@ -33,6 +33,7 @@ Additionally, complex code that increases the complexity of the library, such as
 - [x] Details 
 - [x] Alerts; NOTE, TIP, IMPORTANT, CAUTION, WARNING
 - [x] mermaid sequence diagram
+- [x] mermaid entity relationship diagram
 - [x] mermaid pie chart
 
 ### Features not in Markdown syntax
@@ -344,6 +345,182 @@ sequenceDiagram
     end
 
     David-->>Sophia: wake up, wake up
+```
+
+### Entity Relationship Diagram syntax
+
+```go
+package main
+
+import (
+	"os"
+
+	"github.com/nao1215/markdown"
+	"github.com/nao1215/markdown/mermaid/er"
+)
+
+//go:generate go run main.go
+
+func main() {
+	f, err := os.Create("generated.md")
+	if err != nil {
+		panic(err)
+	}
+
+	teachers := er.NewEntity(
+		"teachers",
+		[]*er.Attribute{
+			{
+				Type:         "int",
+				Name:         "id",
+				IsPrimaryKey: true,
+				IsForeignKey: false,
+				IsUniqueKey:  true,
+				Comment:      "Teacher ID",
+			},
+			{
+				Type:         "string",
+				Name:         "name",
+				IsPrimaryKey: false,
+				IsForeignKey: false,
+				IsUniqueKey:  false,
+				Comment:      "Teacher Name",
+			},
+		},
+	)
+	students := er.NewEntity(
+		"students",
+		[]*er.Attribute{
+			{
+				Type:         "int",
+				Name:         "id",
+				IsPrimaryKey: true,
+				IsForeignKey: false,
+				IsUniqueKey:  true,
+				Comment:      "Student ID",
+			},
+			{
+				Type:         "string",
+				Name:         "name",
+				IsPrimaryKey: false,
+				IsForeignKey: false,
+				IsUniqueKey:  false,
+				Comment:      "Student Name",
+			},
+			{
+				Type:         "int",
+				Name:         "teacher_id",
+				IsPrimaryKey: false,
+				IsForeignKey: true,
+				IsUniqueKey:  true,
+				Comment:      "Teacher ID",
+			},
+		},
+	)
+	schools := er.NewEntity(
+		"schools",
+		[]*er.Attribute{
+			{
+				Type:         "int",
+				Name:         "id",
+				IsPrimaryKey: true,
+				IsForeignKey: false,
+				IsUniqueKey:  true,
+				Comment:      "School ID",
+			},
+			{
+				Type:         "string",
+				Name:         "name",
+				IsPrimaryKey: false,
+				IsForeignKey: false,
+				IsUniqueKey:  false,
+				Comment:      "School Name",
+			},
+			{
+				Type:         "int",
+				Name:         "teacher_id",
+				IsPrimaryKey: false,
+				IsForeignKey: true,
+				IsUniqueKey:  true,
+				Comment:      "Teacher ID",
+			},
+		},
+	)
+
+	erString := er.NewDiagram(f).
+		Relationship(
+			teachers,
+			students,
+			er.ExactlyOneRelationship, // "||"
+			er.ZeroToMoreRelationship, // "}o"
+			er.Identifying,            // "--"
+			"Teacher has many students",
+		).
+		Relationship(
+			teachers,
+			schools,
+			er.OneToMoreRelationship,  // "|}"
+			er.ExactlyOneRelationship, // "||"
+			er.NonIdentifying,         // ".."
+			"School has many teachers",
+		).
+		String()
+
+	err = markdown.NewMarkdown(f).
+		H2("Entity Relationship Diagram").
+		CodeBlocks(markdown.SyntaxHighlightMermaid, erString).
+		Build()
+
+	if err != nil {
+		panic(err)
+	}
+}
+```
+
+Plain text output: [markdown is here](./doc/er/generated.md)
+````
+## Entity Relationship Diagram
+```mermaid
+erDiagram
+	teachers ||--o{ students : "Teacher has many students"
+	teachers }|..|| schools : "School has many teachers"
+	schools {
+		int id PK,UK "School ID"
+		string name  "School Name"
+		int teacher_id FK,UK "Teacher ID"
+	}
+	students {
+		int id PK,UK "Student ID"
+		string name  "Student Name"
+		int teacher_id FK,UK "Teacher ID"
+	}
+	teachers {
+		int id PK,UK "Teacher ID"
+		string name  "Teacher Name"
+	}
+
+```
+````
+
+Mermaid output:
+```mermaid
+erDiagram
+	teachers ||--o{ students : "Teacher has many students"
+	teachers }|..|| schools : "School has many teachers"
+	schools {
+		int id PK,UK "School ID"
+		string name  "School Name"
+		int teacher_id FK,UK "Teacher ID"
+	}
+	students {
+		int id PK,UK "Student ID"
+		string name  "Student Name"
+		int teacher_id FK,UK "Teacher ID"
+	}
+	teachers {
+		int id PK,UK "Teacher ID"
+		string name  "Teacher Name"
+	}
 ```
 
 ### Pie chart syntax

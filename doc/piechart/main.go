@@ -1,6 +1,6 @@
 //go:build linux || darwin
 
-// Package main is generating mermaid sequence diagram.
+// Package main is generating pie chart.
 package main
 
 import (
