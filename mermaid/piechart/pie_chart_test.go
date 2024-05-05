@@ -4,6 +4,7 @@ package piechart
 import (
 	"bytes"
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -34,7 +35,9 @@ func TestPieChart_Build(t *testing.T) {
 			"%s\n%s",
 			"%%{init: {\"pie\": {\"textPosition\": 0.75}, \"themeVariables\": {\"pieOuterStrokeWidth\": \"5px\"}} }%%",
 			"pie showData\n    title mermaid pie chart builder\n    \"A\" : 10\n    \"B\" : 20.100000\n    \"C\" : 30")
-		if diff := cmp.Diff(want, b.String()); diff != "" {
+		got := strings.ReplaceAll(b.String(), "\r\n", "\n")
+
+		if diff := cmp.Diff(want, got); diff != "" {
 			t.Errorf("value is mismatch (-want +got):%s", diff)
 		}
 	})
@@ -62,7 +65,9 @@ func TestPieChart_Build(t *testing.T) {
 			"%%{init: {\"pie\": {\"textPosition\": 0.50}, \"themeVariables\": {\"pieOuterStrokeWidth\": \"5px\"}} }%%",
 			"pie showData\n    \"A\" : 10\n    \"B\" : 20.100000\n    \"C\" : 30",
 		)
-		if diff := cmp.Diff(want, b.String()); diff != "" {
+		got := strings.ReplaceAll(b.String(), "\r\n", "\n")
+
+		if diff := cmp.Diff(want, got); diff != "" {
 			t.Errorf("value is mismatch (-want +got):%s", diff)
 		}
 	})
@@ -90,7 +95,9 @@ func TestPieChart_Build(t *testing.T) {
 			"%s\n%s",
 			"%%{init: {\"pie\": {\"textPosition\": 0.75}, \"themeVariables\": {\"pieOuterStrokeWidth\": \"5px\"}} }%%",
 			"pie showData\n    title mermaid pie chart builder\n    \"A\" : 10\n    \"B\" : 20.100000\n    \"C\" : 30")
-		if diff := cmp.Diff(want, b.String()); diff != "" {
+		got := strings.ReplaceAll(b.String(), "\r\n", "\n")
+
+		if diff := cmp.Diff(want, got); diff != "" {
 			t.Errorf("value is mismatch (-want +got):%s", diff)
 		}
 	})
@@ -118,7 +125,9 @@ func TestPieChart_Build(t *testing.T) {
 			"%s\n%s",
 			"%%{init: {\"pie\": {\"textPosition\": 0.75}, \"themeVariables\": {\"pieOuterStrokeWidth\": \"5px\"}} }%%",
 			"pie showData\n    title mermaid pie chart builder\n    \"A\" : 10\n    \"B\" : 20.100000\n    \"C\" : 30")
-		if diff := cmp.Diff(want, b.String()); diff != "" {
+		got := strings.ReplaceAll(b.String(), "\r\n", "\n")
+
+		if diff := cmp.Diff(want, got); diff != "" {
 			t.Errorf("value is mismatch (-want +got):%s", diff)
 		}
 	})
