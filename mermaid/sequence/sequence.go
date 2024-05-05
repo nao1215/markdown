@@ -13,7 +13,7 @@ type Diagram struct {
 	// body is sequence diagram body.
 	body []string
 	// config is the configuration for the sequence diagram.
-	config *Config
+	config *config
 	// dest is output destination for sequence diagram body.
 	dest io.Writer
 	// err manages errors that occur in all parts of the sequence diagram building.
@@ -21,11 +21,12 @@ type Diagram struct {
 }
 
 // NewDiagram returns a new Diagram.
-// Now, Config is not used.
-func NewDiagram(w io.Writer, config ...*Config) *Diagram {
-	c := NewConfig()
-	if len(config) > 0 {
-		c = config[0]
+// Currently, there is no option (method) provided to change the configuration.
+func NewDiagram(w io.Writer, opts ...Option) *Diagram {
+	c := newConfig()
+
+	for _, opt := range opts {
+		opt(c)
 	}
 
 	return &Diagram{
@@ -49,9 +50,9 @@ func (d *Diagram) Error() error {
 func (d *Diagram) Build() error {
 	if _, err := fmt.Fprint(d.dest, d.String()); err != nil {
 		if d.err != nil {
-			return fmt.Errorf("failed to write markdown text: %w: %s", err, d.err.Error()) //nolint:wrapcheck
+			return fmt.Errorf("failed to write: %w: %s", err, d.err.Error()) //nolint:wrapcheck
 		}
-		return fmt.Errorf("failed to write markdown text: %w", err)
+		return fmt.Errorf("failed to write: %w", err)
 	}
 	return nil
 }

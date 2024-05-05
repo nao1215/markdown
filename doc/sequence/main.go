@@ -4,6 +4,7 @@
 package main
 
 import (
+	"io"
 	"os"
 
 	"github.com/nao1215/markdown"
@@ -18,7 +19,7 @@ func main() {
 		panic(err)
 	}
 
-	diagram := sequence.NewDiagram(os.Stdout).
+	diagram := sequence.NewDiagram(io.Discard).
 		Participant("Sophia").
 		Participant("David").
 		Participant("Subaru").
