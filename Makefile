@@ -24,3 +24,9 @@ test: ## Start unit test for server
 help: ## Show help message  
 	@grep -E '^[0-9a-zA-Z_-]+[[:blank:]]*:.*?## .*$$' $(MAKEFILE_LIST) | sort \
 	| awk 'BEGIN {FS = ":.*?## "}; {printf "\033[1;32m%-15s\033[0m %s\n", $$1, $$2}'
+
+changelog: ## Generate changelog
+	ghch --format markdown > CHANGELOG.md
+
+tools: ## Install dependency tools 
+	$(GO_INSTALL) github.com/Songmu/ghch/cmd/ghch@latest
