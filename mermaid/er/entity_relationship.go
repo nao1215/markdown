@@ -4,10 +4,11 @@ package er
 import (
 	"fmt"
 	"io"
-	"runtime"
 	"sort"
 	"strings"
 	"sync"
+
+	"github.com/nao1215/markdown/internal"
 )
 
 // Diagram is a entity relationship diagram builder.
@@ -42,8 +43,8 @@ func NewDiagram(w io.Writer, opts ...Option) *Diagram {
 
 // String returns the entity relationship diagram body.
 func (d *Diagram) String() string {
-	s := strings.Join(d.body, lineFeed())
-	s += lineFeed()
+	s := strings.Join(d.body, internal.LineFeed())
+	s += internal.LineFeed()
 
 	entities := make([]Entity, 0)
 	d.entities.Range(func(_, value interface{}) bool {
@@ -60,7 +61,7 @@ func (d *Diagram) String() string {
 	})
 
 	for _, e := range entities {
-		s += e.string() + lineFeed()
+		s += e.string() + internal.LineFeed()
 	}
 	return s
 }
@@ -74,12 +75,4 @@ func (d *Diagram) Build() error {
 		return fmt.Errorf("failed to write: %w", err)
 	}
 	return nil
-}
-
-// lineFeed return line feed for current OS.
-func lineFeed() string {
-	if runtime.GOOS == "windows" {
-		return "\r\n"
-	}
-	return "\n"
 }

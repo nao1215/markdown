@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/nao1215/markdown/internal"
 )
 
 func TestString(t *testing.T) {
@@ -19,7 +20,7 @@ func TestString(t *testing.T) {
 		d := NewDiagram(io.Discard)
 		d.Participant("Alice")
 
-		want := fmt.Sprintf("sequenceDiagram%s    participant Alice", lineFeed())
+		want := fmt.Sprintf("sequenceDiagram%s    participant Alice", internal.LineFeed())
 		got := d.String()
 
 		if diff := cmp.Diff(want, got); diff != "" {

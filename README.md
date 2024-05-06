@@ -9,7 +9,7 @@
 # What is markdown package
 The Package markdown is a simple markdown builder in golang. The markdown package assembles Markdown using method chaining, not uses a template engine like [html/template](https://pkg.go.dev/html/template). The syntax of Markdown follows **GitHub Markdown**.
   
-The markdown package was initially developed to save test results in [nao1215/spectest](https://github.com/nao1215/spectest). Therefore, the markdown package implements the features required by spectest. For example, the markdown package supports **mermaid sequence diagrams (entity relationship diagram, sequence diagram, pie chart)**, which was a necessary feature in spectest.
+The markdown package was initially developed to save test results in [nao1215/spectest](https://github.com/nao1215/spectest). Therefore, the markdown package implements the features required by spectest. For example, the markdown package supports **mermaid sequence diagrams (entity relationship diagram, sequence diagram, flowchart, pie chart)**, which was a necessary feature in spectest.
   
 Additionally, complex code that increases the complexity of the library, such as generating nested lists, will not be added. I want to keep this library as simple as possible.
   
@@ -34,6 +34,7 @@ Additionally, complex code that increases the complexity of the library, such as
 - [x] Alerts; NOTE, TIP, IMPORTANT, CAUTION, WARNING
 - [x] mermaid sequence diagram
 - [x] mermaid entity relationship diagram
+- [x] mermaid flowchart 
 - [x] mermaid pie chart
 
 ### Features not in Markdown syntax
@@ -165,6 +166,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	defer f.Close()
 
 	md.NewMarkdown(f).
 		H1("go generate example").
@@ -366,6 +368,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	defer f.Close()
 
 	teachers := er.NewEntity(
 		"teachers",
@@ -523,6 +526,86 @@ erDiagram
 	}
 ```
 
+### Flowchart syntax
+
+```go
+package main
+
+import (
+	"io"
+	"os"
+
+	"github.com/nao1215/markdown"
+	"github.com/nao1215/markdown/mermaid/flowchart"
+)
+
+//go:generate go run main.go
+
+func main() {
+	f, err := os.Create("generated.md")
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+
+	fc := flowchart.NewFlowchart(
+		io.Discard,
+		flowchart.WithTitle("mermaid flowchart builder"),
+		flowchart.WithOrientalTopToBottom(),
+	).
+		NodeWithText("A", "Node A").
+		StadiumNode("B", "Node B").
+		SubroutineNode("C", "Node C").
+		DatabaseNode("D", "Database").
+		LinkWithArrowHead("A", "B").
+		LinkWithArrowHeadAndText("B", "D", "send original data").
+		LinkWithArrowHead("B", "C").
+		DottedLinkWithText("C", "D", "send filtered data").
+		String()
+
+	err = markdown.NewMarkdown(f).
+		H2("Flowchart").
+		CodeBlocks(markdown.SyntaxHighlightMermaid, fc).
+		Build()
+
+	if err != nil {
+		panic(err)
+	}
+}
+```
+
+Plain text output: [markdown is here](./doc/flowchart/generated.md)
+````
+## Flowchart
+```mermaid
+---
+title: mermaid flowchart builder
+---
+flowchart TB
+	A["Node A"]
+	B(["Node B"])
+	C[["Node C"]]
+	D[("Database")]
+	A-->B
+	B-->|"send original data"|D
+	B-->C
+	C-. "send filtered data" .-> D
+```
+````
+
+Mermaid output:
+```mermaid
+flowchart TB
+	A["Node A"]
+	B(["Node B"])
+	C[["Node C"]]
+	D[("Database")]
+	A-->B
+	B-->|"send original data"|D
+	B-->C
+	C-. "send filtered data" .-> D
+```
+
 ### Pie chart syntax
 
 ```go
@@ -543,6 +626,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	defer f.Close()
 
 	chart := piechart.NewPieChart(
 		io.Discard,

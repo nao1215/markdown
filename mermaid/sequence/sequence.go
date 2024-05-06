@@ -4,8 +4,9 @@ package sequence
 import (
 	"fmt"
 	"io"
-	"runtime"
 	"strings"
+
+	"github.com/nao1215/markdown/internal"
 )
 
 // Diagram is a sequence diagram builder.
@@ -38,7 +39,7 @@ func NewDiagram(w io.Writer, opts ...Option) *Diagram {
 
 // String returns the sequence diagram body.
 func (d *Diagram) String() string {
-	return strings.Join(d.body, lineFeed())
+	return strings.Join(d.body, internal.LineFeed())
 }
 
 // Error returns the error that occurred during the sequence diagram building.
@@ -127,12 +128,4 @@ func (d *Diagram) AsyncResponsef(from, to, format string, args ...any) *Diagram 
 func (d *Diagram) LF() *Diagram {
 	d.body = append(d.body, "")
 	return d
-}
-
-// lineFeed return line feed for current OS.
-func lineFeed() string {
-	if runtime.GOOS == "windows" {
-		return "\r\n"
-	}
-	return "\n"
 }

@@ -4,9 +4,9 @@ package markdown
 import (
 	"fmt"
 	"io"
-	"runtime"
 	"strings"
 
+	"github.com/nao1215/markdown/internal"
 	"github.com/olekukonko/tablewriter"
 )
 
@@ -126,7 +126,7 @@ func NewMarkdown(w io.Writer) *Markdown {
 
 // String returns markdown text.
 func (m *Markdown) String() string {
-	return strings.Join(m.body, lineFeed())
+	return strings.Join(m.body, internal.LineFeed())
 }
 
 // Error returns error.
@@ -238,7 +238,8 @@ func (m *Markdown) H6f(format string, args ...interface{}) *Markdown {
 func (m *Markdown) Details(summary, text string) *Markdown {
 	m.body = append(
 		m.body,
-		fmt.Sprintf("<details><summary>%s</summary>%s%s%s</details>", summary, lineFeed(), text, lineFeed()))
+		fmt.Sprintf("<details><summary>%s</summary>%s%s%s</details>",
+			summary, internal.LineFeed(), text, internal.LineFeed()))
 	return m
 }
 
@@ -288,7 +289,7 @@ func (m *Markdown) CheckBox(set []CheckBoxSet) *Markdown {
 // Blockquote is markdown blockquote.
 // If you set text "Hello", it will be converted to "> Hello".
 func (m *Markdown) Blockquote(text string) *Markdown {
-	lines := strings.Split(text, lineFeed())
+	lines := strings.Split(text, internal.LineFeed())
 	for _, line := range lines {
 		m.body = append(m.body, fmt.Sprintf("> %s", line))
 	}
@@ -302,7 +303,7 @@ func (m *Markdown) Blockquote(text string) *Markdown {
 // ```".
 func (m *Markdown) CodeBlocks(lang SyntaxHighlight, text string) *Markdown {
 	m.body = append(m.body,
-		fmt.Sprintf("```%s%s%s%s```", lang, lineFeed(), text, lineFeed()))
+		fmt.Sprintf("```%s%s%s%s```", lang, internal.LineFeed(), text, internal.LineFeed()))
 	return m
 }
 
@@ -345,7 +346,7 @@ func (m *Markdown) Table(t TableSet) *Markdown {
 
 	buf := &strings.Builder{}
 	table := tablewriter.NewWriter(buf)
-	table.SetNewLine(lineFeed())
+	table.SetNewLine(internal.LineFeed())
 	table.SetBorders(tablewriter.Border{Left: true, Top: false, Right: true, Bottom: false})
 	table.SetCenterSeparator("|")
 	table.SetHeader(t.Header)
@@ -379,7 +380,7 @@ func (m *Markdown) CustomTable(t TableSet, options TableOptions) *Markdown {
 
 	buf := &strings.Builder{}
 	table := tablewriter.NewWriter(buf)
-	table.SetNewLine(lineFeed())
+	table.SetNewLine(internal.LineFeed())
 	table.SetBorders(tablewriter.Border{Left: true, Top: false, Right: true, Bottom: false})
 	table.SetCenterSeparator("|")
 	table.SetAutoWrapText(options.AutoWrapText)
@@ -400,12 +401,4 @@ func (m *Markdown) CustomTable(t TableSet, options TableOptions) *Markdown {
 func (m *Markdown) LF() *Markdown {
 	m.body = append(m.body, "  ")
 	return m
-}
-
-// lineFeed return line feed for current OS.
-func lineFeed() string {
-	if runtime.GOOS == "windows" {
-		return "\r\n"
-	}
-	return "\n"
 }
