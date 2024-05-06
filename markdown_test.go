@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/nao1215/markdown/internal"
 )
 
 func TestPlainText(t *testing.T) {
@@ -117,7 +118,7 @@ func TestMarkdownDetailsf(t *testing.T) {
 
 		m := NewMarkdown(os.Stdout)
 		m.Detailsf("Hello", "Good %s", "World")
-		want := fmt.Sprintf("<details><summary>Hello</summary>%sGood World%s</details>", lineFeed(), lineFeed())
+		want := fmt.Sprintf("<details><summary>Hello</summary>%sGood World%s</details>", internal.LineFeed(), internal.LineFeed())
 		got := m.body[0]
 
 		if diff := cmp.Diff(want, got); diff != "" {
@@ -189,7 +190,7 @@ func TestMarkdownBlockquote(t *testing.T) {
 		t.Parallel()
 
 		m := NewMarkdown(os.Stdout)
-		m.Blockquote(fmt.Sprintf("%s%s%s%s%s", "Hello", lineFeed(), "Good", lineFeed(), "World"))
+		m.Blockquote(fmt.Sprintf("%s%s%s%s%s", "Hello", internal.LineFeed(), "Good", internal.LineFeed(), "World"))
 		want := []string{
 			"> Hello",
 			"> Good",
@@ -209,7 +210,7 @@ func TestMarkdownCodeBlocks(t *testing.T) {
 
 		m := NewMarkdown(os.Stdout)
 		m.CodeBlocks(SyntaxHighlightGo, "Hello")
-		want := []string{fmt.Sprintf("```go%sHello%s```", lineFeed(), lineFeed())}
+		want := []string{fmt.Sprintf("```go%sHello%s```", internal.LineFeed(), internal.LineFeed())}
 		got := m.body
 
 		if diff := cmp.Diff(want, got); diff != "" {
@@ -279,7 +280,7 @@ func TestMarkdownTable(t *testing.T) {
 		m.Table(set)
 		want := []string{
 			fmt.Sprintf("| NAME  | AGE |%s|-------|-----|%s| David |  23 |%s",
-				lineFeed(), lineFeed(), lineFeed()),
+				internal.LineFeed(), internal.LineFeed(), internal.LineFeed()),
 		}
 		got := m.body
 
@@ -388,7 +389,7 @@ func TestMarkdownCustomTable(t *testing.T) {
 		})
 		want := []string{
 			fmt.Sprintf("| Name  | Age |%s|-------|-----|%s| David |  23 |%s",
-				lineFeed(), lineFeed(), lineFeed()),
+				internal.LineFeed(), internal.LineFeed(), internal.LineFeed()),
 		}
 		got := m.body
 

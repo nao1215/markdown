@@ -3,6 +3,8 @@ package er
 import (
 	"fmt"
 	"strings"
+
+	"github.com/nao1215/markdown/internal"
 )
 
 // Entity is a entity of entity relationship.
@@ -24,9 +26,9 @@ func (e *Entity) string() string {
 		"%s%s {%s%s%s%s}",
 		"	", // indent
 		e.Name,
-		lineFeed(),
-		strings.Join(attrs, lineFeed()),
-		lineFeed(),
+		internal.LineFeed(),
+		strings.Join(attrs, internal.LineFeed()),
+		internal.LineFeed(),
 		"	", // indent
 	)
 }

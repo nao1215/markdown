@@ -4,8 +4,9 @@ package piechart
 import (
 	"fmt"
 	"io"
-	"runtime"
 	"strings"
+
+	"github.com/nao1215/markdown/internal"
 )
 
 // PieChart is a pie chart builder.
@@ -57,7 +58,7 @@ func NewPieChart(w io.Writer, opts ...Option) *PieChart {
 
 // String returns the pie chart body.
 func (p *PieChart) String() string {
-	return strings.Join(p.body, lineFeed())
+	return strings.Join(p.body, internal.LineFeed())
 }
 
 // Build writes the pie chart body to the output destination.
@@ -82,12 +83,4 @@ func (p *PieChart) LabelAndIntValue(label string, value uint64) *PieChart {
 func (p *PieChart) LabelAndFloatValue(label string, value float64) *PieChart {
 	p.body = append(p.body, fmt.Sprintf("    \"%s\" : %f", label, value))
 	return p
-}
-
-// lineFeed return line feed for current OS.
-func lineFeed() string {
-	if runtime.GOOS == "windows" {
-		return "\r\n"
-	}
-	return "\n"
 }

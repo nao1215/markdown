@@ -18,6 +18,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	defer f.Close()
 
 	chart := piechart.NewPieChart(
 		io.Discard,
