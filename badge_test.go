@@ -47,4 +47,17 @@ func TestMarkdown_RedBadgef(t *testing.T) {
 			t.Errorf("value is mismatch (-want +got):\n%s", diff)
 		}
 	})
+
+	t.Run("success BlueBadgef()", func(t *testing.T) {
+		t.Parallel()
+	
+		m := NewMarkdown(io.Discard)
+		m.BlueBadgef("%s", "Hello")
+		want := []string{"![Badge](https://img.shields.io/badge/Hello-blue)"}
+		got := m.body
+	
+		if diff := cmp.Diff(want, got); diff != "" {
+			t.Errorf("value is mismatch (-want +got):\n%s", diff)
+		}
+	})
 }
