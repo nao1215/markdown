@@ -36,12 +36,12 @@ func (m *Markdown) GreenBadgef(format string, args ...interface{}) *Markdown {
 }
 
 // BlueBadge set text with blue badge format.
-func (m *Markdown) blueBadge(text string) *Markdown {
-    m.body = append(m.body, fmt.Sprintf("![Badge](https://img.shields.io/badge/%s-blue)", text))
-    return m
+func (m *Markdown) BlueBadge(text string) *Markdown {
+	m.body = append(m.body, fmt.Sprintf("![Badge](https://img.shields.io/badge/%s-blue)", text))
+	return m
 }
 
 // BlueBadgef set text with blue badge format. It is similar to fmt.Sprintf.
 func (m *Markdown) BlueBadgef(format string, args ...interface{}) *Markdown {
-    return m.blueBadge(fmt.Sprintf(format, args...))
+	return m.BlueBadge(fmt.Sprintf(format, args...))
 }
