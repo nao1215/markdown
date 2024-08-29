@@ -45,3 +45,9 @@ func BoldItalic(text string) string {
 func Code(text string) string {
 	return fmt.Sprintf("`%s`", text)
 }
+
+// Highlight return text with highlight format.
+// If you set text "Hello", it will be converted to "==Hello==".
+func Highlight(text string) string {
+	return fmt.Sprintf("==%s==", text)
+}
