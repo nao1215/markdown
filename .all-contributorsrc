@@ -45,8 +45,18 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "amitaifrey",
+      "name": "Amitai Frey",
+      "avatar_url": "https://avatars.githubusercontent.com/u/7527632?v=4",
+      "profile": "https://github.com/amitaifrey",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
-  "linkToUsage": true
+  "linkToUsage": true,
+  "commitType": "docs"
 }
