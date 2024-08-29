@@ -110,3 +110,18 @@ func TestCode(t *testing.T) {
 		}
 	})
 }
+
+func TestHighlight(t *testing.T) {
+	t.Parallel()
+
+	t.Run("success Highlight()", func(t *testing.T) {
+		t.Parallel()
+
+		want := "==Hello=="
+		got := Highlight("Hello")
+
+		if diff := cmp.Diff(want, got); diff != "" {
+			t.Errorf("value is mismatch (-want +got):\n%s", diff)
+		}
+	})
+}
