@@ -675,6 +675,140 @@ pie showData
     "C" : 30
 ```
 
+### Architecture Diagrams (beta feature)
+
+[The mermaid provides a feature to visualize infrastructure architecture as a beta version](https://mermaid.js.org/syntax/architecture.html), and that feature has been introduced.
+
+```go
+package main
+
+import (
+	"io"
+	"os"
+
+	"github.com/nao1215/markdown"
+	"github.com/nao1215/markdown/mermaid/arch"
+)
+
+//go:generate go run main.go
+
+func main() {
+	f, err := os.Create("generated.md")
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+
+	diagram := arch.NewArchitecture(io.Discard).
+		Service("left_disk", arch.IconDisk, "Disk").
+		Service("top_disk", arch.IconDisk, "Disk").
+		Service("bottom_disk", arch.IconDisk, "Disk").
+		Service("top_gateway", arch.IconInternet, "Gateway").
+		Service("bottom_gateway", arch.IconInternet, "Gateway").
+		Junction("junctionCenter").
+		Junction("junctionRight").
+		LF().
+		Edges(
+			arch.Edge{
+				ServiceID: "left_disk",
+				Position:  arch.PositionRight,
+				Arrow:     arch.ArrowNone,
+			},
+			arch.Edge{
+				ServiceID: "junctionCenter",
+				Position:  arch.PositionLeft,
+				Arrow:     arch.ArrowNone,
+			}).
+		Edges(
+			arch.Edge{
+				ServiceID: "top_disk",
+				Position:  arch.PositionBottom,
+				Arrow:     arch.ArrowNone,
+			},
+			arch.Edge{
+				ServiceID: "junctionCenter",
+				Position:  arch.PositionTop,
+				Arrow:     arch.ArrowNone,
+			}).
+		Edges(
+			arch.Edge{
+				ServiceID: "bottom_disk",
+				Position:  arch.PositionTop,
+				Arrow:     arch.ArrowNone,
+			},
+			arch.Edge{
+				ServiceID: "junctionCenter",
+				Position:  arch.PositionBottom,
+				Arrow:     arch.ArrowNone,
+			}).
+		Edges(
+			arch.Edge{
+				ServiceID: "junctionCenter",
+				Position:  arch.PositionRight,
+				Arrow:     arch.ArrowNone,
+			},
+			arch.Edge{
+				ServiceID: "junctionRight",
+				Position:  arch.PositionLeft,
+				Arrow:     arch.ArrowNone,
+			}).
+		Edges(
+			arch.Edge{
+				ServiceID: "top_gateway",
+				Position:  arch.PositionBottom,
+				Arrow:     arch.ArrowNone,
+			},
+			arch.Edge{
+				ServiceID: "junctionRight",
+				Position:  arch.PositionTop,
+				Arrow:     arch.ArrowNone,
+			}).
+		Edges(
+			arch.Edge{
+				ServiceID: "bottom_gateway",
+				Position:  arch.PositionTop,
+				Arrow:     arch.ArrowNone,
+			},
+			arch.Edge{
+				ServiceID: "junctionRight",
+				Position:  arch.PositionBottom,
+				Arrow:     arch.ArrowNone,
+			}).String() //nolint
+
+	err = markdown.NewMarkdown(f).
+		H2("Architecture Diagram").
+		CodeBlocks(markdown.SyntaxHighlightMermaid, diagram).
+		Build()
+
+	if err != nil {
+		panic(err)
+	}
+```
+
+Plain text output: [markdown is here](./doc/architecture/generated.md)
+````
+## Architecture Diagram
+```mermaid
+architecture-beta
+    service left_disk(disk)[Disk]
+    service top_disk(disk)[Disk]
+    service bottom_disk(disk)[Disk]
+    service top_gateway(internet)[Gateway]
+    service bottom_gateway(internet)[Gateway]
+    junction junctionCenter
+    junction junctionRight
+
+    left_disk:R -- L:junctionCenter
+    top_disk:B -- T:junctionCenter
+    bottom_disk:T -- B:junctionCenter
+    junctionCenter:R -- L:junctionRight
+    top_gateway:B -- T:junctionRight
+    bottom_gateway:T -- B:junctionRight
+```
+````
+
+![Architecture Diagram](./doc/architecture/image.png)
+
 ## Creating an index for a directory full of markdown files
 The markdown package can create an index for Markdown files within the specified directory. This feature was added to generate indexes for Markdown documents produced by [nao1215/spectest](https://github.com/nao1215/spectest).
   
