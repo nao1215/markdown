@@ -40,14 +40,14 @@ func TestFlowchart_Build(t *testing.T) {
 title: mermaid flowchart builder
 ---
 flowchart TB
-	A["Node A"]
-	B(["Node B"])
-	C[["Node C"]]
-	D[("Database")]
-	A-->B
-	B-->|"send original data"|D
-	B-->C
-	C-. "send filtered data" .-> D`
+    A["Node A"]
+    B(["Node B"])
+    C[["Node C"]]
+    D[("Database")]
+    A-->B
+    B-->|"send original data"|D
+    B-->C
+    C-. "send filtered data" .-> D`
 
 		got := strings.ReplaceAll(b.String(), "\r\n", "\n")
 
@@ -71,7 +71,7 @@ flowchart TB
 		}
 
 		want := `flowchart TB
-	A["Node A"]`
+    A["Node A"]`
 		got := strings.ReplaceAll(b.String(), "\r\n", "\n")
 
 		if diff := cmp.Diff(want, got); diff != "" {
@@ -93,7 +93,7 @@ flowchart TB
 		}
 
 		want := `flowchart TD
-	A["Node A"]`
+    A["Node A"]`
 		got := strings.ReplaceAll(b.String(), "\r\n", "\n")
 
 		if diff := cmp.Diff(want, got); diff != "" {
@@ -116,7 +116,7 @@ flowchart TB
 		}
 
 		want := `flowchart BT
-	A["Node A"]`
+    A["Node A"]`
 		got := strings.ReplaceAll(b.String(), "\r\n", "\n")
 
 		if diff := cmp.Diff(want, got); diff != "" {
@@ -139,7 +139,7 @@ flowchart TB
 		}
 
 		want := `flowchart RL
-	A["Node A"]`
+    A["Node A"]`
 		got := strings.ReplaceAll(b.String(), "\r\n", "\n")
 
 		if diff := cmp.Diff(want, got); diff != "" {
@@ -162,7 +162,7 @@ flowchart TB
 		}
 
 		want := `flowchart LR
-	A["Node A"]`
+    A["Node A"]`
 		got := strings.ReplaceAll(b.String(), "\r\n", "\n")
 
 		if diff := cmp.Diff(want, got); diff != "" {
@@ -212,36 +212,36 @@ D`).RoundEdgesNode("E", "Node E").
 		}
 
 		want := `flowchart TB
-	A
-	B["Node B"]
-	`
+    A
+    B["Node B"]
+    `
 		want += fmt.Sprintf("C[\"`**Node C**`\"]\n") //nolint:gosimple
-		want += fmt.Sprintf("\tD[\"`Node\n")         //nolint:gosimple
+		want += fmt.Sprintf("    D[\"`Node\n")       //nolint:gosimple
 		want += "D`\"]"
 		want += `
-	E("Node E")
-	F(["Node F"])
-	G[["Node G"]]
-	H[("Node H")]
-	I[("Database")]
-	J(("Node J"))
-	K>"Node K"]
-	L{"Node L"}
-	M{{"Node M"}}
-	N[/"Node N"/]
-	O[\"Node O"\]
-	P[/"Node P"\]
-	Q[\"Node Q"/]
-	R((("Node R")))
-	A-->B
-	B-->|"send"|C
-	C --- D
-	D---|"send"|E
-	E-.->F
-	F-. "send" .-> G
-	G ==> H
-	H == "send" ==> I
-	I ~~~ J`
+    E("Node E")
+    F(["Node F"])
+    G[["Node G"]]
+    H[("Node H")]
+    I[("Database")]
+    J(("Node J"))
+    K>"Node K"]
+    L{"Node L"}
+    M{{"Node M"}}
+    N[/"Node N"/]
+    O[\"Node O"\]
+    P[/"Node P"\]
+    Q[\"Node Q"/]
+    R((("Node R")))
+    A-->B
+    B-->|"send"|C
+    C --- D
+    D---|"send"|E
+    E-.->F
+    F-. "send" .-> G
+    G ==> H
+    H == "send" ==> I
+    I ~~~ J`
 
 		got := strings.ReplaceAll(b.String(), "\r\n", "\n")
 

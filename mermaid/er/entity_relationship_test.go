@@ -133,25 +133,25 @@ func TestDiagram_Build(t *testing.T) {
 		}
 
 		want := `erDiagram
-	teachers ||--o{ students : "Teacher has many students"
-	teachers }|..|| schools : "School has many teachers"
-	personal_computers {
-		int id PK,UK "Personal Computer ID"
-	}
-	schools {
-		int id PK,UK "School ID"
-		string name  "School Name"
-		int teacher_id FK,UK "Teacher ID"
-	}
-	students {
-		int id PK,UK "Student ID"
-		string name  "Student Name"
-		int teacher_id FK,UK "Teacher ID"
-	}
-	teachers {
-		int id PK,UK "Teacher ID"
-		string name  "Teacher Name"
-	}
+    teachers ||--o{ students : "Teacher has many students"
+    teachers }|..|| schools : "School has many teachers"
+    personal_computers {
+        int id PK,UK "Personal Computer ID"
+    }
+    schools {
+        int id PK,UK "School ID"
+        string name  "School Name"
+        int teacher_id FK,UK "Teacher ID"
+    }
+    students {
+        int id PK,UK "Student ID"
+        string name  "Student Name"
+        int teacher_id FK,UK "Teacher ID"
+    }
+    teachers {
+        int id PK,UK "Teacher ID"
+        string name  "Teacher Name"
+    }
 `
 		want = strings.ReplaceAll(want, "\r\n", "\n")
 		got := strings.ReplaceAll(b.String(), "\r\n", "\n")
