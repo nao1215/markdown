@@ -24,12 +24,12 @@ func (e *Entity) string() string {
 
 	return fmt.Sprintf(
 		"%s%s {%s%s%s%s}",
-		"	", // indent
+		"    ", // indent
 		e.Name,
 		internal.LineFeed(),
 		strings.Join(attrs, internal.LineFeed()),
 		internal.LineFeed(),
-		"	", // indent
+		"    ", // indent
 	)
 }
 
@@ -70,7 +70,7 @@ func (a *Attribute) string() string {
 		keys = append(keys, "UK")
 	}
 
-	s := fmt.Sprintf("		%s %s %s \"%s\"", a.Type, a.Name, strings.Join(keys, ","), a.Comment)
+	s := fmt.Sprintf("        %s %s %s \"%s\"", a.Type, a.Name, strings.Join(keys, ","), a.Comment)
 	s = strings.TrimSuffix(s, " ")
 	return strings.ReplaceAll(s, "\"\"", "")
 }
@@ -84,7 +84,7 @@ func (a *Attribute) string() string {
 func (d *Diagram) Relationship(leftE, rightE Entity, leftR, rightR Relationship, identidy Identify, comment string) *Diagram {
 	d.body = append(
 		d.body,
-		fmt.Sprintf("	%s %s%s%s %s : \"%s\"",
+		fmt.Sprintf("    %s %s%s%s %s : \"%s\"",
 			leftE.Name,
 			leftR.string(left),
 			identidy.string(),
