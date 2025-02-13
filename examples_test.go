@@ -94,11 +94,11 @@ func main() {
 	// ![sample_image](./sample.png)
 }
 
-// ExampleSequence skip this test on Windows.
+// ExampleNewDiagram skip this test on Windows.
 // The newline codes in the comment section where
 // the expected values are written are represented as '\n',
 // causing failures when testing on Windows.
-func ExampleSequence() {
+func ExampleNewDiagram() {
 	diagram := sequence.NewDiagram(os.Stdout).
 		Participant("Sophia").
 		Participant("David").
