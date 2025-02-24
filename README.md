@@ -15,7 +15,7 @@ Additionally, complex code that increases the complexity of the library, such as
   
 ## Supported OS and go version
 - OS: Linux, macOS, Windows
-- Go: 1.20 or later
+- Go: 1.21 or later
   
 ## Supported Markdown features
 - [x] Heading; H1, H2, H3, H4, H5, H6
