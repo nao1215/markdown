@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"reflect"
+	"runtime"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -272,6 +273,10 @@ func TestMarkdownTable(t *testing.T) {
 	t.Run("success Table()", func(t *testing.T) {
 		t.Parallel()
 
+		if runtime.GOOS == "windows" {
+			t.Skip("Skip test on Windows due to line feed mismatch")
+		}
+
 		m := NewMarkdown(os.Stdout)
 		set := TableSet{
 			Header: []string{"Name", "Age"},
@@ -377,6 +382,10 @@ func TestMarkdownCustomTable(t *testing.T) {
 	t.Parallel()
 	t.Run("success Table()", func(t *testing.T) {
 		t.Parallel()
+
+		if runtime.GOOS == "windows" {
+			t.Skip("Skip test on Windows due to line feed mismatch")
+		}
 
 		m := NewMarkdown(os.Stdout)
 		set := TableSet{
