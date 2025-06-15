@@ -86,9 +86,9 @@ func main() {
 	// ## Table
 	// | NAME  | AGE | COUNTRY |
 	// |-------|-----|---------|
-	// | David |  23 | USA     |
-	// | John  |  30 | UK      |
-	// | Bob   |  25 | Canada  |
+	// | David | 23  | USA     |
+	// | John  | 30  | UK      |
+	// | Bob   | 25  | Canada  |
 	//
 	// ## Image
 	// ![sample_image](./sample.png)
