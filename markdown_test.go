@@ -279,7 +279,7 @@ func TestMarkdownTable(t *testing.T) {
 		}
 		m.Table(set)
 		want := []string{
-			fmt.Sprintf("| NAME  | AGE |%s|-------|-----|%s| David |  23 |%s",
+			fmt.Sprintf("| NAME  | AGE |%s|-------|-----|%s| David | 23  |%s",
 				internal.LineFeed(), internal.LineFeed(), internal.LineFeed()),
 		}
 		got := m.body
@@ -388,7 +388,7 @@ func TestMarkdownCustomTable(t *testing.T) {
 			AutoFormatHeaders: false,
 		})
 		want := []string{
-			fmt.Sprintf("| Name  | Age |%s|-------|-----|%s| David |  23 |%s",
+			fmt.Sprintf("| Name  | Age |%s|-------|-----|%s| David | 23  |%s",
 				internal.LineFeed(), internal.LineFeed(), internal.LineFeed()),
 		}
 		got := m.body

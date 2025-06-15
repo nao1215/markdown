@@ -8,6 +8,8 @@ import (
 
 	"github.com/nao1215/markdown/internal"
 	"github.com/olekukonko/tablewriter"
+	"github.com/olekukonko/tablewriter/renderer"
+	"github.com/olekukonko/tablewriter/tw"
 )
 
 // SyntaxHighlight is syntax highlight language.
@@ -345,14 +347,35 @@ func (m *Markdown) Table(t TableSet) *Markdown {
 	}
 
 	buf := &strings.Builder{}
-	table := tablewriter.NewWriter(buf)
-	table.SetNewLine(internal.LineFeed())
-	table.SetBorders(tablewriter.Border{Left: true, Top: false, Right: true, Bottom: false})
-	table.SetCenterSeparator("|")
-	table.SetHeader(t.Header)
-	for _, v := range t.Rows {
-		table.Append(v)
-	}
+	table := tablewriter.NewTable(
+		buf,
+		tablewriter.WithRenderer(
+			renderer.NewBlueprint(
+				tw.Rendition{
+					Symbols: tw.NewSymbolCustom("Markdown").
+						WithHeaderLeft("|").
+						WithHeaderRight("|").
+						WithColumn("|").
+						WithMidLeft("|").
+						WithMidRight("|").
+						WithCenter("|"),
+					Borders: tw.Border{
+						Left:   tw.On,
+						Top:    tw.Off,
+						Right:  tw.On,
+						Bottom: tw.Off,
+					},
+				},
+			),
+		),
+		tablewriter.WithConfig(tablewriter.Config{
+			Row: tw.CellConfig{
+				Alignment: tw.CellAlignment{Global: tw.AlignNone},
+			},
+		}),
+	)
+	table.Header(t.Header)
+	table.Bulk(t.Rows)
 	table.Render()
 
 	m.body = append(m.body, buf.String())
@@ -379,17 +402,61 @@ func (m *Markdown) CustomTable(t TableSet, options TableOptions) *Markdown {
 	}
 
 	buf := &strings.Builder{}
-	table := tablewriter.NewWriter(buf)
-	table.SetNewLine(internal.LineFeed())
-	table.SetBorders(tablewriter.Border{Left: true, Top: false, Right: true, Bottom: false})
-	table.SetCenterSeparator("|")
-	table.SetAutoWrapText(options.AutoWrapText)
-	table.SetAutoFormatHeaders(options.AutoFormatHeaders)
+	table := tablewriter.NewTable(
+		buf,
+		tablewriter.WithRenderer(
+			renderer.NewBlueprint(
+				tw.Rendition{
+					Symbols: tw.NewSymbolCustom("Markdown").
+						WithHeaderLeft("|").
+						WithHeaderRight("|").
+						WithColumn("|").
+						WithMidLeft("|").
+						WithMidRight("|").
+						WithCenter("|"),
+					Borders: tw.Border{
+						Left:   tw.On,
+						Top:    tw.Off,
+						Right:  tw.On,
+						Bottom: tw.Off,
+					},
+				},
+			),
+		),
+		tablewriter.WithConfig(tablewriter.Config{
+			Header: tw.CellConfig{
+				Formatting: tw.CellFormatting{
+					AutoFormat: func() tw.State {
+						if options.AutoFormatHeaders {
+							return tw.Success
+						}
+						return tw.Fail
+					}(),
+				},
+			},
+			Row: tw.CellConfig{
+				Formatting: tw.CellFormatting{
+					AutoWrap: func() int {
+						if options.AutoWrapText {
+							return tw.WrapNormal
+						}
+						return tw.WrapNone
+					}(),
+					AutoFormat: func() tw.State {
+						if options.AutoFormatHeaders {
+							return tw.Success
+						}
+						return tw.Fail
+					}(),
+				},
 
-	table.SetHeader(t.Header)
-	for _, v := range t.Rows {
-		table.Append(v)
-	}
+				Alignment: tw.CellAlignment{Global: tw.AlignNone},
+			},
+		}),
+	)
+
+	table.Header(t.Header)
+	table.Bulk(t.Rows)
 	// This is so if the user wants to change the table settings they can
 	table.Render()
 
