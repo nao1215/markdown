@@ -2,6 +2,7 @@
 package markdown
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"strings"
@@ -375,8 +376,14 @@ func (m *Markdown) Table(t TableSet) *Markdown {
 		}),
 	)
 	table.Header(t.Header)
-	table.Bulk(t.Rows)
-	table.Render()
+	if err := table.Bulk(t.Rows); err != nil {
+		m.err = errors.Join(m.err, fmt.Errorf("failed to add rows to table: %w", err))
+		return m
+	}
+	if err := table.Render(); err != nil {
+		m.err = errors.Join(m.err, fmt.Errorf("failed to render table: %w", err))
+		return m
+	}
 
 	m.body = append(m.body, buf.String())
 	return m
@@ -456,9 +463,15 @@ func (m *Markdown) CustomTable(t TableSet, options TableOptions) *Markdown {
 	)
 
 	table.Header(t.Header)
-	table.Bulk(t.Rows)
+	if err := table.Bulk(t.Rows); err != nil {
+		m.err = errors.Join(m.err, fmt.Errorf("failed to add rows to table: %w", err))
+		return m
+	}
 	// This is so if the user wants to change the table settings they can
-	table.Render()
+	if err := table.Render(); err != nil {
+		m.err = errors.Join(m.err, fmt.Errorf("failed to render table: %w", err))
+		return m
+	}
 
 	m.body = append(m.body, buf.String())
 	return m
