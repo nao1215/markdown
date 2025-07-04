@@ -7,7 +7,7 @@ toolchain go1.24.0
 require (
 	github.com/google/go-cmp v0.7.0
 	github.com/karrick/godirwalk v1.17.0
-	github.com/olekukonko/tablewriter v1.0.7
+	github.com/olekukonko/tablewriter v1.0.8
 )
 
 require (
