@@ -6,46 +6,46 @@
 [![reviewdog](https://github.com/nao1215/markdown/actions/workflows/reviewdog.yml/badge.svg)](https://github.com/nao1215/markdown/actions/workflows/reviewdog.yml)
 [![Gosec](https://github.com/nao1215/markdown/actions/workflows/gosec.yml/badge.svg)](https://github.com/nao1215/markdown/actions/workflows/gosec.yml)
 ![Coverage](https://raw.githubusercontent.com/nao1215/octocovs-central-repo/main/badges/nao1215/markdown/coverage.svg)
-[日本語](./doc/ja/README.md) | [Русский](./doc/ru/README.md) | [中文](./doc/zh-cn/README.md) | [한국어](./doc/ko/README.md) | [Español](./doc/es/README.md) | [Français](./doc/fr/README.md)
+[English](../../README.md) | [日本語](../ja/README.md) | [Русский](../ru/README.md) | [中文](../zh-cn/README.md) | [Español](../es/README.md) | [Français](../fr/README.md)
 
-# What is markdown package
-The Package markdown is a simple markdown builder in golang. The markdown package assembles Markdown using method chaining, not uses a template engine like [html/template](https://pkg.go.dev/html/template). The syntax of Markdown follows **GitHub Markdown**.
-  
-The markdown package was initially developed to save test results in [nao1215/spectest](https://github.com/nao1215/spectest). Therefore, the markdown package implements the features required by spectest. For example, the markdown package supports **mermaid sequence diagrams (entity relationship diagram, sequence diagram, flowchart, pie chart, architecture diagram)**, which was a necessary feature in spectest.
-  
-Additionally, complex code that increases the complexity of the library, such as generating nested lists, will not be added. I want to keep this library as simple as possible.
-  
-## Supported OS and go version
+# markdown 패키지란 무엇인가
+markdown 패키지는 Golang으로 작성된 간단한 마크다운 빌더입니다. markdown 패키지는 [html/template](https://pkg.go.dev/html/template)과 같은 템플릿 엔진을 사용하지 않고 메서드 체이닝을 사용하여 Markdown을 조립합니다. Markdown의 구문은 **GitHub Markdown**을 따릅니다.
+
+markdown 패키지는 원래 [nao1215/spectest](https://github.com/nao1215/spectest)에서 테스트 결과를 저장하기 위해 개발되었습니다. 따라서 markdown 패키지는 spectest에 필요한 기능을 구현합니다. 예를 들어, markdown 패키지는 spectest에서 필요한 기능이었던 **mermaid 시퀀스 다이어그램(개체 관계 다이어그램, 시퀀스 다이어그램, 플로우차트, 파이 차트, 아키텍처 다이어그램)**을 지원합니다.
+
+또한 중첩된 목록 생성과 같은 라이브러리의 복잡성을 증가시키는 복잡한 코드는 추가되지 않을 것입니다. 이 라이브러리를 가능한 한 단순하게 유지하고 싶습니다.
+
+## 지원하는 OS 및 Go 버전
 - OS: Linux, macOS, Windows
-- Go: 1.21 or later
-  
-## Supported Markdown features
-- [x] Heading; H1, H2, H3, H4, H5, H6
-- [x] Blockquote 
-- [x] Bullet list
-- [x] Ordered list
-- [x] Checkbox list 
-- [x] Code blocks
-- [x] Horizontal rule 
-- [x] Table
-- [x] Text formatting; bold, italic, code, strikethrough, bold italic
-- [x] Text with link
-- [x] Text with image
-- [x] Plain text
-- [x] Details 
-- [x] Alerts; NOTE, TIP, IMPORTANT, CAUTION, WARNING
-- [x] mermaid sequence diagram
-- [x] mermaid entity relationship diagram
-- [x] mermaid flowchart 
-- [x] mermaid pie chart
-- [x] mermaid architecture diagram (beta feature) 
+- Go: 1.21 이상
 
-### Features not in Markdown syntax
-- Generate badges; RedBadge(), YellowBadge(), GreenBadge().
-- Generate an index for a directory full of markdown files; GenerateIndex()
-  
-## Example
-### Basic usage
+## 지원하는 Markdown 기능
+- [x] 제목; H1, H2, H3, H4, H5, H6
+- [x] 블록 인용
+- [x] 불릿 리스트
+- [x] 순서 있는 리스트
+- [x] 체크박스 리스트
+- [x] 코드 블록
+- [x] 수평선
+- [x] 테이블
+- [x] 텍스트 포맷; 볼드, 이탤릭, 코드, 취소선, 볼드 이탤릭
+- [x] 링크가 있는 텍스트
+- [x] 이미지가 있는 텍스트
+- [x] 평문
+- [x] 세부사항
+- [x] 알림; NOTE, TIP, IMPORTANT, CAUTION, WARNING
+- [x] mermaid 시퀀스 다이어그램
+- [x] mermaid 개체 관계 다이어그램
+- [x] mermaid 플로우차트
+- [x] mermaid 파이 차트
+- [x] mermaid 아키텍처 다이어그램 (베타 기능)
+
+### Markdown 구문에 없는 기능
+- 배지 생성; RedBadge(), YellowBadge(), GreenBadge()
+- 마크다운 파일로 가득 찬 디렉터리의 인덱스 생성; GenerateIndex()
+
+## 예제
+### 기본 사용법
 ```go
 package main
 
@@ -98,14 +98,14 @@ func main() {
 }
 ```
 
-Output:
+출력:
 ````
 # This is H1
 This is plain text
-  
+
 ## This is H2 with text format
 Text formatting, such as **bold** and *italic*, `code` styles.
-  
+
 ## Code Block
 ```go
 package main
@@ -115,7 +115,7 @@ func main() {
         fmt.Println("Hello, World!")
 }
 ```
-  
+
 ## List
 - Bullet Item 1
 - Bullet Item 2
@@ -123,18 +123,18 @@ func main() {
 1. Ordered Item 1
 2. Ordered Item 2
 3. Ordered Item 3
-  
+
 ## CheckBox
 - [ ] `sample code`
 - [x] [Go](https://golang.org)
 - [ ] ~~strikethrough~~
-  
+
 ## Blockquote
 > If you can dream it, you can do it.
-  
+
 ### Horizontal Rule
 ---
-  
+
 ## Table
 | NAME  | AGE | COUNTRY |
 |-------|-----|---------|
@@ -146,13 +146,13 @@ func main() {
 ![sample_image](./sample.png)
 ````
 
-If you want to see how it looks in Markdown, please refer to the following link.
-- [sample.md](./doc/generated_example.md)
+Markdown에서 어떻게 보이는지 확인하려면 다음 링크를 참조하세요.
+- [sample.md](../generated_example.md)
 
-### Generate Markdown using `"go generate ./..."`
-You can generate Markdown using `go generate`. Please define code to generate Markdown first. Then, run `"go generate ./..."` to generate Markdown.
+### `"go generate ./..."` 사용하여 Markdown 생성
+`go generate`를 사용하여 Markdown을 생성할 수 있습니다. 먼저 Markdown을 생성하는 코드를 정의하세요. 그런 다음 `"go generate ./..."`을 실행하여 Markdown을 생성하세요.
 
-[Code example:](./doc/generate/main.go)
+[코드 예제:](../generate/main.go)
 ```go
 package main
 
@@ -178,20 +178,20 @@ func main() {
 }
 ```
 
-Run below command:
+아래 명령을 실행하세요:
 ```shell
 go generate ./...
 ```
 
-[Output:](./doc/generate/generated.md)
+[출력:](../generate/generated.md)
 ````text
 # go generate example
 This markdown is generated by `go generate`
 ````
 
-### Alerts syntax
-The markdown package can create alerts. Alerts are useful for displaying important information in Markdown. This syntax is supported by GitHub.
-[Code example:](./doc/alert/main.go)
+### 알림 구문
+markdown 패키지는 알림을 생성할 수 있습니다. 알림은 Markdown에서 중요한 정보를 표시하는 데 유용합니다. 이 구문은 GitHub에서 지원됩니다.
+[코드 예제:](../alert/main.go)
 ```go
 	md.NewMarkdown(f).
 		H1("Alert example").
@@ -202,45 +202,45 @@ The markdown package can create alerts. Alerts are useful for displaying importa
 		Caution("This is caution").LF().
 		Build()
 ```
-  
-[Output:](./doc/alert/generated.md)
+
+[출력:](../alert/generated.md)
 ````text
 # Alert example
 > [!NOTE]  
 > This is note
-  
+
 > [!TIP]  
 > This is tip
-  
+
 > [!IMPORTANT]  
 > This is important
-  
+
 > [!WARNING]  
 > This is warning
-  
+
 > [!CAUTION]  
 > This is caution
 ````
 
-Your alert will look like this;
+알림은 다음과 같이 보입니다;
 > [!NOTE]  
 > This is note
-  
+
 > [!TIP]  
 > This is tip
-  
+
 > [!IMPORTANT]  
 > This is important
-  
+
 > [!WARNING]  
 > This is warning
-  
+
 > [!CAUTION]  
 > This is caution
 
-### Status badge syntax
-The markdown package can create red, yellow, and green status badges.
-[Code example:](./doc/badge/main.go)
+### 상태 배지 구문
+markdown 패키지는 빨강, 노랑, 초록 상태 배지를 만들 수 있습니다.
+[코드 예제:](../badge/main.go)
 ```go
 	md.NewMarkdown(os.Stdout).
 		H1("badge example").
@@ -251,7 +251,7 @@ The markdown package can create red, yellow, and green status badges.
 		Build()
 ```
 
-[Output:](./doc/badge/generated.md)
+[출력:](../badge/generated.md)
 ````text
 # badge example
 ![Badge](https://img.shields.io/badge/red_badge-red)
@@ -260,13 +260,13 @@ The markdown package can create red, yellow, and green status badges.
 ![Badge](https://img.shields.io/badge/blue_badge-blue)
 ````
 
-Your badge will look like this;  
+배지는 다음과 같이 보입니다;
 ![Badge](https://img.shields.io/badge/red_badge-red)
 ![Badge](https://img.shields.io/badge/yellow_badge-yellow)
 ![Badge](https://img.shields.io/badge/green_badge-green)
 ![Badge](https://img.shields.io/badge/blue_badge-blue)
 
-### Mermaid sequence diagram syntax
+### Mermaid 시퀀스 다이어그램 구문
 
 ```go
 package main
@@ -308,7 +308,7 @@ func main() {
 }
 ```
 
-Plain text output: [markdown is here](./doc/sequence/generated.md)
+일반 텍스트 출력: [markdown은 여기](../sequence/generated.md)
 ````
 ## Sequence Diagram
 ```mermaid
@@ -333,7 +333,7 @@ sequenceDiagram
 ```
 ````
 
-Mermaid output:
+Mermaid 출력:
 ```mermaid
 sequenceDiagram
     participant Sophia
@@ -355,7 +355,7 @@ sequenceDiagram
     David-->>Sophia: wake up, wake up
 ```
 
-### Entity Relationship Diagram syntax
+### 개체 관계 다이어그램 구문
 
 ```go
 package main
@@ -486,7 +486,7 @@ func main() {
 }
 ```
 
-Plain text output: [markdown is here](./doc/er/generated.md)
+일반 텍스트 출력: [markdown은 여기](../er/generated.md)
 ````
 ## Entity Relationship Diagram
 ```mermaid
@@ -511,7 +511,7 @@ erDiagram
 ```
 ````
 
-Mermaid output:
+Mermaid 출력:
 ```mermaid
 erDiagram
 	teachers ||--o{ students : "Teacher has many students"
@@ -532,7 +532,7 @@ erDiagram
 	}
 ```
 
-### Flowchart syntax
+### 플로우차트 구문
 
 ```go
 package main
@@ -580,7 +580,7 @@ func main() {
 }
 ```
 
-Plain text output: [markdown is here](./doc/flowchart/generated.md)
+일반 텍스트 출력: [markdown은 여기](../flowchart/generated.md)
 ````
 ## Flowchart
 ```mermaid
@@ -599,7 +599,7 @@ flowchart TB
 ```
 ````
 
-Mermaid output:
+Mermaid 출력:
 ```mermaid
 flowchart TB
 	A["Node A"]
@@ -612,7 +612,7 @@ flowchart TB
 	C-. "send filtered data" .-> D
 ```
 
-### Pie chart syntax
+### 파이 차트 구문
 
 ```go
 package main
@@ -655,7 +655,7 @@ func main() {
 }
 ```
 
-Plain text output: [markdown is here](./doc/piechart/generated.md)
+일반 텍스트 출력: [markdown은 여기](../piechart/generated.md)
 ````
 ## Pie Chart
 ```mermaid
@@ -668,7 +668,7 @@ pie showData
 ```
 ````
 
-Mermaid output:
+Mermaid 출력:
 ```mermaid
 %%{init: {"pie": {"textPosition": 0.75}, "themeVariables": {"pieOuterStrokeWidth": "5px"}} }%%
 pie showData
@@ -678,9 +678,9 @@ pie showData
     "C" : 30
 ```
 
-### Architecture Diagrams (beta feature)
+### 아키텍처 다이어그램 (베타 기능)
 
-[The mermaid provides a feature to visualize infrastructure architecture as a beta version](https://mermaid.js.org/syntax/architecture.html), and that feature has been introduced.
+[mermaid는 베타 버전으로 인프라 아키텍처를 시각화하는 기능을 제공하며](https://mermaid.js.org/syntax/architecture.html), 그 기능이 도입되었습니다.
 
 ```go
 package main
@@ -788,7 +788,7 @@ func main() {
 	}
 ```
 
-Plain text output: [markdown is here](./doc/architecture/generated.md)
+일반 텍스트 출력: [markdown은 여기](../architecture/generated.md)
 ````
 ## Architecture Diagram
 ```mermaid
@@ -810,12 +810,12 @@ architecture-beta
 ```
 ````
 
-![Architecture Diagram](./doc/architecture/image.png)
+![Architecture Diagram](../architecture/image.png)
 
-## Creating an index for a directory full of markdown files
-The markdown package can create an index for Markdown files within the specified directory. This feature was added to generate indexes for Markdown documents produced by [nao1215/spectest](https://github.com/nao1215/spectest).
-  
-For example, consider the following directory structure:
+## 마크다운 파일로 가득 찬 디렉터리의 인덱스 생성
+markdown 패키지는 지정된 디렉터리 내의 Markdown 파일에 대한 인덱스를 생성할 수 있습니다. 이 기능은 [nao1215/spectest](https://github.com/nao1215/spectest)에 의해 생성된 Markdown 문서의 인덱스를 생성하기 위해 추가되었습니다.
+
+예를 들어, 다음 디렉터리 구조를 고려해보세요:
 
 ```shell
 testdata
@@ -832,56 +832,56 @@ testdata
 ├── ghi
 └── test.md
 ```
-  
-In the following implementation, it creates an index markdown file containing links to all markdown files located within the testdata directory.
+
+다음 구현에서는 testdata 디렉터리 내에 있는 모든 마크다운 파일에 대한 링크가 포함된 인덱스 마크다운 파일을 생성합니다.
 
 ```go
 		if err := GenerateIndex(
-			"testdata", // target directory that contains markdown files
-			WithTitle("Test Title"), // title of index markdown
-			WithDescription([]string{"Test Description", "Next Description"}), // description of index markdown
+			"testdata", // 마크다운 파일이 포함된 대상 디렉터리
+			WithTitle("Test Title"), // 인덱스 마크다운의 제목
+			WithDescription([]string{"Test Description", "Next Description"}), // 인덱스 마크다운의 설명
 		); err != nil {
 			panic(err)
 		}
 ```
-  
-The index Markdown file is created under "target directory/index.md" by default. If you want to change this path, please use the `WithWriter()` option. The link names in the file will be the first occurrence of H1 or H2 in the target Markdown. If neither H1 nor H2 is present, the link name will be the file name of the destination.  
-  
-[Output:](./doc/index.md)
+
+인덱스 Markdown 파일은 기본적으로 "대상 디렉터리/index.md" 아래에 생성됩니다. 이 경로를 변경하려면 `WithWriter()` 옵션을 사용하세요. 파일의 링크 이름은 대상 Markdown에서 H1 또는 H2가 처음 나타나는 것이 됩니다. H1이나 H2가 모두 없으면 링크 이름은 대상의 파일 이름이 됩니다.
+
+[출력:](../index.md)
 ```markdown
 ## Test Title
 Test Description
-  
+
 Next Description
-  
+
 ### testdata
 - [test.md](test.md)
-  
+
 ### abc
 - [h2 is here](abc/test.md)
-  
+
 ### jkl
 - [text.md](abc/jkl/text.md)
-  
+
 ### def
 - [h2 is first, not h1](def/test.md)
 - [h1 is here](def/test2.md)
-  
+
 ### expected
 - [Test Title](expected/index.md)
 ```
-  
-## License
-[MIT License](./LICENSE)
 
-## Contribution
-First off, thanks for taking the time to contribute! See [CONTRIBUTING.md](./CONTRIBUTING.md) for more information. Contributions are not only related to development. For example, GitHub Star motivates me to develop! Please feel free to contribute to this project.
+## 라이선스
+[MIT License](../../LICENSE)
+
+## 기여
+우선, 기여해 주셔서 감사합니다! 자세한 정보는 [CONTRIBUTING.md](../../CONTRIBUTING.md)를 참조하세요. 기여는 개발에만 관련된 것이 아닙니다. 예를 들어, GitHub Star는 저를 개발하게 동기를 부여해줍니다! 이 프로젝트에 자유롭게 기여해 주세요.
 
 [![Star History Chart](https://api.star-history.com/svg?repos=nao1215/markdown&type=Date)](https://star-history.com/#nao1215/markdown&Date)
 
-### Contributors ✨
+### 기여자들 ✨
 
-Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/docs/en/emoji-key)):
+이 멋진 사람들에게 감사드립니다 ([이모지 키](https://allcontributors.org/docs/en/emoji-key)):
 
 <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
 <!-- prettier-ignore-start -->
@@ -912,4 +912,4 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
 
 <!-- ALL-CONTRIBUTORS-LIST:END -->
 
-This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification. Contributions of any kind welcome!
+이 프로젝트는 [all-contributors](https://github.com/all-contributors/all-contributors) 사양을 따릅니다. 모든 종류의 기여를 환영합니다!

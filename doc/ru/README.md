@@ -6,46 +6,46 @@
 [![reviewdog](https://github.com/nao1215/markdown/actions/workflows/reviewdog.yml/badge.svg)](https://github.com/nao1215/markdown/actions/workflows/reviewdog.yml)
 [![Gosec](https://github.com/nao1215/markdown/actions/workflows/gosec.yml/badge.svg)](https://github.com/nao1215/markdown/actions/workflows/gosec.yml)
 ![Coverage](https://raw.githubusercontent.com/nao1215/octocovs-central-repo/main/badges/nao1215/markdown/coverage.svg)
-[日本語](./doc/ja/README.md) | [Русский](./doc/ru/README.md) | [中文](./doc/zh-cn/README.md) | [한국어](./doc/ko/README.md) | [Español](./doc/es/README.md) | [Français](./doc/fr/README.md)
+[English](../../README.md) | [日本語](../ja/README.md) | [中文](../zh-cn/README.md) | [한국어](../ko/README.md) | [Español](../es/README.md) | [Français](../fr/README.md)
 
-# What is markdown package
-The Package markdown is a simple markdown builder in golang. The markdown package assembles Markdown using method chaining, not uses a template engine like [html/template](https://pkg.go.dev/html/template). The syntax of Markdown follows **GitHub Markdown**.
-  
-The markdown package was initially developed to save test results in [nao1215/spectest](https://github.com/nao1215/spectest). Therefore, the markdown package implements the features required by spectest. For example, the markdown package supports **mermaid sequence diagrams (entity relationship diagram, sequence diagram, flowchart, pie chart, architecture diagram)**, which was a necessary feature in spectest.
-  
-Additionally, complex code that increases the complexity of the library, such as generating nested lists, will not be added. I want to keep this library as simple as possible.
-  
-## Supported OS and go version
-- OS: Linux, macOS, Windows
-- Go: 1.21 or later
-  
-## Supported Markdown features
-- [x] Heading; H1, H2, H3, H4, H5, H6
-- [x] Blockquote 
-- [x] Bullet list
-- [x] Ordered list
-- [x] Checkbox list 
-- [x] Code blocks
-- [x] Horizontal rule 
-- [x] Table
-- [x] Text formatting; bold, italic, code, strikethrough, bold italic
-- [x] Text with link
-- [x] Text with image
-- [x] Plain text
-- [x] Details 
-- [x] Alerts; NOTE, TIP, IMPORTANT, CAUTION, WARNING
-- [x] mermaid sequence diagram
-- [x] mermaid entity relationship diagram
-- [x] mermaid flowchart 
-- [x] mermaid pie chart
-- [x] mermaid architecture diagram (beta feature) 
+# Что такое пакет markdown
+Пакет markdown - это простой конструктор markdown на языке Golang. Пакет markdown собирает Markdown используя цепочку методов, не используя шаблонизатор как [html/template](https://pkg.go.dev/html/template). Синтаксис Markdown следует **GitHub Markdown**.
 
-### Features not in Markdown syntax
-- Generate badges; RedBadge(), YellowBadge(), GreenBadge().
-- Generate an index for a directory full of markdown files; GenerateIndex()
-  
-## Example
-### Basic usage
+Пакет markdown изначально был разработан для сохранения результатов тестов в [nao1215/spectest](https://github.com/nao1215/spectest). Поэтому пакет markdown реализует функции, необходимые для spectest. Например, пакет markdown поддерживает **диаграммы последовательности mermaid (диаграммы сущностей-связей, диаграммы последовательности, блок-схемы, круговые диаграммы, архитектурные диаграммы)**, которые были необходимой функцией в spectest.
+
+Кроме того, сложный код, который увеличивает сложность библиотеки, такой как создание вложенных списков, добавляться не будет. Я хочу сохранить эту библиотеку максимально простой.
+
+## Поддерживаемые ОС и версии Go
+- ОС: Linux, macOS, Windows
+- Go: 1.21 или новее
+
+## Поддерживаемые функции Markdown
+- [x] Заголовки; H1, H2, H3, H4, H5, H6
+- [x] Блок-цитаты
+- [x] Маркированные списки
+- [x] Нумерованные списки
+- [x] Списки с флажками
+- [x] Блоки кода
+- [x] Горизонтальные линии
+- [x] Таблицы
+- [x] Форматирование текста; жирный, курсив, код, зачеркивание, жирный курсив
+- [x] Текст с ссылкой
+- [x] Текст с изображением
+- [x] Простой текст
+- [x] Детали
+- [x] Уведомления; NOTE, TIP, IMPORTANT, CAUTION, WARNING
+- [x] диаграммы последовательности mermaid
+- [x] диаграммы сущностей-связей mermaid
+- [x] блок-схемы mermaid
+- [x] круговые диаграммы mermaid
+- [x] архитектурные диаграммы mermaid (бета-функция)
+
+### Функции, не входящие в синтаксис Markdown
+- Создание значков; RedBadge(), YellowBadge(), GreenBadge().
+- Создание индекса для каталога, полного файлов markdown; GenerateIndex()
+
+## Пример
+### Основное использование
 ```go
 package main
 
@@ -98,14 +98,14 @@ func main() {
 }
 ```
 
-Output:
+Вывод:
 ````
 # This is H1
 This is plain text
-  
+
 ## This is H2 with text format
 Text formatting, such as **bold** and *italic*, `code` styles.
-  
+
 ## Code Block
 ```go
 package main
@@ -115,7 +115,7 @@ func main() {
         fmt.Println("Hello, World!")
 }
 ```
-  
+
 ## List
 - Bullet Item 1
 - Bullet Item 2
@@ -123,18 +123,18 @@ func main() {
 1. Ordered Item 1
 2. Ordered Item 2
 3. Ordered Item 3
-  
+
 ## CheckBox
 - [ ] `sample code`
 - [x] [Go](https://golang.org)
 - [ ] ~~strikethrough~~
-  
+
 ## Blockquote
 > If you can dream it, you can do it.
-  
+
 ### Horizontal Rule
 ---
-  
+
 ## Table
 | NAME  | AGE | COUNTRY |
 |-------|-----|---------|
@@ -146,13 +146,13 @@ func main() {
 ![sample_image](./sample.png)
 ````
 
-If you want to see how it looks in Markdown, please refer to the following link.
-- [sample.md](./doc/generated_example.md)
+Если вы хотите увидеть, как это выглядит в Markdown, пожалуйста, обратитесь к следующей ссылке.
+- [sample.md](../generated_example.md)
 
-### Generate Markdown using `"go generate ./..."`
-You can generate Markdown using `go generate`. Please define code to generate Markdown first. Then, run `"go generate ./..."` to generate Markdown.
+### Создание Markdown с использованием `"go generate ./..."`
+Вы можете создавать Markdown используя `go generate`. Сначала определите код для генерации Markdown. Затем запустите `"go generate ./..."` для создания Markdown.
 
-[Code example:](./doc/generate/main.go)
+[Пример кода:](../generate/main.go)
 ```go
 package main
 
@@ -178,20 +178,20 @@ func main() {
 }
 ```
 
-Run below command:
+Выполните команду ниже:
 ```shell
 go generate ./...
 ```
 
-[Output:](./doc/generate/generated.md)
+[Вывод:](../generate/generated.md)
 ````text
 # go generate example
 This markdown is generated by `go generate`
 ````
 
-### Alerts syntax
-The markdown package can create alerts. Alerts are useful for displaying important information in Markdown. This syntax is supported by GitHub.
-[Code example:](./doc/alert/main.go)
+### Синтаксис уведомлений
+Пакет markdown может создавать уведомления. Уведомления полезны для отображения важной информации в Markdown. Этот синтаксис поддерживается GitHub.
+[Пример кода:](../alert/main.go)
 ```go
 	md.NewMarkdown(f).
 		H1("Alert example").
@@ -202,45 +202,45 @@ The markdown package can create alerts. Alerts are useful for displaying importa
 		Caution("This is caution").LF().
 		Build()
 ```
-  
-[Output:](./doc/alert/generated.md)
+
+[Вывод:](../alert/generated.md)
 ````text
 # Alert example
 > [!NOTE]  
 > This is note
-  
+
 > [!TIP]  
 > This is tip
-  
+
 > [!IMPORTANT]  
 > This is important
-  
+
 > [!WARNING]  
 > This is warning
-  
+
 > [!CAUTION]  
 > This is caution
 ````
 
-Your alert will look like this;
+Ваше уведомление будет выглядеть так;
 > [!NOTE]  
 > This is note
-  
+
 > [!TIP]  
 > This is tip
-  
+
 > [!IMPORTANT]  
 > This is important
-  
+
 > [!WARNING]  
 > This is warning
-  
+
 > [!CAUTION]  
 > This is caution
 
-### Status badge syntax
-The markdown package can create red, yellow, and green status badges.
-[Code example:](./doc/badge/main.go)
+### Синтаксис значков состояния
+Пакет markdown может создавать красные, желтые и зеленые значки состояния.
+[Пример кода:](../badge/main.go)
 ```go
 	md.NewMarkdown(os.Stdout).
 		H1("badge example").
@@ -251,7 +251,7 @@ The markdown package can create red, yellow, and green status badges.
 		Build()
 ```
 
-[Output:](./doc/badge/generated.md)
+[Вывод:](../badge/generated.md)
 ````text
 # badge example
 ![Badge](https://img.shields.io/badge/red_badge-red)
@@ -260,13 +260,13 @@ The markdown package can create red, yellow, and green status badges.
 ![Badge](https://img.shields.io/badge/blue_badge-blue)
 ````
 
-Your badge will look like this;  
+Ваш значок будет выглядеть так:
 ![Badge](https://img.shields.io/badge/red_badge-red)
 ![Badge](https://img.shields.io/badge/yellow_badge-yellow)
 ![Badge](https://img.shields.io/badge/green_badge-green)
 ![Badge](https://img.shields.io/badge/blue_badge-blue)
 
-### Mermaid sequence diagram syntax
+### Синтаксис диаграммы последовательности Mermaid
 
 ```go
 package main
@@ -308,7 +308,7 @@ func main() {
 }
 ```
 
-Plain text output: [markdown is here](./doc/sequence/generated.md)
+Вывод простого текста: [markdown здесь](../sequence/generated.md)
 ````
 ## Sequence Diagram
 ```mermaid
@@ -333,7 +333,7 @@ sequenceDiagram
 ```
 ````
 
-Mermaid output:
+Вывод Mermaid:
 ```mermaid
 sequenceDiagram
     participant Sophia
@@ -355,7 +355,7 @@ sequenceDiagram
     David-->>Sophia: wake up, wake up
 ```
 
-### Entity Relationship Diagram syntax
+### Синтаксис диаграммы сущностей-связей
 
 ```go
 package main
@@ -486,7 +486,7 @@ func main() {
 }
 ```
 
-Plain text output: [markdown is here](./doc/er/generated.md)
+Вывод простого текста: [markdown здесь](../er/generated.md)
 ````
 ## Entity Relationship Diagram
 ```mermaid
@@ -511,7 +511,7 @@ erDiagram
 ```
 ````
 
-Mermaid output:
+Вывод Mermaid:
 ```mermaid
 erDiagram
 	teachers ||--o{ students : "Teacher has many students"
@@ -532,7 +532,7 @@ erDiagram
 	}
 ```
 
-### Flowchart syntax
+### Синтаксис блок-схем
 
 ```go
 package main
@@ -580,7 +580,7 @@ func main() {
 }
 ```
 
-Plain text output: [markdown is here](./doc/flowchart/generated.md)
+Вывод простого текста: [markdown здесь](../flowchart/generated.md)
 ````
 ## Flowchart
 ```mermaid
@@ -599,7 +599,7 @@ flowchart TB
 ```
 ````
 
-Mermaid output:
+Вывод Mermaid:
 ```mermaid
 flowchart TB
 	A["Node A"]
@@ -612,7 +612,7 @@ flowchart TB
 	C-. "send filtered data" .-> D
 ```
 
-### Pie chart syntax
+### Синтаксис круговых диаграмм
 
 ```go
 package main
@@ -655,7 +655,7 @@ func main() {
 }
 ```
 
-Plain text output: [markdown is here](./doc/piechart/generated.md)
+Вывод простого текста: [markdown здесь](../piechart/generated.md)
 ````
 ## Pie Chart
 ```mermaid
@@ -668,7 +668,7 @@ pie showData
 ```
 ````
 
-Mermaid output:
+Вывод Mermaid:
 ```mermaid
 %%{init: {"pie": {"textPosition": 0.75}, "themeVariables": {"pieOuterStrokeWidth": "5px"}} }%%
 pie showData
@@ -678,9 +678,9 @@ pie showData
     "C" : 30
 ```
 
-### Architecture Diagrams (beta feature)
+### Архитектурные диаграммы (бета-функция)
 
-[The mermaid provides a feature to visualize infrastructure architecture as a beta version](https://mermaid.js.org/syntax/architecture.html), and that feature has been introduced.
+[Mermaid предоставляет функцию визуализации архитектуры инфраструктуры как бета-версию](https://mermaid.js.org/syntax/architecture.html), и эта функция была введена.
 
 ```go
 package main
@@ -788,7 +788,7 @@ func main() {
 	}
 ```
 
-Plain text output: [markdown is here](./doc/architecture/generated.md)
+Вывод простого текста: [markdown здесь](../architecture/generated.md)
 ````
 ## Architecture Diagram
 ```mermaid
@@ -810,12 +810,12 @@ architecture-beta
 ```
 ````
 
-![Architecture Diagram](./doc/architecture/image.png)
+![Architecture Diagram](../architecture/image.png)
 
-## Creating an index for a directory full of markdown files
-The markdown package can create an index for Markdown files within the specified directory. This feature was added to generate indexes for Markdown documents produced by [nao1215/spectest](https://github.com/nao1215/spectest).
-  
-For example, consider the following directory structure:
+## Создание индекса для каталога, полного файлов markdown
+Пакет markdown может создать индекс для файлов Markdown в указанном каталоге. Эта функция была добавлена для генерации индексов для документов Markdown, созданных [nao1215/spectest](https://github.com/nao1215/spectest).
+
+Например, рассмотрим следующую структуру каталогов:
 
 ```shell
 testdata
@@ -832,56 +832,56 @@ testdata
 ├── ghi
 └── test.md
 ```
-  
-In the following implementation, it creates an index markdown file containing links to all markdown files located within the testdata directory.
+
+В следующей реализации создается индексный файл markdown, содержащий ссылки на все файлы markdown, расположенные в каталоге testdata.
 
 ```go
 		if err := GenerateIndex(
-			"testdata", // target directory that contains markdown files
-			WithTitle("Test Title"), // title of index markdown
-			WithDescription([]string{"Test Description", "Next Description"}), // description of index markdown
+			"testdata", // целевой каталог, содержащий файлы markdown
+			WithTitle("Test Title"), // заголовок индексного markdown
+			WithDescription([]string{"Test Description", "Next Description"}), // описание индексного markdown
 		); err != nil {
 			panic(err)
 		}
 ```
-  
-The index Markdown file is created under "target directory/index.md" by default. If you want to change this path, please use the `WithWriter()` option. The link names in the file will be the first occurrence of H1 or H2 in the target Markdown. If neither H1 nor H2 is present, the link name will be the file name of the destination.  
-  
-[Output:](./doc/index.md)
+
+Индексный файл Markdown создается по умолчанию в «целевом каталоге/index.md». Если вы хотите изменить этот путь, пожалуйста, используйте опцию `WithWriter()`. Имена ссылок в файле будут первым вхождением H1 или H2 в целевом Markdown. Если ни H1, ни H2 не присутствуют, именем ссылки будет имя файла назначения.
+
+[Вывод:](../index.md)
 ```markdown
 ## Test Title
 Test Description
-  
+
 Next Description
-  
+
 ### testdata
 - [test.md](test.md)
-  
+
 ### abc
 - [h2 is here](abc/test.md)
-  
+
 ### jkl
 - [text.md](abc/jkl/text.md)
-  
+
 ### def
 - [h2 is first, not h1](def/test.md)
 - [h1 is here](def/test2.md)
-  
+
 ### expected
 - [Test Title](expected/index.md)
 ```
-  
-## License
-[MIT License](./LICENSE)
 
-## Contribution
-First off, thanks for taking the time to contribute! See [CONTRIBUTING.md](./CONTRIBUTING.md) for more information. Contributions are not only related to development. For example, GitHub Star motivates me to develop! Please feel free to contribute to this project.
+## Лицензия
+[MIT License](../../LICENSE)
+
+## Вклад
+Прежде всего, спасибо за то, что нашли время для вклада! См. [CONTRIBUTING.md](../../CONTRIBUTING.md) для получения дополнительной информации. Вклады касаются не только разработки. Например, GitHub Star мотивирует меня к разработке! Пожалуйста, не стесняйтесь вносить вклад в этот проект.
 
 [![Star History Chart](https://api.star-history.com/svg?repos=nao1215/markdown&type=Date)](https://star-history.com/#nao1215/markdown&Date)
 
-### Contributors ✨
+### Участники ✨
 
-Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/docs/en/emoji-key)):
+Спасибо этим замечательным людям ([ключ эмодзи](https://allcontributors.org/docs/en/emoji-key)):
 
 <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
 <!-- prettier-ignore-start -->
@@ -912,4 +912,4 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
 
 <!-- ALL-CONTRIBUTORS-LIST:END -->
 
-This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification. Contributions of any kind welcome!
+Этот проект следует спецификации [all-contributors](https://github.com/all-contributors/all-contributors). Приветствуются любые виды вкладов!
