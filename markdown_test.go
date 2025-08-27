@@ -270,12 +270,9 @@ func TestTableSetValidateColumns(t *testing.T) {
 
 func TestMarkdownTable(t *testing.T) {
 	t.Parallel()
-	t.Run("success Table()", func(t *testing.T) {
-		t.Parallel()
 
-		if runtime.GOOS == "windows" {
-			t.Skip("Skip test on Windows due to line feed mismatch")
-		}
+	t.Run("success Table() without alignment", func(t *testing.T) {
+		t.Parallel()
 
 		m := NewMarkdown(os.Stdout)
 		set := TableSet{
@@ -284,9 +281,131 @@ func TestMarkdownTable(t *testing.T) {
 		}
 		m.Table(set)
 		want := []string{
-			fmt.Sprintf("| NAME  | AGE |%s|-------|-----|%s| David | 23  |%s",
+			fmt.Sprintf("| Name | Age |%s|---------|---------|%s| David | 23 |%s",
 				internal.LineFeed(), internal.LineFeed(), internal.LineFeed()),
 		}
+		got := m.body
+
+		if diff := cmp.Diff(want, got); diff != "" {
+			t.Errorf("value is mismatch (-want +got):\n%s", diff)
+		}
+	})
+
+	t.Run("success Table() with left alignment", func(t *testing.T) {
+		t.Parallel()
+
+		m := NewMarkdown(os.Stdout)
+		set := TableSet{
+			Header:    []string{"Left Align", "Normal"},
+			Rows:      [][]string{{"Content1", "Content2"}},
+			Alignment: []TableAlignment{AlignLeft},
+		}
+		m.Table(set)
+		want := []string{
+			fmt.Sprintf("| Left Align | Normal |%s|:--------|---------|%s| Content1 | Content2 |%s",
+				internal.LineFeed(), internal.LineFeed(), internal.LineFeed()),
+		}
+		got := m.body
+
+		if diff := cmp.Diff(want, got); diff != "" {
+			t.Errorf("value is mismatch (-want +got):\n%s", diff)
+		}
+	})
+
+	t.Run("success Table() with center alignment", func(t *testing.T) {
+		t.Parallel()
+
+		m := NewMarkdown(os.Stdout)
+		set := TableSet{
+			Header:    []string{"Center Align", "Normal"},
+			Rows:      [][]string{{"Content1", "Content2"}},
+			Alignment: []TableAlignment{AlignCenter},
+		}
+		m.Table(set)
+		want := []string{
+			fmt.Sprintf("| Center Align | Normal |%s|:-------:|---------|%s| Content1 | Content2 |%s",
+				internal.LineFeed(), internal.LineFeed(), internal.LineFeed()),
+		}
+		got := m.body
+
+		if diff := cmp.Diff(want, got); diff != "" {
+			t.Errorf("value is mismatch (-want +got):\n%s", diff)
+		}
+	})
+
+	t.Run("success Table() with right alignment", func(t *testing.T) {
+		t.Parallel()
+
+		m := NewMarkdown(os.Stdout)
+		set := TableSet{
+			Header:    []string{"Right Align", "Normal"},
+			Rows:      [][]string{{"Content1", "Content2"}},
+			Alignment: []TableAlignment{AlignRight},
+		}
+		m.Table(set)
+		want := []string{
+			fmt.Sprintf("| Right Align | Normal |%s|--------:|---------|%s| Content1 | Content2 |%s",
+				internal.LineFeed(), internal.LineFeed(), internal.LineFeed()),
+		}
+		got := m.body
+
+		if diff := cmp.Diff(want, got); diff != "" {
+			t.Errorf("value is mismatch (-want +got):\n%s", diff)
+		}
+	})
+
+	t.Run("success Table() with mixed alignments", func(t *testing.T) {
+		t.Parallel()
+
+		m := NewMarkdown(os.Stdout)
+		set := TableSet{
+			Header:    []string{"Left Align", "Center Align", "Right Align"},
+			Rows:      [][]string{{"Content1", "Content2", "Content3"}, {"Content4", "Content5", "Content6"}},
+			Alignment: []TableAlignment{AlignLeft, AlignCenter, AlignRight},
+		}
+		m.Table(set)
+		want := []string{
+			fmt.Sprintf("| Left Align | Center Align | Right Align |%s|:--------|:-------:|--------:|%s| Content1 | Content2 | Content3 |%s| Content4 | Content5 | Content6 |%s",
+				internal.LineFeed(), internal.LineFeed(), internal.LineFeed(), internal.LineFeed()),
+		}
+		got := m.body
+
+		if diff := cmp.Diff(want, got); diff != "" {
+			t.Errorf("value is mismatch (-want +got):\n%s", diff)
+		}
+	})
+
+	t.Run("success Table() with partial alignment specification", func(t *testing.T) {
+		t.Parallel()
+
+		m := NewMarkdown(os.Stdout)
+		set := TableSet{
+			Header:    []string{"Left", "Default", "Center"},
+			Rows:      [][]string{{"A", "B", "C"}},
+			Alignment: []TableAlignment{AlignLeft, AlignCenter}, // Only specify first 2 columns
+		}
+		m.Table(set)
+		want := []string{
+			fmt.Sprintf("| Left | Default | Center |%s|:--------|:-------:|---------|%s| A | B | C |%s",
+				internal.LineFeed(), internal.LineFeed(), internal.LineFeed()),
+		}
+		got := m.body
+
+		if diff := cmp.Diff(want, got); diff != "" {
+			t.Errorf("value is mismatch (-want +got):\n%s", diff)
+		}
+	})
+
+	t.Run("empty table headers", func(t *testing.T) {
+		t.Parallel()
+
+		m := NewMarkdown(os.Stdout)
+		set := TableSet{
+			Header: []string{},
+			Rows:   [][]string{},
+		}
+		m.Table(set)
+		want := []string{}
 		got := m.body
 
 		if diff := cmp.Diff(want, got); diff != "" {

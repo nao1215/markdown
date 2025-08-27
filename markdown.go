@@ -317,12 +317,29 @@ func (m *Markdown) HorizontalRule() *Markdown {
 	return m
 }
 
+// TableAlignment represents column alignment in markdown tables.
+type TableAlignment int
+
+const (
+	// AlignDefault represents no specific alignment (left by default).
+	AlignDefault TableAlignment = iota
+	// AlignLeft represents left alignment (:------).
+	AlignLeft
+	// AlignCenter represents center alignment (:-----:).
+	AlignCenter
+	// AlignRight represents right alignment (------:).
+	AlignRight
+)
+
 // TableSet is markdown table.
 type TableSet struct {
 	// Header is table header.
 	Header []string
 	// Rows is table record.
 	Rows [][]string
+	// Alignment is column alignment for each column.
+	// If nil or shorter than header length, remaining columns use AlignDefault.
+	Alignment []TableAlignment
 }
 
 // ValidateColumns checks if the number of columns in the header and records match.
@@ -336,53 +353,62 @@ func (t *TableSet) ValidateColumns() error {
 	return nil
 }
 
-// Table is markdown table.
+// Table is markdown table with alignment support.
 func (m *Markdown) Table(t TableSet) *Markdown {
 	if err := t.ValidateColumns(); err != nil {
-		// NOTE: If go version is 1.20, use errors.Join
 		if m.err != nil {
 			m.err = fmt.Errorf("failed to validate columns: %w: %s", err, m.err) //nolint:wrapcheck
 		} else {
 			m.err = fmt.Errorf("failed to validate columns: %w", err)
 		}
+		return m
 	}
 
-	buf := &strings.Builder{}
-	table := tablewriter.NewTable(
-		buf,
-		tablewriter.WithRenderer(
-			renderer.NewBlueprint(
-				tw.Rendition{
-					Symbols: tw.NewSymbolCustom("Markdown").
-						WithHeaderLeft("|").
-						WithHeaderRight("|").
-						WithColumn("|").
-						WithMidLeft("|").
-						WithMidRight("|").
-						WithCenter("|"),
-					Borders: tw.Border{
-						Left:   tw.On,
-						Top:    tw.Off,
-						Right:  tw.On,
-						Bottom: tw.Off,
-					},
-				},
-			),
-		),
-		tablewriter.WithConfig(tablewriter.Config{
-			Row: tw.CellConfig{
-				Alignment: tw.CellAlignment{Global: tw.AlignNone},
-			},
-		}),
-	)
-	table.Header(t.Header)
-	if err := table.Bulk(t.Rows); err != nil {
-		m.err = errors.Join(m.err, fmt.Errorf("failed to add rows to table: %w", err))
+	if len(t.Header) == 0 {
 		return m
 	}
-	if err := table.Render(); err != nil {
-		m.err = errors.Join(m.err, fmt.Errorf("failed to render table: %w", err))
-		return m
+
+	var buf strings.Builder
+
+	// Write header row
+	buf.WriteString("|")
+	for _, header := range t.Header {
+		buf.WriteString(" ")
+		buf.WriteString(header)
+		buf.WriteString(" |")
+	}
+	buf.WriteString(internal.LineFeed())
+
+	// Write separator row with alignment
+	buf.WriteString("|")
+	for i := 0; i < len(t.Header); i++ {
+		align := AlignDefault
+		if i < len(t.Alignment) {
+			align = t.Alignment[i]
+		}
+
+		switch align {
+		case AlignLeft:
+			buf.WriteString(":--------|")
+		case AlignCenter:
+			buf.WriteString(":-------:|")
+		case AlignRight:
+			buf.WriteString("--------:|")
+		default: // AlignDefault
+			buf.WriteString("---------|")
+		}
+	}
+	buf.WriteString(internal.LineFeed())
+
+	// Write data rows
+	for _, row := range t.Rows {
+		buf.WriteString("|")
+		for _, cell := range row {
+			buf.WriteString(" ")
+			buf.WriteString(cell)
+			buf.WriteString(" |")
+		}
+		buf.WriteString(internal.LineFeed())
 	}
 
 	m.body = append(m.body, buf.String())
