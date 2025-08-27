@@ -84,11 +84,11 @@ func main() {
 	// ### Horizontal Rule
 	// ---
 	// ## Table
-	// | NAME  | AGE | COUNTRY |
-	// |-------|-----|---------|
-	// | David | 23  | USA     |
-	// | John  | 30  | UK      |
-	// | Bob   | 25  | Canada  |
+	// | Name | Age | Country |
+	// |---------|---------|---------|
+	// | David | 23 | USA |
+	// | John | 30 | UK |
+	// | Bob | 25 | Canada |
 	//
 	// ## Image
 	// ![sample_image](./sample.png)
@@ -146,4 +146,26 @@ func ExampleNewDiagram() {
 	//
 	//     David-->>Sophia: wake up, wake up
 	// ```
+}
+
+// ExampleTableAlignment demonstrates table alignment features.
+func ExampleTableAlignment() {
+	md.NewMarkdown(os.Stdout).
+		H2("Table with Alignments").
+		Table(md.TableSet{
+			Header: []string{"Left Align", "Center Align", "Right Align"},
+			Rows: [][]string{
+				{"Content1", "Content2", "Content3"},
+				{"Content4", "Content5", "Content6"},
+			},
+			Alignment: []md.TableAlignment{md.AlignLeft, md.AlignCenter, md.AlignRight},
+		}).
+		Build()
+
+	// Output:
+	// ## Table with Alignments
+	// | Left Align | Center Align | Right Align |
+	// |:--------|:-------:|--------:|
+	// | Content1 | Content2 | Content3 |
+	// | Content4 | Content5 | Content6 |
 }
