@@ -29,6 +29,233 @@ func TestPlainText(t *testing.T) {
 	})
 }
 
+func TestTableOfContents(t *testing.T) {
+	t.Parallel()
+
+	t.Run("TOC with depth H2", func(t *testing.T) {
+		t.Parallel()
+
+		m := NewMarkdown(os.Stdout)
+		m.H1("Introduction").
+			H2("Overview").
+			H3("Details").
+			H2("Conclusion").
+			TableOfContents(TableOfContentsDepthH2)
+
+		want := "# Introduction" + internal.LineFeed() +
+			"## Overview" + internal.LineFeed() +
+			"### Details" + internal.LineFeed() +
+			"## Conclusion" + internal.LineFeed() +
+			"- [Introduction](#introduction)" + internal.LineFeed() +
+			"  - [Overview](#overview)" + internal.LineFeed() +
+			"  - [Conclusion](#conclusion)" + internal.LineFeed() +
+			""
+		got := m.String()
+
+		if diff := cmp.Diff(want, got); diff != "" {
+			t.Errorf("value is mismatch (-want +got):\n%s", diff)
+		}
+	})
+
+	t.Run("TOC with depth H3", func(t *testing.T) {
+		t.Parallel()
+
+		m := NewMarkdown(os.Stdout)
+		m.H1("Chapter 1").
+			H2("Section 1.1").
+			H3("Subsection 1.1.1").
+			H4("Detail").
+			TableOfContents(TableOfContentsDepthH3)
+
+		want := "# Chapter 1" + internal.LineFeed() +
+			"## Section 1.1" + internal.LineFeed() +
+			"### Subsection 1.1.1" + internal.LineFeed() +
+			"#### Detail" + internal.LineFeed() +
+			"- [Chapter 1](#chapter-1)" + internal.LineFeed() +
+			"  - [Section 1.1](#section-11)" + internal.LineFeed() +
+			"    - [Subsection 1.1.1](#subsection-111)" + internal.LineFeed() +
+			""
+		got := m.String()
+
+		if diff := cmp.Diff(want, got); diff != "" {
+			t.Errorf("value is mismatch (-want +got):\n%s", diff)
+		}
+	})
+
+	t.Run("TOC with depth H1 only", func(t *testing.T) {
+		t.Parallel()
+
+		m := NewMarkdown(os.Stdout)
+		m.H1("First").
+			H2("Should not appear").
+			H1("Second").
+			TableOfContents(TableOfContentsDepthH1)
+
+		want := "# First" + internal.LineFeed() +
+			"## Should not appear" + internal.LineFeed() +
+			"# Second" + internal.LineFeed() +
+			"- [First](#first)" + internal.LineFeed() +
+			"- [Second](#second)" + internal.LineFeed() +
+			""
+		got := m.String()
+
+		if diff := cmp.Diff(want, got); diff != "" {
+			t.Errorf("value is mismatch (-want +got):\n%s", diff)
+		}
+	})
+
+	t.Run("TOC with no headers", func(t *testing.T) {
+		t.Parallel()
+
+		m := NewMarkdown(os.Stdout)
+		m.PlainText("Just text").
+			TableOfContents(TableOfContentsDepthH2)
+
+		want := "Just text"
+		got := m.String()
+
+		if diff := cmp.Diff(want, got); diff != "" {
+			t.Errorf("value is mismatch (-want +got):\n%s", diff)
+		}
+	})
+
+	t.Run("TOC with special characters in headers", func(t *testing.T) {
+		t.Parallel()
+
+		m := NewMarkdown(os.Stdout)
+		m.H1("Hello World!").
+			H2("C++ Programming").
+			H3("API & SDK").
+			TableOfContents(TableOfContentsDepthH3)
+
+		want := "# Hello World!" + internal.LineFeed() +
+			"## C++ Programming" + internal.LineFeed() +
+			"### API & SDK" + internal.LineFeed() +
+			"- [Hello World!](#hello-world)" + internal.LineFeed() +
+			"  - [C++ Programming](#c-programming)" + internal.LineFeed() +
+			"    - [API & SDK](#api--sdk)" + internal.LineFeed() +
+			""
+		got := m.String()
+
+		if diff := cmp.Diff(want, got); diff != "" {
+			t.Errorf("value is mismatch (-want +got):\n%s", diff)
+		}
+	})
+
+	t.Run("TOC with depth H4", func(t *testing.T) {
+		t.Parallel()
+
+		m := NewMarkdown(os.Stdout)
+		m.H1("Title").
+			H2("Section").
+			H3("Subsection").
+			H4("Subsubsection").
+			H5("Deep").
+			TableOfContents(TableOfContentsDepthH4)
+
+		want := "# Title" + internal.LineFeed() +
+			"## Section" + internal.LineFeed() +
+			"### Subsection" + internal.LineFeed() +
+			"#### Subsubsection" + internal.LineFeed() +
+			"##### Deep" + internal.LineFeed() +
+			"- [Title](#title)" + internal.LineFeed() +
+			"  - [Section](#section)" + internal.LineFeed() +
+			"    - [Subsection](#subsection)" + internal.LineFeed() +
+			"      - [Subsubsection](#subsubsection)" + internal.LineFeed() +
+			""
+		got := m.String()
+
+		if diff := cmp.Diff(want, got); diff != "" {
+			t.Errorf("value is mismatch (-want +got):\n%s", diff)
+		}
+	})
+
+	t.Run("TOC with depth H5", func(t *testing.T) {
+		t.Parallel()
+
+		m := NewMarkdown(os.Stdout)
+		m.H1("A").
+			H2("B").
+			H3("C").
+			H4("D").
+			H5("E").
+			H6("F").
+			TableOfContents(TableOfContentsDepthH5)
+
+		want := "# A" + internal.LineFeed() +
+			"## B" + internal.LineFeed() +
+			"### C" + internal.LineFeed() +
+			"#### D" + internal.LineFeed() +
+			"##### E" + internal.LineFeed() +
+			"###### F" + internal.LineFeed() +
+			"- [A](#a)" + internal.LineFeed() +
+			"  - [B](#b)" + internal.LineFeed() +
+			"    - [C](#c)" + internal.LineFeed() +
+			"      - [D](#d)" + internal.LineFeed() +
+			"        - [E](#e)" + internal.LineFeed() +
+			""
+		got := m.String()
+
+		if diff := cmp.Diff(want, got); diff != "" {
+			t.Errorf("value is mismatch (-want +got):\n%s", diff)
+		}
+	})
+
+	t.Run("TOC with depth H6", func(t *testing.T) {
+		t.Parallel()
+
+		m := NewMarkdown(os.Stdout)
+		m.H1("Level1").
+			H2("Level2").
+			H3("Level3").
+			H4("Level4").
+			H5("Level5").
+			H6("Level6").
+			TableOfContents(TableOfContentsDepthH6)
+
+		want := "# Level1" + internal.LineFeed() +
+			"## Level2" + internal.LineFeed() +
+			"### Level3" + internal.LineFeed() +
+			"#### Level4" + internal.LineFeed() +
+			"##### Level5" + internal.LineFeed() +
+			"###### Level6" + internal.LineFeed() +
+			"- [Level1](#level1)" + internal.LineFeed() +
+			"  - [Level2](#level2)" + internal.LineFeed() +
+			"    - [Level3](#level3)" + internal.LineFeed() +
+			"      - [Level4](#level4)" + internal.LineFeed() +
+			"        - [Level5](#level5)" + internal.LineFeed() +
+			"          - [Level6](#level6)" + internal.LineFeed() +
+			""
+		got := m.String()
+
+		if diff := cmp.Diff(want, got); diff != "" {
+			t.Errorf("value is mismatch (-want +got):\n%s", diff)
+		}
+	})
+
+	t.Run("TOC with H1f, H2f format methods", func(t *testing.T) {
+		t.Parallel()
+
+		m := NewMarkdown(os.Stdout)
+		m.H1f("Title %d", 1).
+			H2f("Section %s", "A").
+			H3f("Sub %s", "B").
+			TableOfContents(TableOfContentsDepthH2)
+
+		want := "# Title 1" + internal.LineFeed() +
+			"## Section A" + internal.LineFeed() +
+			"### Sub B" + internal.LineFeed() +
+			"- [Title 1](#title-1)" + internal.LineFeed() +
+			"  - [Section A](#section-a)" + internal.LineFeed() +
+			""
+		got := m.String()
+
+		if diff := cmp.Diff(want, got); diff != "" {
+			t.Errorf("value is mismatch (-want +got):\n%s", diff)
+		}
+	})
+}
+
 func TestMarkdownHeader(t *testing.T) {
 	t.Parallel()
 

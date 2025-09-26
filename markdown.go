@@ -109,6 +109,30 @@ const (
 	SyntaxHighlightMermaid SyntaxHighlight = "mermaid"
 )
 
+// TableOfContentsDepth represents the depth level for table of contents.
+type TableOfContentsDepth int
+
+const (
+	// TableOfContentsDepthH1 includes only H1 headers in the table of contents.
+	TableOfContentsDepthH1 TableOfContentsDepth = 1
+	// TableOfContentsDepthH2 includes H1 and H2 headers in the table of contents.
+	TableOfContentsDepthH2 TableOfContentsDepth = 2
+	// TableOfContentsDepthH3 includes H1, H2, and H3 headers in the table of contents.
+	TableOfContentsDepthH3 TableOfContentsDepth = 3
+	// TableOfContentsDepthH4 includes H1, H2, H3, and H4 headers in the table of contents.
+	TableOfContentsDepthH4 TableOfContentsDepth = 4
+	// TableOfContentsDepthH5 includes H1, H2, H3, H4, and H5 headers in the table of contents.
+	TableOfContentsDepthH5 TableOfContentsDepth = 5
+	// TableOfContentsDepthH6 includes all headers (H1 through H6) in the table of contents.
+	TableOfContentsDepthH6 TableOfContentsDepth = 6
+)
+
+// headerInfo stores information about a header for table of contents generation.
+type headerInfo struct {
+	level TableOfContentsDepth
+	text  string
+}
+
 // Markdown is markdown text.
 type Markdown struct {
 	// body is markdown body.
@@ -117,13 +141,16 @@ type Markdown struct {
 	dest io.Writer
 	// err manages errors that occur in all parts of the markdown building.
 	err error
+	// headers stores header information for table of contents generation.
+	headers []headerInfo
 }
 
 // NewMarkdown returns new Markdown.
 func NewMarkdown(w io.Writer) *Markdown {
 	return &Markdown{
-		body: []string{},
-		dest: w,
+		body:    []string{},
+		dest:    w,
+		headers: []headerInfo{},
 	}
 }
 
@@ -162,6 +189,7 @@ func (m *Markdown) Build() error {
 // H1 is markdown header.
 // If you set text "Hello", it will be converted to "# Hello".
 func (m *Markdown) H1(text string) *Markdown {
+	m.headers = append(m.headers, headerInfo{level: TableOfContentsDepthH1, text: text})
 	m.body = append(m.body, fmt.Sprintf("# %s", text))
 	return m
 }
@@ -175,6 +203,7 @@ func (m *Markdown) H1f(format string, args ...interface{}) *Markdown {
 // H2 is markdown header.
 // If you set text "Hello", it will be converted to "## Hello".
 func (m *Markdown) H2(text string) *Markdown {
+	m.headers = append(m.headers, headerInfo{level: TableOfContentsDepthH2, text: text})
 	m.body = append(m.body, fmt.Sprintf("## %s", text))
 	return m
 }
@@ -188,6 +217,7 @@ func (m *Markdown) H2f(format string, args ...interface{}) *Markdown {
 // H3 is markdown header.
 // If you set text "Hello", it will be converted to "### Hello".
 func (m *Markdown) H3(text string) *Markdown {
+	m.headers = append(m.headers, headerInfo{level: TableOfContentsDepthH3, text: text})
 	m.body = append(m.body, fmt.Sprintf("### %s", text))
 	return m
 }
@@ -201,6 +231,7 @@ func (m *Markdown) H3f(format string, args ...interface{}) *Markdown {
 // H4 is markdown header.
 // If you set text "Hello", it will be converted to "#### Hello".
 func (m *Markdown) H4(text string) *Markdown {
+	m.headers = append(m.headers, headerInfo{level: TableOfContentsDepthH4, text: text})
 	m.body = append(m.body, fmt.Sprintf("#### %s", text))
 	return m
 }
@@ -214,6 +245,7 @@ func (m *Markdown) H4f(format string, args ...interface{}) *Markdown {
 // H5 is markdown header.
 // If you set text "Hello", it will be converted to "##### Hello".
 func (m *Markdown) H5(text string) *Markdown {
+	m.headers = append(m.headers, headerInfo{level: TableOfContentsDepthH5, text: text})
 	m.body = append(m.body, fmt.Sprintf("##### %s", text))
 	return m
 }
@@ -227,6 +259,7 @@ func (m *Markdown) H5f(format string, args ...interface{}) *Markdown {
 // H6 is markdown header.
 // If you set text "Hello", it will be converted to "###### Hello".
 func (m *Markdown) H6(text string) *Markdown {
+	m.headers = append(m.headers, headerInfo{level: TableOfContentsDepthH6, text: text})
 	m.body = append(m.body, fmt.Sprintf("###### %s", text))
 	return m
 }
@@ -235,6 +268,44 @@ func (m *Markdown) H6(text string) *Markdown {
 // If you set format "%s", text "Hello", it will be converted to "###### Hello".
 func (m *Markdown) H6f(format string, args ...interface{}) *Markdown {
 	return m.H6(fmt.Sprintf(format, args...))
+}
+
+// TableOfContents generates a table of contents from the headers recorded so far.
+// Call this AFTER declaring the headers you want included, or the TOC will be empty.
+// The depth parameter controls how many header levels to include (use TableOfContentsDepthH1 through TableOfContentsDepthH6 constants).
+//
+// Example:
+//
+//	md := markdown.NewMarkdown(os.Stdout)
+//	md.H1("Introduction").
+//	   H2("Overview").
+//	   H3("Details").  // This H3 will not appear in TOC when depth is H2
+//	   TableOfContents(markdown.TableOfContentsDepthH2).
+//	   Build()
+func (m *Markdown) TableOfContents(depth TableOfContentsDepth) *Markdown {
+	if len(m.headers) == 0 {
+		return m
+	}
+
+	for _, header := range m.headers {
+		if header.level > depth {
+			continue
+		}
+
+		indent := strings.Repeat("  ", int(header.level)-1)
+		anchor := strings.ToLower(strings.ReplaceAll(header.text, " ", "-"))
+		anchor = strings.Map(func(r rune) rune {
+			if (r >= 'a' && r <= 'z') || (r >= '0' && r <= '9') || r == '-' {
+				return r
+			}
+			return -1
+		}, anchor)
+
+		m.body = append(m.body, fmt.Sprintf("%s- [%s](#%s)", indent, header.text, anchor))
+	}
+
+	m.body = append(m.body, "")
+	return m
 }
 
 // Details is markdown details.
