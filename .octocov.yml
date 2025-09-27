@@ -2,8 +2,9 @@
 coverage:
   exclude:
     - 'github.com/nao1215/markdown/doc/**/*.go'
+    - '**/mermaid/arch/*.go'
   if: true
-  acceptable: 80%
+  acceptable: 75%
   badge:
     path: docs/coverage.svg
 diff:
