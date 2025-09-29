@@ -4,7 +4,7 @@ coverage:
     - 'github.com/nao1215/markdown/doc/**/*.go'
     - '**/mermaid/arch/*.go'
   if: true
-  acceptable: 75%
+  acceptable: 90%
   badge:
     path: docs/coverage.svg
 diff:
