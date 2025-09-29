@@ -127,6 +127,21 @@ const (
 	TableOfContentsDepthH6 TableOfContentsDepth = 6
 )
 
+const (
+	// TableOfContentsMarkerBegin is the marker for the beginning of the table of contents.
+	TableOfContentsMarkerBegin = "<!-- BEGIN_TOC -->"
+	// TableOfContentsMarkerEnd is the marker for the end of the table of contents.
+	TableOfContentsMarkerEnd = "<!-- END_TOC -->"
+)
+
+// TableOfContentsOptions contains options for generating the table of contents.
+type TableOfContentsOptions struct {
+	// MinDepth is the minimum header level to include (e.g., 2 for H2 and deeper).
+	MinDepth TableOfContentsDepth
+	// MaxDepth is the maximum header level to include (e.g., 4 for H4 and shallower).
+	MaxDepth TableOfContentsDepth
+}
+
 // headerInfo stores information about a header for table of contents generation.
 type headerInfo struct {
 	level TableOfContentsDepth
@@ -143,6 +158,10 @@ type Markdown struct {
 	err error
 	// headers stores header information for table of contents generation.
 	headers []headerInfo
+	// tocOptions stores the table of contents generation options.
+	tocOptions *TableOfContentsOptions
+	// tocInserted indicates whether a table of contents placeholder has been generated.
+	tocInserted bool
 }
 
 // NewMarkdown returns new Markdown.
@@ -156,7 +175,20 @@ func NewMarkdown(w io.Writer) *Markdown {
 
 // String returns markdown text.
 func (m *Markdown) String() string {
-	return strings.Join(m.body, internal.LineFeed())
+	content := strings.Join(m.body, internal.LineFeed())
+
+	// Replace table of contents placeholders with actual table of contents content if present
+	if m.tocInserted && m.tocOptions != nil {
+		tocContent := m.generateTableOfContents()
+		if len(tocContent) > 0 {
+			tocText := strings.Join(tocContent, internal.LineFeed())
+			placeholder := TableOfContentsMarkerBegin + internal.LineFeed() + TableOfContentsMarkerEnd
+			replacement := TableOfContentsMarkerBegin + internal.LineFeed() + tocText + internal.LineFeed() + TableOfContentsMarkerEnd
+			content = strings.ReplaceAll(content, placeholder, replacement)
+		}
+	}
+
+	return content
 }
 
 // Error returns error.
@@ -270,29 +302,99 @@ func (m *Markdown) H6f(format string, args ...interface{}) *Markdown {
 	return m.H6(fmt.Sprintf(format, args...))
 }
 
-// TableOfContents generates a table of contents from the headers recorded so far.
-// Call this AFTER declaring the headers you want included, or the TOC will be empty.
-// The depth parameter controls how many header levels to include (use TableOfContentsDepthH1 through TableOfContentsDepthH6 constants).
+// TableOfContents generates a table of contents placeholder that will be replaced when Build() is called.
+// The table of contents will include all headers from H1 to the specified maxDepth.
+// Only one table of contents can be generated per document.
 //
 // Example:
 //
-//	md := markdown.NewMarkdown(os.Stdout)
-//	md.H1("Introduction").
-//	   H2("Overview").
-//	   H3("Details").  // This H3 will not appear in TOC when depth is H2
-//	   TableOfContents(markdown.TableOfContentsDepthH2).
+//	markdown.NewMarkdown(os.Stdout).
+//	   H1("Title").
+//	   TableOfContents(markdown.TableOfContentsDepthH3).  // Table of contents will be placed here
+//	   H2("Section 1").
+//	   H3("Subsection 1.1").
 //	   Build()
-func (m *Markdown) TableOfContents(depth TableOfContentsDepth) *Markdown {
-	if len(m.headers) == 0 {
+func (m *Markdown) TableOfContents(maxDepth TableOfContentsDepth) *Markdown {
+	return m.TableOfContentsWithRange(TableOfContentsDepthH1, maxDepth)
+}
+
+// TableOfContentsWithRange generates a table of contents placeholder with custom depth range.
+// The table of contents will include headers from minDepth to maxDepth inclusive.
+// Only one table of contents can be generated per document.
+//
+// Example:
+//
+//	markdown.NewMarkdown(os.Stdout).
+//	   H1("Title").  // This H1 will not appear in table of contents
+//	   H2("Table of Contents").
+//	   TableOfContentsWithRange(markdown.TableOfContentsDepthH2, markdown.TableOfContentsDepthH4).  // Only include H2-H4 in table of contents
+//	   H2("Section 1").
+//	   H3("Subsection 1.1").
+//	   H4("Detail").
+//	   H5("Deep Detail").  // This H5 will not appear in table of contents
+//	   Build()
+func (m *Markdown) TableOfContentsWithRange(minDepth, maxDepth TableOfContentsDepth) *Markdown {
+	if m.tocInserted {
+		if m.err == nil {
+			m.err = errors.New("table of contents has already been generated")
+		}
 		return m
 	}
 
+	if minDepth < TableOfContentsDepthH1 || minDepth > TableOfContentsDepthH6 {
+		if m.err == nil {
+			m.err = fmt.Errorf("invalid minDepth: %d (must be between 1 and 6)", minDepth)
+		}
+		return m
+	}
+
+	if maxDepth < TableOfContentsDepthH1 || maxDepth > TableOfContentsDepthH6 {
+		if m.err == nil {
+			m.err = fmt.Errorf("invalid maxDepth: %d (must be between 1 and 6)", maxDepth)
+		}
+		return m
+	}
+
+	if minDepth > maxDepth {
+		if m.err == nil {
+			m.err = fmt.Errorf("minDepth (%d) cannot be greater than maxDepth (%d)", minDepth, maxDepth)
+		}
+		return m
+	}
+
+	m.tocOptions = &TableOfContentsOptions{
+		MinDepth: minDepth,
+		MaxDepth: maxDepth,
+	}
+	m.tocInserted = true
+
+	// Insert table of contents placeholder markers
+	m.body = append(m.body, TableOfContentsMarkerBegin)
+	m.body = append(m.body, TableOfContentsMarkerEnd)
+	m.body = append(m.body, "")
+
+	return m
+}
+
+// generateTableOfContents generates the table of contents based on collected headers and options.
+func (m *Markdown) generateTableOfContents() []string {
+	if m.tocOptions == nil || len(m.headers) == 0 {
+		return []string{}
+	}
+
+	tocLines := make([]string, 0, len(m.headers))
+	minIndent := int(m.tocOptions.MinDepth)
+
 	for _, header := range m.headers {
-		if header.level > depth {
+		// Skip headers outside the specified range
+		if header.level < m.tocOptions.MinDepth || header.level > m.tocOptions.MaxDepth {
 			continue
 		}
 
-		indent := strings.Repeat("  ", int(header.level)-1)
+		// Calculate relative indentation
+		indent := strings.Repeat("  ", int(header.level)-minIndent)
+
+		// Generate anchor following GitHub's convention
 		anchor := strings.ToLower(strings.ReplaceAll(header.text, " ", "-"))
 		anchor = strings.Map(func(r rune) rune {
 			if (r >= 'a' && r <= 'z') || (r >= '0' && r <= '9') || r == '-' {
@@ -301,11 +403,10 @@ func (m *Markdown) TableOfContents(depth TableOfContentsDepth) *Markdown {
 			return -1
 		}, anchor)
 
-		m.body = append(m.body, fmt.Sprintf("%s- [%s](#%s)", indent, header.text, anchor))
+		tocLines = append(tocLines, fmt.Sprintf("%s- [%s](#%s)", indent, header.text, anchor))
 	}
 
-	m.body = append(m.body, "")
-	return m
+	return tocLines
 }
 
 // Details is markdown details.

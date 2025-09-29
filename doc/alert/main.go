@@ -16,7 +16,11 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	defer f.Close()
+	defer func() {
+		if err := f.Close(); err != nil {
+			panic(err)
+		}
+	}()
 
 	if err := md.NewMarkdown(f).
 		H1("Alert example").

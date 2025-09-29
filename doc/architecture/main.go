@@ -18,7 +18,11 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	defer f.Close()
+	defer func() {
+		if err := f.Close(); err != nil {
+			panic(err)
+		}
+	}()
 
 	diagram := arch.NewArchitecture(io.Discard).
 		Service("left_disk", arch.IconDisk, "Disk").
