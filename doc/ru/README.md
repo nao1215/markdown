@@ -12,7 +12,7 @@
 # Что такое пакет markdown
 Пакет markdown - это простой конструктор markdown на языке Golang. Пакет markdown собирает Markdown используя цепочку методов, не используя шаблонизатор как [html/template](https://pkg.go.dev/html/template). Синтаксис Markdown следует **GitHub Markdown**.
 
-Пакет markdown изначально был разработан для сохранения результатов тестов в [nao1215/spectest](https://github.com/nao1215/spectest). Поэтому пакет markdown реализует функции, необходимые для spectest. Например, пакет markdown поддерживает **диаграммы последовательности mermaid (диаграммы сущностей-связей, диаграммы последовательности, блок-схемы, круговые диаграммы, архитектурные диаграммы)**, которые были необходимой функцией в spectest.
+Пакет markdown изначально был разработан для сохранения результатов тестов в [nao1215/spectest](https://github.com/nao1215/spectest). Поэтому пакет markdown реализует функции, необходимые для spectest. Например, пакет markdown поддерживает **диаграммы последовательности mermaid (диаграммы сущностей-связей, диаграммы последовательности, блок-схемы, круговые диаграммы, диаграммы состояний, архитектурные диаграммы)**, которые были необходимой функцией в spectest.
 
 Кроме того, сложный код, который увеличивает сложность библиотеки, такой как создание вложенных списков, добавляться не будет. Я хочу сохранить эту библиотеку максимально простой.
 
@@ -39,6 +39,7 @@
 - [x] диаграммы сущностей-связей mermaid
 - [x] блок-схемы mermaid
 - [x] круговые диаграммы mermaid
+- [x] диаграммы состояний mermaid
 - [x] архитектурные диаграммы mermaid (бета-функция)
 
 ### Функции, не входящие в синтаксис Markdown
@@ -812,6 +813,103 @@ architecture-beta
 ````
 
 ![Architecture Diagram](../architecture/image.png)
+
+### Синтаксис диаграммы состояний
+
+```go
+package main
+
+import (
+	"io"
+	"os"
+
+	"github.com/nao1215/markdown"
+	"github.com/nao1215/markdown/mermaid/state"
+)
+
+//go:generate go run main.go
+
+func main() {
+	f, err := os.Create("generated.md")
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+
+	diagram := state.NewDiagram(io.Discard, state.WithTitle("Order State Machine")).
+		StartTransition("Pending").
+		State("Pending", "Order received").
+		State("Processing", "Preparing order").
+		State("Shipped", "Order in transit").
+		State("Delivered", "Order completed").
+		LF().
+		TransitionWithNote("Pending", "Processing", "payment confirmed").
+		TransitionWithNote("Processing", "Shipped", "items packed").
+		TransitionWithNote("Shipped", "Delivered", "customer received").
+		LF().
+		NoteRight("Pending", "Waiting for payment").
+		NoteRight("Processing", "Preparing items").
+		LF().
+		EndTransition("Delivered").
+		String()
+
+	err = markdown.NewMarkdown(f).
+		H2("State Diagram").
+		CodeBlocks(markdown.SyntaxHighlightMermaid, diagram).
+		Build()
+
+	if err != nil {
+		panic(err)
+	}
+}
+```
+
+Вывод простого текста: [markdown здесь](../state/generated.md)
+````
+## State Diagram
+```mermaid
+---
+title: Order State Machine
+---
+stateDiagram-v2
+    [*] --> Pending
+    Pending : Order received
+    Processing : Preparing order
+    Shipped : Order in transit
+    Delivered : Order completed
+
+    Pending --> Processing : payment confirmed
+    Processing --> Shipped : items packed
+    Shipped --> Delivered : customer received
+
+    note right of Pending : Waiting for payment
+    note right of Processing : Preparing items
+
+    Delivered --> [*]
+```
+````
+
+Вывод Mermaid:
+```mermaid
+---
+title: Order State Machine
+---
+stateDiagram-v2
+    [*] --> Pending
+    Pending : Order received
+    Processing : Preparing order
+    Shipped : Order in transit
+    Delivered : Order completed
+
+    Pending --> Processing : payment confirmed
+    Processing --> Shipped : items packed
+    Shipped --> Delivered : customer received
+
+    note right of Pending : Waiting for payment
+    note right of Processing : Preparing items
+
+    Delivered --> [*]
+```
 
 ## Создание индекса для каталога, полного файлов markdown
 Пакет markdown может создать индекс для файлов Markdown в указанном каталоге. Эта функция была добавлена для генерации индексов для документов Markdown, созданных [nao1215/spectest](https://github.com/nao1215/spectest).
