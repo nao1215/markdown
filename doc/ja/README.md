@@ -12,7 +12,7 @@
 # markdown パッケージとは
 markdown パッケージは、Golangでのシンプルなマークダウンビルダーです。markdown パッケージは、[html/template](https://pkg.go.dev/html/template) のようなテンプレートエンジンを使用せず、メソッドチェーンを使用してMarkdownを組み立てます。Markdownの構文は**GitHub Markdown**に従います。
 
-markdown パッケージは、[nao1215/spectest](https://github.com/nao1215/spectest) でテスト結果を保存するために最初に開発されました。そのため、markdown パッケージは spectest で必要な機能を実装しています。例えば、markdown パッケージは、spectest で必要な機能である**mermaid シーケンス図（実体関係図、シーケンス図、フローチャート、パイチャート、四象限図、状態遷移図、アーキテクチャ図）**をサポートしています。
+markdown パッケージは、[nao1215/spectest](https://github.com/nao1215/spectest) でテスト結果を保存するために最初に開発されました。そのため、markdown パッケージは spectest で必要な機能を実装しています。例えば、markdown パッケージは、spectest で必要な機能である**mermaid 図（実体関係図、シーケンス図、フローチャート、パイチャート、四象限図、状態遷移図、ガントチャート、アーキテクチャ図）**をサポートしています。
 
 また、ネストしたリストの生成などのライブラリの複雑性を増加させる複雑なコードは追加されません。このライブラリをできる限りシンプルに保ちたいと考えています。
 
@@ -41,6 +41,7 @@ markdown パッケージは、[nao1215/spectest](https://github.com/nao1215/spec
 - [x] mermaid パイチャート
 - [x] mermaid 四象限図
 - [x] mermaid 状態遷移図
+- [x] mermaid ガントチャート
 - [x] mermaid アーキテクチャ図（ベータ機能） 
 
 ### Markdown構文にない機能
@@ -997,6 +998,87 @@ quadrantChart
     Feature B: [0.25, 0.75]
     Feature C: [0.15, 0.20]
     Feature D: [0.80, 0.15]
+```
+
+### ガントチャートの構文
+
+```go
+package main
+
+import (
+	"io"
+	"os"
+
+	"github.com/nao1215/markdown"
+	"github.com/nao1215/markdown/mermaid/gantt"
+)
+
+//go:generate go run main.go
+
+func main() {
+	f, err := os.Create("generated.md")
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+
+	chart := gantt.NewChart(
+		io.Discard,
+		gantt.WithTitle("Project Schedule"),
+		gantt.WithDateFormat("YYYY-MM-DD"),
+	).
+		Section("Planning").
+		DoneTaskWithID("Requirements", "req", "2024-01-01", "5d").
+		DoneTaskWithID("Design", "design", "2024-01-08", "3d").
+		Section("Development").
+		CriticalActiveTaskWithID("Coding", "code", "2024-01-12", "10d").
+		TaskAfterWithID("Review", "review", "code", "2d").
+		Section("Release").
+		MilestoneWithID("Launch", "launch", "2024-01-26").
+		String()
+
+	err = markdown.NewMarkdown(f).
+		H2("Gantt Chart").
+		CodeBlocks(markdown.SyntaxHighlightMermaid, chart).
+		Build()
+
+	if err != nil {
+		panic(err)
+	}
+}
+```
+
+プレーンテキスト出力: [markdownはこちら](../gantt/generated.md)
+````
+## Gantt Chart
+```mermaid
+gantt
+    title Project Schedule
+    dateFormat YYYY-MM-DD
+    section Planning
+    Requirements :done, req, 2024-01-01, 5d
+    Design :done, design, 2024-01-08, 3d
+    section Development
+    Coding :crit, active, code, 2024-01-12, 10d
+    Review :review, after code, 2d
+    section Release
+    Launch :milestone, launch, 2024-01-26, 0d
+```
+````
+
+Mermaid出力:
+```mermaid
+gantt
+    title Project Schedule
+    dateFormat YYYY-MM-DD
+    section Planning
+    Requirements :done, req, 2024-01-01, 5d
+    Design :done, design, 2024-01-08, 3d
+    section Development
+    Coding :crit, active, code, 2024-01-12, 10d
+    Review :review, after code, 2d
+    section Release
+    Launch :milestone, launch, 2024-01-26, 0d
 ```
 
 ## Markdownファイルが格納されたディレクトリのインデックス作成
