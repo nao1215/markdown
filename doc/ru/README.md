@@ -12,7 +12,7 @@
 # Что такое пакет markdown
 Пакет markdown - это простой конструктор markdown на языке Golang. Пакет markdown собирает Markdown используя цепочку методов, не используя шаблонизатор как [html/template](https://pkg.go.dev/html/template). Синтаксис Markdown следует **GitHub Markdown**.
 
-Пакет markdown изначально был разработан для сохранения результатов тестов в [nao1215/spectest](https://github.com/nao1215/spectest). Поэтому пакет markdown реализует функции, необходимые для spectest. Например, пакет markdown поддерживает **диаграммы последовательности mermaid (диаграммы сущностей-связей, диаграммы последовательности, блок-схемы, круговые диаграммы, квадрантные диаграммы, диаграммы состояний, архитектурные диаграммы)**, которые были необходимой функцией в spectest.
+Пакет markdown изначально был разработан для сохранения результатов тестов в [nao1215/spectest](https://github.com/nao1215/spectest). Поэтому пакет markdown реализует функции, необходимые для spectest. Например, пакет markdown поддерживает **диаграммы последовательности mermaid (диаграммы сущностей-связей, диаграммы последовательности, блок-схемы, круговые диаграммы, квадрантные диаграммы, диаграммы состояний, диаграммы Ганта, архитектурные диаграммы)**, которые были необходимой функцией в spectest.
 
 Кроме того, сложный код, который увеличивает сложность библиотеки, такой как создание вложенных списков, добавляться не будет. Я хочу сохранить эту библиотеку максимально простой.
 
@@ -41,6 +41,7 @@
 - [x] круговые диаграммы mermaid
 - [x] квадрантные диаграммы mermaid
 - [x] диаграммы состояний mermaid
+- [x] диаграммы Ганта mermaid
 - [x] архитектурные диаграммы mermaid (бета-функция)
 
 ### Функции, не входящие в синтаксис Markdown
@@ -997,6 +998,87 @@ quadrantChart
     Feature B: [0.25, 0.75]
     Feature C: [0.15, 0.20]
     Feature D: [0.80, 0.15]
+```
+
+### Синтаксис диаграммы Ганта
+
+```go
+package main
+
+import (
+	"io"
+	"os"
+
+	"github.com/nao1215/markdown"
+	"github.com/nao1215/markdown/mermaid/gantt"
+)
+
+//go:generate go run main.go
+
+func main() {
+	f, err := os.Create("generated.md")
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+
+	chart := gantt.NewChart(
+		io.Discard,
+		gantt.WithTitle("Project Schedule"),
+		gantt.WithDateFormat("YYYY-MM-DD"),
+	).
+		Section("Planning").
+		DoneTaskWithID("Requirements", "req", "2024-01-01", "5d").
+		DoneTaskWithID("Design", "design", "2024-01-08", "3d").
+		Section("Development").
+		CriticalActiveTaskWithID("Coding", "code", "2024-01-12", "10d").
+		TaskAfterWithID("Review", "review", "code", "2d").
+		Section("Release").
+		MilestoneWithID("Launch", "launch", "2024-01-26").
+		String()
+
+	err = markdown.NewMarkdown(f).
+		H2("Gantt Chart").
+		CodeBlocks(markdown.SyntaxHighlightMermaid, chart).
+		Build()
+
+	if err != nil {
+		panic(err)
+	}
+}
+```
+
+Вывод простого текста: [markdown здесь](../gantt/generated.md)
+````
+## Gantt Chart
+```mermaid
+gantt
+    title Project Schedule
+    dateFormat YYYY-MM-DD
+    section Planning
+    Requirements :done, req, 2024-01-01, 5d
+    Design :done, design, 2024-01-08, 3d
+    section Development
+    Coding :crit, active, code, 2024-01-12, 10d
+    Review :review, after code, 2d
+    section Release
+    Launch :milestone, launch, 2024-01-26, 0d
+```
+````
+
+Вывод Mermaid:
+```mermaid
+gantt
+    title Project Schedule
+    dateFormat YYYY-MM-DD
+    section Planning
+    Requirements :done, req, 2024-01-01, 5d
+    Design :done, design, 2024-01-08, 3d
+    section Development
+    Coding :crit, active, code, 2024-01-12, 10d
+    Review :review, after code, 2d
+    section Release
+    Launch :milestone, launch, 2024-01-26, 0d
 ```
 
 ## Создание индекса для каталога, полного файлов markdown

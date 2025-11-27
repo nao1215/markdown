@@ -12,7 +12,7 @@
 # Qu'est-ce que le package markdown
 Le package markdown est un constructeur de markdown simple en Golang. Le package markdown assemble le Markdown en utilisant le chaînage de méthodes, n'utilise pas un moteur de modèles comme [html/template](https://pkg.go.dev/html/template). La syntaxe de Markdown suit **GitHub Markdown**.
 
-Le package markdown a été initialement développé pour sauvegarder les résultats de tests dans [nao1215/spectest](https://github.com/nao1215/spectest). Par conséquent, le package markdown implémente les fonctionnalités requises par spectest. Par exemple, le package markdown prend en charge **les diagrammes de séquence mermaid (diagramme de relation d'entité, diagramme de séquence, organigramme, graphique en secteurs, graphique à quadrants, diagramme d'état, diagramme d'architecture)**, ce qui était une fonctionnalité nécessaire dans spectest.
+Le package markdown a été initialement développé pour sauvegarder les résultats de tests dans [nao1215/spectest](https://github.com/nao1215/spectest). Par conséquent, le package markdown implémente les fonctionnalités requises par spectest. Par exemple, le package markdown prend en charge **les diagrammes de séquence mermaid (diagramme de relation d'entité, diagramme de séquence, organigramme, graphique en secteurs, graphique à quadrants, diagramme d'état, diagramme de Gantt, diagramme d'architecture)**, ce qui était une fonctionnalité nécessaire dans spectest.
 
 De plus, le code complexe qui augmente la complexité de la bibliothèque, tel que la génération de listes imbriquées, ne sera pas ajouté. Je veux garder cette bibliothèque aussi simple que possible.
 
@@ -41,6 +41,7 @@ De plus, le code complexe qui augmente la complexité de la bibliothèque, tel q
 - [x] graphique en secteurs mermaid
 - [x] graphique à quadrants mermaid
 - [x] diagramme d'état mermaid
+- [x] diagramme de Gantt mermaid
 - [x] diagramme d'architecture mermaid (fonctionnalité bêta)
 
 ### Fonctionnalités non dans la syntaxe Markdown
@@ -997,6 +998,87 @@ quadrantChart
     Feature B: [0.25, 0.75]
     Feature C: [0.15, 0.20]
     Feature D: [0.80, 0.15]
+```
+
+### Syntaxe du diagramme de Gantt
+
+```go
+package main
+
+import (
+	"io"
+	"os"
+
+	"github.com/nao1215/markdown"
+	"github.com/nao1215/markdown/mermaid/gantt"
+)
+
+//go:generate go run main.go
+
+func main() {
+	f, err := os.Create("generated.md")
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+
+	chart := gantt.NewChart(
+		io.Discard,
+		gantt.WithTitle("Project Schedule"),
+		gantt.WithDateFormat("YYYY-MM-DD"),
+	).
+		Section("Planning").
+		DoneTaskWithID("Requirements", "req", "2024-01-01", "5d").
+		DoneTaskWithID("Design", "design", "2024-01-08", "3d").
+		Section("Development").
+		CriticalActiveTaskWithID("Coding", "code", "2024-01-12", "10d").
+		TaskAfterWithID("Review", "review", "code", "2d").
+		Section("Release").
+		MilestoneWithID("Launch", "launch", "2024-01-26").
+		String()
+
+	err = markdown.NewMarkdown(f).
+		H2("Gantt Chart").
+		CodeBlocks(markdown.SyntaxHighlightMermaid, chart).
+		Build()
+
+	if err != nil {
+		panic(err)
+	}
+}
+```
+
+Sortie de texte brut : [markdown est ici](../gantt/generated.md)
+````
+## Gantt Chart
+```mermaid
+gantt
+    title Project Schedule
+    dateFormat YYYY-MM-DD
+    section Planning
+    Requirements :done, req, 2024-01-01, 5d
+    Design :done, design, 2024-01-08, 3d
+    section Development
+    Coding :crit, active, code, 2024-01-12, 10d
+    Review :review, after code, 2d
+    section Release
+    Launch :milestone, launch, 2024-01-26, 0d
+```
+````
+
+Sortie Mermaid :
+```mermaid
+gantt
+    title Project Schedule
+    dateFormat YYYY-MM-DD
+    section Planning
+    Requirements :done, req, 2024-01-01, 5d
+    Design :done, design, 2024-01-08, 3d
+    section Development
+    Coding :crit, active, code, 2024-01-12, 10d
+    Review :review, after code, 2d
+    section Release
+    Launch :milestone, launch, 2024-01-26, 0d
 ```
 
 ## Créer un index pour un répertoire plein de fichiers markdown
