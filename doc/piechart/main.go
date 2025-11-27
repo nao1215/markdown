@@ -29,9 +29,9 @@ func main() {
 		piechart.WithTitle("mermaid pie chart builder"),
 		piechart.WithShowData(true),
 	).
-		LabelAndIntValue("A", 10).
-		LabelAndFloatValue("B", 20.1).
-		LabelAndIntValue("C", 30).
+		LabelAndIntValue("A", 10).     //nolint:mnd
+		LabelAndFloatValue("B", 20.1). //nolint:mnd
+		LabelAndIntValue("C", 30).     //nolint:mnd
 		String()
 
 	err = markdown.NewMarkdown(f).

@@ -3,7 +3,6 @@ package flowchart
 
 import (
 	"bytes"
-	"fmt"
 	"strings"
 	"testing"
 
@@ -215,8 +214,8 @@ D`).RoundEdgesNode("E", "Node E").
     A
     B["Node B"]
     `
-		want += fmt.Sprintf("C[\"`**Node C**`\"]\n") //nolint:gosimple
-		want += fmt.Sprintf("    D[\"`Node\n")       //nolint:gosimple
+		want += "C[\"`**Node C**`\"]\n"
+		want += "    D[\"`Node\n"
 		want += "D`\"]"
 		want += `
     E("Node E")

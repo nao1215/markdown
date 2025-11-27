@@ -529,7 +529,7 @@ func (t *TableSet) ValidateColumns() error {
 func (m *Markdown) Table(t TableSet) *Markdown {
 	if err := t.ValidateColumns(); err != nil {
 		if m.err != nil {
-			m.err = fmt.Errorf("failed to validate columns: %w: %s", err, m.err) //nolint:wrapcheck
+			m.err = fmt.Errorf("failed to validate columns: %w: %s", err, m.err.Error()) //nolint:wrapcheck
 		} else {
 			m.err = fmt.Errorf("failed to validate columns: %w", err)
 		}
@@ -560,14 +560,14 @@ func (m *Markdown) Table(t TableSet) *Markdown {
 		}
 
 		switch align {
+		case AlignDefault:
+			buf.WriteString("---------|")
 		case AlignLeft:
 			buf.WriteString(":--------|")
 		case AlignCenter:
 			buf.WriteString(":-------:|")
 		case AlignRight:
 			buf.WriteString("--------:|")
-		default: // AlignDefault
-			buf.WriteString("---------|")
 		}
 	}
 	buf.WriteString(internal.LineFeed())
@@ -600,9 +600,9 @@ func (m *Markdown) CustomTable(t TableSet, options TableOptions) *Markdown {
 	if err := t.ValidateColumns(); err != nil {
 		// NOTE: If go version is 1.20, use errors.Join
 		if m.err != nil {
-			m.err = fmt.Errorf("failed to validate columns: %s: %s", err, m.err) //nolint:wrapcheck
+			m.err = fmt.Errorf("failed to validate columns: %w: %s", err, m.err.Error()) //nolint:wrapcheck
 		} else {
-			m.err = fmt.Errorf("failed to validate columns: %s", err)
+			m.err = fmt.Errorf("failed to validate columns: %w", err)
 		}
 	}
 

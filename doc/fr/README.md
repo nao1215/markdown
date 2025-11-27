@@ -12,7 +12,7 @@
 # Qu'est-ce que le package markdown
 Le package markdown est un constructeur de markdown simple en Golang. Le package markdown assemble le Markdown en utilisant le chaînage de méthodes, n'utilise pas un moteur de modèles comme [html/template](https://pkg.go.dev/html/template). La syntaxe de Markdown suit **GitHub Markdown**.
 
-Le package markdown a été initialement développé pour sauvegarder les résultats de tests dans [nao1215/spectest](https://github.com/nao1215/spectest). Par conséquent, le package markdown implémente les fonctionnalités requises par spectest. Par exemple, le package markdown prend en charge **les diagrammes de séquence mermaid (diagramme de relation d'entité, diagramme de séquence, organigramme, graphique en secteurs, diagramme d'état, diagramme d'architecture)**, ce qui était une fonctionnalité nécessaire dans spectest.
+Le package markdown a été initialement développé pour sauvegarder les résultats de tests dans [nao1215/spectest](https://github.com/nao1215/spectest). Par conséquent, le package markdown implémente les fonctionnalités requises par spectest. Par exemple, le package markdown prend en charge **les diagrammes de séquence mermaid (diagramme de relation d'entité, diagramme de séquence, organigramme, graphique en secteurs, graphique à quadrants, diagramme d'état, diagramme d'architecture)**, ce qui était une fonctionnalité nécessaire dans spectest.
 
 De plus, le code complexe qui augmente la complexité de la bibliothèque, tel que la génération de listes imbriquées, ne sera pas ajouté. Je veux garder cette bibliothèque aussi simple que possible.
 
@@ -39,6 +39,7 @@ De plus, le code complexe qui augmente la complexité de la bibliothèque, tel q
 - [x] diagramme de relation d'entité mermaid
 - [x] organigramme mermaid
 - [x] graphique en secteurs mermaid
+- [x] graphique à quadrants mermaid
 - [x] diagramme d'état mermaid
 - [x] diagramme d'architecture mermaid (fonctionnalité bêta)
 
@@ -909,6 +910,93 @@ stateDiagram-v2
     note right of Processing : Preparing items
 
     Delivered --> [*]
+```
+
+### Syntaxe du graphique à quadrants
+
+```go
+package main
+
+import (
+	"io"
+	"os"
+
+	"github.com/nao1215/markdown"
+	"github.com/nao1215/markdown/mermaid/quadrant"
+)
+
+//go:generate go run main.go
+
+func main() {
+	f, err := os.Create("generated.md")
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+
+	chart := quadrant.NewChart(io.Discard, quadrant.WithTitle("Product Prioritization")).
+		XAxis("Low Effort", "High Effort").
+		YAxis("Low Value", "High Value").
+		LF().
+		Quadrant1("Quick Wins").
+		Quadrant2("Major Projects").
+		Quadrant3("Fill Ins").
+		Quadrant4("Thankless Tasks").
+		LF().
+		Point("Feature A", 0.9, 0.85).
+		Point("Feature B", 0.25, 0.75).
+		Point("Feature C", 0.15, 0.20).
+		Point("Feature D", 0.80, 0.15).
+		String()
+
+	err = markdown.NewMarkdown(f).
+		H2("Quadrant Chart").
+		CodeBlocks(markdown.SyntaxHighlightMermaid, chart).
+		Build()
+
+	if err != nil {
+		panic(err)
+	}
+}
+```
+
+Sortie de texte brut : [markdown est ici](../quadrant/generated.md)
+````
+## Quadrant Chart
+```mermaid
+quadrantChart
+    title Product Prioritization
+    x-axis Low Effort --> High Effort
+    y-axis Low Value --> High Value
+
+    quadrant-1 Quick Wins
+    quadrant-2 Major Projects
+    quadrant-3 Fill Ins
+    quadrant-4 Thankless Tasks
+
+    Feature A: [0.90, 0.85]
+    Feature B: [0.25, 0.75]
+    Feature C: [0.15, 0.20]
+    Feature D: [0.80, 0.15]
+```
+````
+
+Sortie Mermaid :
+```mermaid
+quadrantChart
+    title Product Prioritization
+    x-axis Low Effort --> High Effort
+    y-axis Low Value --> High Value
+
+    quadrant-1 Quick Wins
+    quadrant-2 Major Projects
+    quadrant-3 Fill Ins
+    quadrant-4 Thankless Tasks
+
+    Feature A: [0.90, 0.85]
+    Feature B: [0.25, 0.75]
+    Feature C: [0.15, 0.20]
+    Feature D: [0.80, 0.15]
 ```
 
 ## Créer un index pour un répertoire plein de fichiers markdown

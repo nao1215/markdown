@@ -12,7 +12,7 @@
 # 什么是 markdown 包
 markdown 包是一个用 Golang 编写的简单 markdown 构建器。markdown 包使用方法链接来组装 Markdown，而不使用像 [html/template](https://pkg.go.dev/html/template) 这样的模板引擎。Markdown 的语法遵循 **GitHub Markdown**。
 
-markdown 包最初是为了在 [nao1215/spectest](https://github.com/nao1215/spectest) 中保存测试结果而开发的。因此，markdown 包实现了 spectest 所需的功能。例如，markdown 包支持 **mermaid 序列图（实体关系图、序列图、流程图、饼图、状态图、架构图）**，这是 spectest 中的必要功能。
+markdown 包最初是为了在 [nao1215/spectest](https://github.com/nao1215/spectest) 中保存测试结果而开发的。因此，markdown 包实现了 spectest 所需的功能。例如，markdown 包支持 **mermaid 序列图（实体关系图、序列图、流程图、饼图、象限图、状态图、架构图）**，这是 spectest 中的必要功能。
 
 此外，不会添加增加库复杂性的复杂代码，例如生成嵌套列表。我希望保持这个库尽可能简单。
 
@@ -39,6 +39,7 @@ markdown 包最初是为了在 [nao1215/spectest](https://github.com/nao1215/spe
 - [x] mermaid 实体关系图
 - [x] mermaid 流程图
 - [x] mermaid 饼图
+- [x] mermaid 象限图
 - [x] mermaid 状态图
 - [x] mermaid 架构图（测试版功能）
 
@@ -909,6 +910,93 @@ stateDiagram-v2
     note right of Processing : Preparing items
 
     Delivered --> [*]
+```
+
+### 象限图语法
+
+```go
+package main
+
+import (
+	"io"
+	"os"
+
+	"github.com/nao1215/markdown"
+	"github.com/nao1215/markdown/mermaid/quadrant"
+)
+
+//go:generate go run main.go
+
+func main() {
+	f, err := os.Create("generated.md")
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+
+	chart := quadrant.NewChart(io.Discard, quadrant.WithTitle("Product Prioritization")).
+		XAxis("Low Effort", "High Effort").
+		YAxis("Low Value", "High Value").
+		LF().
+		Quadrant1("Quick Wins").
+		Quadrant2("Major Projects").
+		Quadrant3("Fill Ins").
+		Quadrant4("Thankless Tasks").
+		LF().
+		Point("Feature A", 0.9, 0.85).
+		Point("Feature B", 0.25, 0.75).
+		Point("Feature C", 0.15, 0.20).
+		Point("Feature D", 0.80, 0.15).
+		String()
+
+	err = markdown.NewMarkdown(f).
+		H2("Quadrant Chart").
+		CodeBlocks(markdown.SyntaxHighlightMermaid, chart).
+		Build()
+
+	if err != nil {
+		panic(err)
+	}
+}
+```
+
+纯文本输出: [markdown 在这里](../quadrant/generated.md)
+````
+## Quadrant Chart
+```mermaid
+quadrantChart
+    title Product Prioritization
+    x-axis Low Effort --> High Effort
+    y-axis Low Value --> High Value
+
+    quadrant-1 Quick Wins
+    quadrant-2 Major Projects
+    quadrant-3 Fill Ins
+    quadrant-4 Thankless Tasks
+
+    Feature A: [0.90, 0.85]
+    Feature B: [0.25, 0.75]
+    Feature C: [0.15, 0.20]
+    Feature D: [0.80, 0.15]
+```
+````
+
+Mermaid 输出:
+```mermaid
+quadrantChart
+    title Product Prioritization
+    x-axis Low Effort --> High Effort
+    y-axis Low Value --> High Value
+
+    quadrant-1 Quick Wins
+    quadrant-2 Major Projects
+    quadrant-3 Fill Ins
+    quadrant-4 Thankless Tasks
+
+    Feature A: [0.90, 0.85]
+    Feature B: [0.25, 0.75]
+    Feature C: [0.15, 0.20]
+    Feature D: [0.80, 0.15]
 ```
 
 ## 为包含 markdown 文件的目录创建索引

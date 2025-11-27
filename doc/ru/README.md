@@ -12,7 +12,7 @@
 # Что такое пакет markdown
 Пакет markdown - это простой конструктор markdown на языке Golang. Пакет markdown собирает Markdown используя цепочку методов, не используя шаблонизатор как [html/template](https://pkg.go.dev/html/template). Синтаксис Markdown следует **GitHub Markdown**.
 
-Пакет markdown изначально был разработан для сохранения результатов тестов в [nao1215/spectest](https://github.com/nao1215/spectest). Поэтому пакет markdown реализует функции, необходимые для spectest. Например, пакет markdown поддерживает **диаграммы последовательности mermaid (диаграммы сущностей-связей, диаграммы последовательности, блок-схемы, круговые диаграммы, диаграммы состояний, архитектурные диаграммы)**, которые были необходимой функцией в spectest.
+Пакет markdown изначально был разработан для сохранения результатов тестов в [nao1215/spectest](https://github.com/nao1215/spectest). Поэтому пакет markdown реализует функции, необходимые для spectest. Например, пакет markdown поддерживает **диаграммы последовательности mermaid (диаграммы сущностей-связей, диаграммы последовательности, блок-схемы, круговые диаграммы, квадрантные диаграммы, диаграммы состояний, архитектурные диаграммы)**, которые были необходимой функцией в spectest.
 
 Кроме того, сложный код, который увеличивает сложность библиотеки, такой как создание вложенных списков, добавляться не будет. Я хочу сохранить эту библиотеку максимально простой.
 
@@ -39,6 +39,7 @@
 - [x] диаграммы сущностей-связей mermaid
 - [x] блок-схемы mermaid
 - [x] круговые диаграммы mermaid
+- [x] квадрантные диаграммы mermaid
 - [x] диаграммы состояний mermaid
 - [x] архитектурные диаграммы mermaid (бета-функция)
 
@@ -909,6 +910,93 @@ stateDiagram-v2
     note right of Processing : Preparing items
 
     Delivered --> [*]
+```
+
+### Синтаксис квадрантной диаграммы
+
+```go
+package main
+
+import (
+	"io"
+	"os"
+
+	"github.com/nao1215/markdown"
+	"github.com/nao1215/markdown/mermaid/quadrant"
+)
+
+//go:generate go run main.go
+
+func main() {
+	f, err := os.Create("generated.md")
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+
+	chart := quadrant.NewChart(io.Discard, quadrant.WithTitle("Product Prioritization")).
+		XAxis("Low Effort", "High Effort").
+		YAxis("Low Value", "High Value").
+		LF().
+		Quadrant1("Quick Wins").
+		Quadrant2("Major Projects").
+		Quadrant3("Fill Ins").
+		Quadrant4("Thankless Tasks").
+		LF().
+		Point("Feature A", 0.9, 0.85).
+		Point("Feature B", 0.25, 0.75).
+		Point("Feature C", 0.15, 0.20).
+		Point("Feature D", 0.80, 0.15).
+		String()
+
+	err = markdown.NewMarkdown(f).
+		H2("Quadrant Chart").
+		CodeBlocks(markdown.SyntaxHighlightMermaid, chart).
+		Build()
+
+	if err != nil {
+		panic(err)
+	}
+}
+```
+
+Вывод простого текста: [markdown здесь](../quadrant/generated.md)
+````
+## Quadrant Chart
+```mermaid
+quadrantChart
+    title Product Prioritization
+    x-axis Low Effort --> High Effort
+    y-axis Low Value --> High Value
+
+    quadrant-1 Quick Wins
+    quadrant-2 Major Projects
+    quadrant-3 Fill Ins
+    quadrant-4 Thankless Tasks
+
+    Feature A: [0.90, 0.85]
+    Feature B: [0.25, 0.75]
+    Feature C: [0.15, 0.20]
+    Feature D: [0.80, 0.15]
+```
+````
+
+Вывод Mermaid:
+```mermaid
+quadrantChart
+    title Product Prioritization
+    x-axis Low Effort --> High Effort
+    y-axis Low Value --> High Value
+
+    quadrant-1 Quick Wins
+    quadrant-2 Major Projects
+    quadrant-3 Fill Ins
+    quadrant-4 Thankless Tasks
+
+    Feature A: [0.90, 0.85]
+    Feature B: [0.25, 0.75]
+    Feature C: [0.15, 0.20]
+    Feature D: [0.80, 0.15]
 ```
 
 ## Создание индекса для каталога, полного файлов markdown

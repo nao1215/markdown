@@ -9,7 +9,7 @@ import (
 	"github.com/nao1215/markdown/mermaid/flowchart"
 )
 
-// ExampleFlowchart skip this test on Windows.
+// ExampleFlowchart skips this test on Windows.
 // The newline codes in the comment section where
 // the expected values are written are represented as '\n',
 // causing failures when testing on Windows.
@@ -29,18 +29,18 @@ func ExampleFlowchart() {
 		DottedLinkWithText("C", "D", "send filtered data").
 		String()
 
-	markdown.NewMarkdown(os.Stdout).
+	_ = markdown.NewMarkdown(os.Stdout).
 		H2("Flowchart").
 		CodeBlocks(markdown.SyntaxHighlightMermaid, fc).
-		Build() //nolint
+		Build()
 
 	// Output:
-	//## Flowchart
-	//```mermaid
-	//---
-	//title: mermaid flowchart builder
-	//---
-	//flowchart TB
+	// ## Flowchart
+	// ```mermaid
+	// ---
+	// title: mermaid flowchart builder
+	// ---
+	// flowchart TB
 	//     A["Node A"]
 	//     B(["Node B"])
 	//     C[["Node C"]]
@@ -49,5 +49,5 @@ func ExampleFlowchart() {
 	//     B-->|"send original data"|D
 	//     B-->C
 	//     C-. "send filtered data" .-> D
-	//```
+	// ```
 }

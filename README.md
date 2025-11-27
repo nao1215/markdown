@@ -12,13 +12,13 @@
 # What is markdown package
 The Package markdown is a simple markdown builder in golang. The markdown package assembles Markdown using method chaining, not uses a template engine like [html/template](https://pkg.go.dev/html/template). The syntax of Markdown follows **GitHub Markdown**.
   
-The markdown package was initially developed to save test results in [nao1215/spectest](https://github.com/nao1215/spectest). Therefore, the markdown package implements the features required by spectest. For example, the markdown package supports **mermaid sequence diagrams (entity relationship diagram, sequence diagram, flowchart, pie chart, state diagram, architecture diagram)**, which was a necessary feature in spectest.
+The markdown package was initially developed to save test results in [nao1215/spectest](https://github.com/nao1215/spectest). Therefore, the markdown package implements the features required by spectest. For example, the markdown package supports **mermaid sequence diagrams (entity relationship diagram, sequence diagram, flowchart, pie chart, quadrant chart, state diagram, architecture diagram)**, which was a necessary feature in spectest.
   
 Additionally, complex code that increases the complexity of the library, such as generating nested lists, will not be added. I want to keep this library as simple as possible.
   
 ## Supported OS and go version
 - OS: Linux, macOS, Windows
-- Go: 1.21 or later
+- Go: 1.23 or later
   
 ## Supported Markdown features
 - [x] Heading; H1, H2, H3, H4, H5, H6
@@ -39,6 +39,7 @@ Additionally, complex code that increases the complexity of the library, such as
 - [x] mermaid entity relationship diagram
 - [x] mermaid flowchart 
 - [x] mermaid pie chart
+- [x] mermaid quadrant chart
 - [x] mermaid state diagram
 - [x] mermaid architecture diagram (beta feature) 
 
@@ -909,6 +910,93 @@ stateDiagram-v2
     note right of Processing : Preparing items
 
     Delivered --> [*]
+```
+
+### Quadrant Chart syntax
+
+```go
+package main
+
+import (
+	"io"
+	"os"
+
+	"github.com/nao1215/markdown"
+	"github.com/nao1215/markdown/mermaid/quadrant"
+)
+
+//go:generate go run main.go
+
+func main() {
+	f, err := os.Create("generated.md")
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+
+	chart := quadrant.NewChart(io.Discard, quadrant.WithTitle("Product Prioritization")).
+		XAxis("Low Effort", "High Effort").
+		YAxis("Low Value", "High Value").
+		LF().
+		Quadrant1("Quick Wins").
+		Quadrant2("Major Projects").
+		Quadrant3("Fill Ins").
+		Quadrant4("Thankless Tasks").
+		LF().
+		Point("Feature A", 0.9, 0.85).
+		Point("Feature B", 0.25, 0.75).
+		Point("Feature C", 0.15, 0.20).
+		Point("Feature D", 0.80, 0.15).
+		String()
+
+	err = markdown.NewMarkdown(f).
+		H2("Quadrant Chart").
+		CodeBlocks(markdown.SyntaxHighlightMermaid, chart).
+		Build()
+
+	if err != nil {
+		panic(err)
+	}
+}
+```
+
+Plain text output: [markdown is here](./doc/quadrant/generated.md)
+````
+## Quadrant Chart
+```mermaid
+quadrantChart
+    title Product Prioritization
+    x-axis Low Effort --> High Effort
+    y-axis Low Value --> High Value
+
+    quadrant-1 Quick Wins
+    quadrant-2 Major Projects
+    quadrant-3 Fill Ins
+    quadrant-4 Thankless Tasks
+
+    Feature A: [0.90, 0.85]
+    Feature B: [0.25, 0.75]
+    Feature C: [0.15, 0.20]
+    Feature D: [0.80, 0.15]
+```
+````
+
+Mermaid output:
+```mermaid
+quadrantChart
+    title Product Prioritization
+    x-axis Low Effort --> High Effort
+    y-axis Low Value --> High Value
+
+    quadrant-1 Quick Wins
+    quadrant-2 Major Projects
+    quadrant-3 Fill Ins
+    quadrant-4 Thankless Tasks
+
+    Feature A: [0.90, 0.85]
+    Feature B: [0.25, 0.75]
+    Feature C: [0.15, 0.20]
+    Feature D: [0.80, 0.15]
 ```
 
 ## Creating an index for a directory full of markdown files

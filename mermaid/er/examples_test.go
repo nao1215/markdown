@@ -9,7 +9,7 @@ import (
 	"github.com/nao1215/markdown/mermaid/er"
 )
 
-// ExampleDiagram skip this test on Windows.
+// ExampleDiagram skips this test on Windows.
 // The newline codes in the comment section where
 // the expected values are written are represented as '\n',
 // causing failures when testing on Windows.
@@ -113,15 +113,15 @@ func ExampleDiagram() {
 		).
 		String()
 
-	markdown.NewMarkdown(os.Stdout).
+	_ = markdown.NewMarkdown(os.Stdout).
 		H2("Entity Relationship Diagram").
 		CodeBlocks(markdown.SyntaxHighlightMermaid, erString).
-		Build() //nolint
+		Build()
 
 	// Output:
-	//## Entity Relationship Diagram
-	//```mermaid
-	//erDiagram
+	// ## Entity Relationship Diagram
+	// ```mermaid
+	// erDiagram
 	//     teachers ||--o{ students : "Teacher has many students"
 	//     teachers }|..|| schools : "School has many teachers"
 	//     schools {
@@ -139,5 +139,5 @@ func ExampleDiagram() {
 	//         string name  "Teacher Name"
 	//     }
 	//
-	//```
+	// ```
 }
