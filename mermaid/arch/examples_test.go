@@ -10,7 +10,7 @@ import (
 	"github.com/nao1215/markdown/mermaid/arch"
 )
 
-// ExampleArchitecture skip this test on Windows.
+// ExampleArchitecture skips this test on Windows.
 // The newline codes in the comment section where
 // the expected values are written are represented as '\n',
 // causing failures when testing on Windows.
@@ -91,15 +91,15 @@ func ExampleArchitecture() {
 				Arrow:     arch.ArrowNone,
 			}).String() //nolint
 
-	markdown.NewMarkdown(os.Stdout).
+	_ = markdown.NewMarkdown(os.Stdout).
 		H2("Architecture Diagram").
 		CodeBlocks(markdown.SyntaxHighlightMermaid, diagram).
-		Build() //nolint
+		Build()
 
 	// Output:
-	//## Architecture Diagram
-	//```mermaid
-	//architecture-beta
+	// ## Architecture Diagram
+	// ```mermaid
+	// architecture-beta
 	//     service left_disk(disk)[Disk]
 	//     service top_disk(disk)[Disk]
 	//     service bottom_disk(disk)[Disk]
@@ -114,5 +114,5 @@ func ExampleArchitecture() {
 	//     junctionCenter:R -- L:junctionRight
 	//     top_gateway:B -- T:junctionRight
 	//     bottom_gateway:T -- B:junctionRight
-	//```
+	// ```
 }

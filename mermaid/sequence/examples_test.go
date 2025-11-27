@@ -9,7 +9,7 @@ import (
 	"github.com/nao1215/markdown/mermaid/sequence"
 )
 
-// ExampleSequence skip this test on Windows.
+// ExampleDiagram skips this test on Windows.
 // The newline codes in the comment section where
 // the expected values are written are represented as '\n',
 // causing failures when testing on Windows.
@@ -34,10 +34,10 @@ func ExampleDiagram() {
 		SyncResponse("David", "Sophia", "wake up, wake up").
 		String()
 
-	md.NewMarkdown(os.Stdout).
+	_ = md.NewMarkdown(os.Stdout).
 		H2("Sequence Diagram").
 		CodeBlocks(md.SyntaxHighlightMermaid, diagram).
-		Build() //nolint
+		Build()
 
 	// Output:
 	// ## Sequence Diagram

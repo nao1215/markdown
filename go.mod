@@ -1,6 +1,6 @@
 module github.com/nao1215/markdown
 
-go 1.21
+go 1.23
 
 toolchain go1.24.0
 

@@ -9,12 +9,12 @@ import (
 	"github.com/nao1215/markdown/mermaid/sequence"
 )
 
-// ExamleMarkdown skip this test on Windows.
+// ExampleMarkdown skips this test on Windows.
 // The newline codes in the comment section where
 // the expected values are written are represented as '\n',
 // causing failures when testing on Windows.
 func ExampleMarkdown() {
-	md.NewMarkdown(os.Stdout).
+	_ = md.NewMarkdown(os.Stdout).
 		H1("This is H1").
 		PlainText("This is plain text").
 		H2f("This is %s with text format", "H2").
@@ -94,7 +94,7 @@ func main() {
 	// ![sample_image](./sample.png)
 }
 
-// ExampleNewDiagram skip this test on Windows.
+// ExampleNewDiagram skips this test on Windows.
 // The newline codes in the comment section where
 // the expected values are written are represented as '\n',
 // causing failures when testing on Windows.
@@ -119,10 +119,10 @@ func ExampleNewDiagram() {
 		SyncResponse("David", "Sophia", "wake up, wake up").
 		String()
 
-	md.NewMarkdown(os.Stdout).
+	_ = md.NewMarkdown(os.Stdout).
 		H2("Sequence Diagram").
 		CodeBlocks(md.SyntaxHighlightMermaid, diagram).
-		Build() //nolint
+		Build()
 
 	// Output:
 	// ## Sequence Diagram
@@ -150,7 +150,7 @@ func ExampleNewDiagram() {
 
 // ExampleTableAlignment demonstrates table alignment features.
 func ExampleTableAlignment() {
-	md.NewMarkdown(os.Stdout).
+	_ = md.NewMarkdown(os.Stdout).
 		H2("Table with Alignments").
 		Table(md.TableSet{
 			Header: []string{"Left Align", "Center Align", "Right Align"},

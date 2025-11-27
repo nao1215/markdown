@@ -48,14 +48,14 @@ func newConfig() *config {
 	return &config{
 		mirrorActors:            false,
 		bottomMariginAdjustment: 1,
-		actorFontSize:           14, // nolint:gomnd
+		actorFontSize:           14, //nolint:mnd
 		actorFontFamily:         "Open Sans, sans-serif",
 		actorFontWeight:         "Open Sans, sans-serif",
-		noteFontSize:            14, // nolint:gomnd
+		noteFontSize:            14, //nolint:mnd
 		noteFontFamily:          "trebuchet ms, verdana, arial",
 		noteFontWeight:          "trebuchet ms, verdana, arial",
 		noteAlign:               "center",
-		messageFontSize:         16, // nolint:gomnd
+		messageFontSize:         16, //nolint:mnd
 		messageFontFamily:       "trebuchet ms, verdana, arial",
 		messageFontWeight:       "trebuchet ms, verdana, arial",
 	}

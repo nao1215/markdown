@@ -9,7 +9,7 @@ import (
 	"github.com/nao1215/markdown/mermaid/piechart"
 )
 
-// ExamplePieChart skip this test on Windows.
+// ExamplePieChart skips this test on Windows.
 // The newline codes in the comment section where
 // the expected values are written are represented as '\n',
 // causing failures when testing on Windows.
@@ -24,16 +24,16 @@ func ExamplePieChart() {
 		LabelAndIntValue("C", 30).
 		String()
 
-	md.NewMarkdown(os.Stdout).
+	_ = md.NewMarkdown(os.Stdout).
 		H2("Pie Chart Diagram").
 		CodeBlocks(md.SyntaxHighlightMermaid, chart).
-		Build() //nolint
+		Build()
 
 	// Output:
 	// ## Pie Chart Diagram
 	// ```mermaid
-	//%%{init: {"pie": {"textPosition": 0.75}, "themeVariables": {"pieOuterStrokeWidth": "5px"}} }%%
-	//pie showData
+	// %%{init: {"pie": {"textPosition": 0.75}, "themeVariables": {"pieOuterStrokeWidth": "5px"}} }%%
+	// pie showData
 	//     title mermaid pie chart builder
 	//     "A" : 10
 	//     "B" : 20.100000
