@@ -1,3 +1,7 @@
+## [v0.10.0](https://github.com/nao1215/markdown/compare/v0.9.0...v0.10.0) (2025-11-27)
+
+* Add Mermaid Gantt Chart support ([nao1215](https://github.com/nao1215))
+
 ## [v0.9.0](https://github.com/nao1215/markdown/compare/v0.8.2...v0.9.0) (2025-11-27)
 
 * Add Mermaid State Diagram support [#72](https://github.com/nao1215/markdown/pull/72) ([nao1215](https://github.com/nao1215))
