@@ -1,3 +1,12 @@
+## [v0.9.0](https://github.com/nao1215/markdown/compare/v0.8.2...v0.9.0) (2025-11-27)
+
+* Add Mermaid State Diagram support [#72](https://github.com/nao1215/markdown/pull/72) ([nao1215](https://github.com/nao1215))
+* Add Mermaid Quadrant Chart support [#73](https://github.com/nao1215/markdown/pull/73) ([nao1215](https://github.com/nao1215))
+* Fix TableOfContents generation [#65](https://github.com/nao1215/markdown/pull/65) ([nao1215](https://github.com/nao1215))
+* Bump github.com/olekukonko/tablewriter from 1.1.0 to 1.1.1 [#70](https://github.com/nao1215/markdown/pull/70) ([dependabot](https://github.com/dependabot))
+* Bump actions/checkout from 5 to 6 [#71](https://github.com/nao1215/markdown/pull/71) ([dependabot](https://github.com/dependabot))
+* Bump peter-evans/create-issue-from-file from 5 to 6 [#67](https://github.com/nao1215/markdown/pull/67) ([dependabot](https://github.com/dependabot))
+
 ## [v0.8.2](https://github.com/nao1215/markdown/compare/v0.8.1...v0.8.2) (2025-09-27)
 
 * Add TableOfContents method with customizable depth levels [#64](https://github.com/nao1215/markdown/pull/64) ([nao1215](https://github.com/nao1215))
