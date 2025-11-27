@@ -12,7 +12,7 @@
 # markdown 패키지란 무엇인가
 markdown 패키지는 Golang으로 작성된 간단한 마크다운 빌더입니다. markdown 패키지는 [html/template](https://pkg.go.dev/html/template)과 같은 템플릿 엔진을 사용하지 않고 메서드 체이닝을 사용하여 Markdown을 조립합니다. Markdown의 구문은 **GitHub Markdown**을 따릅니다.
 
-markdown 패키지는 원래 [nao1215/spectest](https://github.com/nao1215/spectest)에서 테스트 결과를 저장하기 위해 개발되었습니다. 따라서 markdown 패키지는 spectest에 필요한 기능을 구현합니다. 예를 들어, markdown 패키지는 spectest에서 필요한 기능이었던 **mermaid 시퀀스 다이어그램(개체 관계 다이어그램, 시퀀스 다이어그램, 플로우차트, 파이 차트, 아키텍처 다이어그램)**을 지원합니다.
+markdown 패키지는 원래 [nao1215/spectest](https://github.com/nao1215/spectest)에서 테스트 결과를 저장하기 위해 개발되었습니다. 따라서 markdown 패키지는 spectest에 필요한 기능을 구현합니다. 예를 들어, markdown 패키지는 spectest에서 필요한 기능이었던 **mermaid 시퀀스 다이어그램(개체 관계 다이어그램, 시퀀스 다이어그램, 플로우차트, 파이 차트, 상태 다이어그램, 아키텍처 다이어그램)**을 지원합니다.
 
 또한 중첩된 목록 생성과 같은 라이브러리의 복잡성을 증가시키는 복잡한 코드는 추가되지 않을 것입니다. 이 라이브러리를 가능한 한 단순하게 유지하고 싶습니다.
 
@@ -39,6 +39,7 @@ markdown 패키지는 원래 [nao1215/spectest](https://github.com/nao1215/spect
 - [x] mermaid 개체 관계 다이어그램
 - [x] mermaid 플로우차트
 - [x] mermaid 파이 차트
+- [x] mermaid 상태 다이어그램
 - [x] mermaid 아키텍처 다이어그램 (베타 기능)
 
 ### Markdown 구문에 없는 기능
@@ -812,6 +813,103 @@ architecture-beta
 ````
 
 ![Architecture Diagram](../architecture/image.png)
+
+### 상태 다이어그램 구문
+
+```go
+package main
+
+import (
+	"io"
+	"os"
+
+	"github.com/nao1215/markdown"
+	"github.com/nao1215/markdown/mermaid/state"
+)
+
+//go:generate go run main.go
+
+func main() {
+	f, err := os.Create("generated.md")
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+
+	diagram := state.NewDiagram(io.Discard, state.WithTitle("Order State Machine")).
+		StartTransition("Pending").
+		State("Pending", "Order received").
+		State("Processing", "Preparing order").
+		State("Shipped", "Order in transit").
+		State("Delivered", "Order completed").
+		LF().
+		TransitionWithNote("Pending", "Processing", "payment confirmed").
+		TransitionWithNote("Processing", "Shipped", "items packed").
+		TransitionWithNote("Shipped", "Delivered", "customer received").
+		LF().
+		NoteRight("Pending", "Waiting for payment").
+		NoteRight("Processing", "Preparing items").
+		LF().
+		EndTransition("Delivered").
+		String()
+
+	err = markdown.NewMarkdown(f).
+		H2("State Diagram").
+		CodeBlocks(markdown.SyntaxHighlightMermaid, diagram).
+		Build()
+
+	if err != nil {
+		panic(err)
+	}
+}
+```
+
+일반 텍스트 출력: [markdown은 여기](../state/generated.md)
+````
+## State Diagram
+```mermaid
+---
+title: Order State Machine
+---
+stateDiagram-v2
+    [*] --> Pending
+    Pending : Order received
+    Processing : Preparing order
+    Shipped : Order in transit
+    Delivered : Order completed
+
+    Pending --> Processing : payment confirmed
+    Processing --> Shipped : items packed
+    Shipped --> Delivered : customer received
+
+    note right of Pending : Waiting for payment
+    note right of Processing : Preparing items
+
+    Delivered --> [*]
+```
+````
+
+Mermaid 출력:
+```mermaid
+---
+title: Order State Machine
+---
+stateDiagram-v2
+    [*] --> Pending
+    Pending : Order received
+    Processing : Preparing order
+    Shipped : Order in transit
+    Delivered : Order completed
+
+    Pending --> Processing : payment confirmed
+    Processing --> Shipped : items packed
+    Shipped --> Delivered : customer received
+
+    note right of Pending : Waiting for payment
+    note right of Processing : Preparing items
+
+    Delivered --> [*]
+```
 
 ## 마크다운 파일로 가득 찬 디렉터리의 인덱스 생성
 markdown 패키지는 지정된 디렉터리 내의 Markdown 파일에 대한 인덱스를 생성할 수 있습니다. 이 기능은 [nao1215/spectest](https://github.com/nao1215/spectest)에 의해 생성된 Markdown 문서의 인덱스를 생성하기 위해 추가되었습니다.

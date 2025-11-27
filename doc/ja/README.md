@@ -12,7 +12,7 @@
 # markdown パッケージとは
 markdown パッケージは、Golangでのシンプルなマークダウンビルダーです。markdown パッケージは、[html/template](https://pkg.go.dev/html/template) のようなテンプレートエンジンを使用せず、メソッドチェーンを使用してMarkdownを組み立てます。Markdownの構文は**GitHub Markdown**に従います。
 
-markdown パッケージは、[nao1215/spectest](https://github.com/nao1215/spectest) でテスト結果を保存するために最初に開発されました。そのため、markdown パッケージは spectest で必要な機能を実装しています。例えば、markdown パッケージは、spectest で必要な機能である**mermaid シーケンス図（実体関係図、シーケンス図、フローチャート、パイチャート、アーキテクチャ図）**をサポートしています。
+markdown パッケージは、[nao1215/spectest](https://github.com/nao1215/spectest) でテスト結果を保存するために最初に開発されました。そのため、markdown パッケージは spectest で必要な機能を実装しています。例えば、markdown パッケージは、spectest で必要な機能である**mermaid シーケンス図（実体関係図、シーケンス図、フローチャート、パイチャート、状態遷移図、アーキテクチャ図）**をサポートしています。
 
 また、ネストしたリストの生成などのライブラリの複雑性を増加させる複雑なコードは追加されません。このライブラリをできる限りシンプルに保ちたいと考えています。
 
@@ -39,6 +39,7 @@ markdown パッケージは、[nao1215/spectest](https://github.com/nao1215/spec
 - [x] mermaid 実体関係図
 - [x] mermaid フローチャート 
 - [x] mermaid パイチャート
+- [x] mermaid 状態遷移図
 - [x] mermaid アーキテクチャ図（ベータ機能） 
 
 ### Markdown構文にない機能
@@ -812,6 +813,103 @@ architecture-beta
 ````
 
 ![Architecture Diagram](../architecture/image.png)
+
+### 状態遷移図の構文
+
+```go
+package main
+
+import (
+	"io"
+	"os"
+
+	"github.com/nao1215/markdown"
+	"github.com/nao1215/markdown/mermaid/state"
+)
+
+//go:generate go run main.go
+
+func main() {
+	f, err := os.Create("generated.md")
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+
+	diagram := state.NewDiagram(io.Discard, state.WithTitle("Order State Machine")).
+		StartTransition("Pending").
+		State("Pending", "Order received").
+		State("Processing", "Preparing order").
+		State("Shipped", "Order in transit").
+		State("Delivered", "Order completed").
+		LF().
+		TransitionWithNote("Pending", "Processing", "payment confirmed").
+		TransitionWithNote("Processing", "Shipped", "items packed").
+		TransitionWithNote("Shipped", "Delivered", "customer received").
+		LF().
+		NoteRight("Pending", "Waiting for payment").
+		NoteRight("Processing", "Preparing items").
+		LF().
+		EndTransition("Delivered").
+		String()
+
+	err = markdown.NewMarkdown(f).
+		H2("State Diagram").
+		CodeBlocks(markdown.SyntaxHighlightMermaid, diagram).
+		Build()
+
+	if err != nil {
+		panic(err)
+	}
+}
+```
+
+プレーンテキスト出力: [markdownはこちら](../state/generated.md)
+````
+## State Diagram
+```mermaid
+---
+title: Order State Machine
+---
+stateDiagram-v2
+    [*] --> Pending
+    Pending : Order received
+    Processing : Preparing order
+    Shipped : Order in transit
+    Delivered : Order completed
+
+    Pending --> Processing : payment confirmed
+    Processing --> Shipped : items packed
+    Shipped --> Delivered : customer received
+
+    note right of Pending : Waiting for payment
+    note right of Processing : Preparing items
+
+    Delivered --> [*]
+```
+````
+
+Mermaid出力:
+```mermaid
+---
+title: Order State Machine
+---
+stateDiagram-v2
+    [*] --> Pending
+    Pending : Order received
+    Processing : Preparing order
+    Shipped : Order in transit
+    Delivered : Order completed
+
+    Pending --> Processing : payment confirmed
+    Processing --> Shipped : items packed
+    Shipped --> Delivered : customer received
+
+    note right of Pending : Waiting for payment
+    note right of Processing : Preparing items
+
+    Delivered --> [*]
+```
 
 ## Markdownファイルが格納されたディレクトリのインデックス作成
 markdownパッケージは、指定されたディレクトリ内のMarkdownファイルのインデックスを作成できます。この機能は、[nao1215/spectest](https://github.com/nao1215/spectest)によって生成されるMarkdownドキュメントのインデックスを生成するために追加されました。

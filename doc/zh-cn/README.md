@@ -12,7 +12,7 @@
 # 什么是 markdown 包
 markdown 包是一个用 Golang 编写的简单 markdown 构建器。markdown 包使用方法链接来组装 Markdown，而不使用像 [html/template](https://pkg.go.dev/html/template) 这样的模板引擎。Markdown 的语法遵循 **GitHub Markdown**。
 
-markdown 包最初是为了在 [nao1215/spectest](https://github.com/nao1215/spectest) 中保存测试结果而开发的。因此，markdown 包实现了 spectest 所需的功能。例如，markdown 包支持 **mermaid 序列图（实体关系图、序列图、流程图、饼图、架构图）**，这是 spectest 中的必要功能。
+markdown 包最初是为了在 [nao1215/spectest](https://github.com/nao1215/spectest) 中保存测试结果而开发的。因此，markdown 包实现了 spectest 所需的功能。例如，markdown 包支持 **mermaid 序列图（实体关系图、序列图、流程图、饼图、状态图、架构图）**，这是 spectest 中的必要功能。
 
 此外，不会添加增加库复杂性的复杂代码，例如生成嵌套列表。我希望保持这个库尽可能简单。
 
@@ -39,6 +39,7 @@ markdown 包最初是为了在 [nao1215/spectest](https://github.com/nao1215/spe
 - [x] mermaid 实体关系图
 - [x] mermaid 流程图
 - [x] mermaid 饼图
+- [x] mermaid 状态图
 - [x] mermaid 架构图（测试版功能）
 
 ### 不在 Markdown 语法中的功能
@@ -812,6 +813,103 @@ architecture-beta
 ````
 
 ![Architecture Diagram](../architecture/image.png)
+
+### 状态图语法
+
+```go
+package main
+
+import (
+	"io"
+	"os"
+
+	"github.com/nao1215/markdown"
+	"github.com/nao1215/markdown/mermaid/state"
+)
+
+//go:generate go run main.go
+
+func main() {
+	f, err := os.Create("generated.md")
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+
+	diagram := state.NewDiagram(io.Discard, state.WithTitle("Order State Machine")).
+		StartTransition("Pending").
+		State("Pending", "Order received").
+		State("Processing", "Preparing order").
+		State("Shipped", "Order in transit").
+		State("Delivered", "Order completed").
+		LF().
+		TransitionWithNote("Pending", "Processing", "payment confirmed").
+		TransitionWithNote("Processing", "Shipped", "items packed").
+		TransitionWithNote("Shipped", "Delivered", "customer received").
+		LF().
+		NoteRight("Pending", "Waiting for payment").
+		NoteRight("Processing", "Preparing items").
+		LF().
+		EndTransition("Delivered").
+		String()
+
+	err = markdown.NewMarkdown(f).
+		H2("State Diagram").
+		CodeBlocks(markdown.SyntaxHighlightMermaid, diagram).
+		Build()
+
+	if err != nil {
+		panic(err)
+	}
+}
+```
+
+纯文本输出: [markdown 在这里](../state/generated.md)
+````
+## State Diagram
+```mermaid
+---
+title: Order State Machine
+---
+stateDiagram-v2
+    [*] --> Pending
+    Pending : Order received
+    Processing : Preparing order
+    Shipped : Order in transit
+    Delivered : Order completed
+
+    Pending --> Processing : payment confirmed
+    Processing --> Shipped : items packed
+    Shipped --> Delivered : customer received
+
+    note right of Pending : Waiting for payment
+    note right of Processing : Preparing items
+
+    Delivered --> [*]
+```
+````
+
+Mermaid 输出:
+```mermaid
+---
+title: Order State Machine
+---
+stateDiagram-v2
+    [*] --> Pending
+    Pending : Order received
+    Processing : Preparing order
+    Shipped : Order in transit
+    Delivered : Order completed
+
+    Pending --> Processing : payment confirmed
+    Processing --> Shipped : items packed
+    Shipped --> Delivered : customer received
+
+    note right of Pending : Waiting for payment
+    note right of Processing : Preparing items
+
+    Delivered --> [*]
+```
 
 ## 为包含 markdown 文件的目录创建索引
 markdown 包可以为指定目录中的 Markdown 文件创建索引。此功能是为了为 [nao1215/spectest](https://github.com/nao1215/spectest) 生成的 Markdown 文档生成索引而添加的。

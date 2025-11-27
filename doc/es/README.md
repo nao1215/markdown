@@ -12,7 +12,7 @@
 # ¿Qué es el paquete markdown?
 El paquete markdown es un constructor de markdown simple en Golang. El paquete markdown ensambla Markdown usando encadenamiento de métodos, no utiliza un motor de plantillas como [html/template](https://pkg.go.dev/html/template). La sintaxis de Markdown sigue **GitHub Markdown**.
 
-El paquete markdown fue inicialmente desarrollado para guardar resultados de pruebas en [nao1215/spectest](https://github.com/nao1215/spectest). Por lo tanto, el paquete markdown implementa las características requeridas por spectest. Por ejemplo, el paquete markdown soporta **diagramas de secuencia mermaid (diagrama de relación de entidad, diagrama de secuencia, diagrama de flujo, gráfico circular, diagrama de arquitectura)**, que era una característica necesaria en spectest.
+El paquete markdown fue inicialmente desarrollado para guardar resultados de pruebas en [nao1215/spectest](https://github.com/nao1215/spectest). Por lo tanto, el paquete markdown implementa las características requeridas por spectest. Por ejemplo, el paquete markdown soporta **diagramas de secuencia mermaid (diagrama de relación de entidad, diagrama de secuencia, diagrama de flujo, gráfico circular, diagrama de estado, diagrama de arquitectura)**, que era una característica necesaria en spectest.
 
 Además, no se añadirá código complejo que aumente la complejidad de la biblioteca, como generar listas anidadas. Quiero mantener esta biblioteca lo más simple posible.
 
@@ -39,6 +39,7 @@ Además, no se añadirá código complejo que aumente la complejidad de la bibli
 - [x] diagrama de relación de entidad mermaid
 - [x] diagrama de flujo mermaid 
 - [x] gráfico circular mermaid
+- [x] diagrama de estado mermaid
 - [x] diagrama de arquitectura mermaid (característica beta) 
 
 ### Características no en la sintaxis de Markdown
@@ -812,6 +813,103 @@ architecture-beta
 ````
 
 ![Architecture Diagram](../architecture/image.png)
+
+### Sintaxis del diagrama de estado
+
+```go
+package main
+
+import (
+	"io"
+	"os"
+
+	"github.com/nao1215/markdown"
+	"github.com/nao1215/markdown/mermaid/state"
+)
+
+//go:generate go run main.go
+
+func main() {
+	f, err := os.Create("generated.md")
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+
+	diagram := state.NewDiagram(io.Discard, state.WithTitle("Order State Machine")).
+		StartTransition("Pending").
+		State("Pending", "Order received").
+		State("Processing", "Preparing order").
+		State("Shipped", "Order in transit").
+		State("Delivered", "Order completed").
+		LF().
+		TransitionWithNote("Pending", "Processing", "payment confirmed").
+		TransitionWithNote("Processing", "Shipped", "items packed").
+		TransitionWithNote("Shipped", "Delivered", "customer received").
+		LF().
+		NoteRight("Pending", "Waiting for payment").
+		NoteRight("Processing", "Preparing items").
+		LF().
+		EndTransition("Delivered").
+		String()
+
+	err = markdown.NewMarkdown(f).
+		H2("State Diagram").
+		CodeBlocks(markdown.SyntaxHighlightMermaid, diagram).
+		Build()
+
+	if err != nil {
+		panic(err)
+	}
+}
+```
+
+Salida de texto plano: [markdown está aquí](../state/generated.md)
+````
+## State Diagram
+```mermaid
+---
+title: Order State Machine
+---
+stateDiagram-v2
+    [*] --> Pending
+    Pending : Order received
+    Processing : Preparing order
+    Shipped : Order in transit
+    Delivered : Order completed
+
+    Pending --> Processing : payment confirmed
+    Processing --> Shipped : items packed
+    Shipped --> Delivered : customer received
+
+    note right of Pending : Waiting for payment
+    note right of Processing : Preparing items
+
+    Delivered --> [*]
+```
+````
+
+Salida Mermaid:
+```mermaid
+---
+title: Order State Machine
+---
+stateDiagram-v2
+    [*] --> Pending
+    Pending : Order received
+    Processing : Preparing order
+    Shipped : Order in transit
+    Delivered : Order completed
+
+    Pending --> Processing : payment confirmed
+    Processing --> Shipped : items packed
+    Shipped --> Delivered : customer received
+
+    note right of Pending : Waiting for payment
+    note right of Processing : Preparing items
+
+    Delivered --> [*]
+```
 
 ## Crear un índice para un directorio lleno de archivos markdown
 El paquete markdown puede crear un índice para archivos Markdown dentro del directorio especificado. Esta característica fue añadida para generar índices para documentos Markdown producidos por [nao1215/spectest](https://github.com/nao1215/spectest).
