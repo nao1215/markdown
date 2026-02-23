@@ -85,11 +85,44 @@ func TestReferenceLink(t *testing.T) {
 func TestReferenceLinkDefinition(t *testing.T) {
 	t.Parallel()
 
-	t.Run("success ReferenceLinkDefinition()", func(t *testing.T) {
+	t.Run("success ReferenceLinkDefinition() without title", func(t *testing.T) {
 		t.Parallel()
 
 		want := "[go-site]: https://golang.org"
 		got := ReferenceLinkDefinition("go-site", "https://golang.org")
+
+		if diff := cmp.Diff(want, got); diff != "" {
+			t.Errorf("value is mismatch (-want +got):\n%s", diff)
+		}
+	})
+
+	t.Run("success ReferenceLinkDefinition() with title", func(t *testing.T) {
+		t.Parallel()
+
+		want := "[go-site]: https://golang.org \"The Go Programming Language\""
+		got := ReferenceLinkDefinition("go-site", "https://golang.org", "The Go Programming Language")
+
+		if diff := cmp.Diff(want, got); diff != "" {
+			t.Errorf("value is mismatch (-want +got):\n%s", diff)
+		}
+	})
+
+	t.Run("ReferenceLinkDefinition() with empty title keeps original format", func(t *testing.T) {
+		t.Parallel()
+
+		want := "[go-site]: https://golang.org"
+		got := ReferenceLinkDefinition("go-site", "https://golang.org", "")
+
+		if diff := cmp.Diff(want, got); diff != "" {
+			t.Errorf("value is mismatch (-want +got):\n%s", diff)
+		}
+	})
+
+	t.Run("ReferenceLinkDefinition() escapes title quotes", func(t *testing.T) {
+		t.Parallel()
+
+		want := "[go-site]: https://golang.org \"The \\\"Go\\\" Programming Language\""
+		got := ReferenceLinkDefinition("go-site", "https://golang.org", "The \"Go\" Programming Language")
 
 		if diff := cmp.Diff(want, got); diff != "" {
 			t.Errorf("value is mismatch (-want +got):\n%s", diff)
@@ -137,10 +170,10 @@ func TestBlockMath(t *testing.T) {
 		}
 	})
 
-	t.Run("BlockMath() escapes dollar signs", func(t *testing.T) {
+	t.Run("BlockMath() keeps dollar signs as is", func(t *testing.T) {
 		t.Parallel()
 
-		want := "$$" + internal.LineFeed() + "cost = \\$x + \\$y" + internal.LineFeed() + "$$"
+		want := "$$" + internal.LineFeed() + "cost = $x + $y" + internal.LineFeed() + "$$"
 		got := BlockMath("cost = $x + $y")
 
 		if diff := cmp.Diff(want, got); diff != "" {
