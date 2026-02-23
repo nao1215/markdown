@@ -36,6 +36,36 @@ func TestImage(t *testing.T) {
 	})
 }
 
+func TestFootnoteReference(t *testing.T) {
+	t.Parallel()
+
+	t.Run("success FootnoteReference()", func(t *testing.T) {
+		t.Parallel()
+
+		want := "[^1]"
+		got := FootnoteReference("1")
+
+		if diff := cmp.Diff(want, got); diff != "" {
+			t.Errorf("value is mismatch (-want +got):\n%s", diff)
+		}
+	})
+}
+
+func TestFootnoteDefinition(t *testing.T) {
+	t.Parallel()
+
+	t.Run("success FootnoteDefinition()", func(t *testing.T) {
+		t.Parallel()
+
+		want := "[^1]: This is footnote"
+		got := FootnoteDefinition("1", "This is footnote")
+
+		if diff := cmp.Diff(want, got); diff != "" {
+			t.Errorf("value is mismatch (-want +got):\n%s", diff)
+		}
+	})
+}
+
 func TestStrikethrough(t *testing.T) {
 	t.Parallel()
 

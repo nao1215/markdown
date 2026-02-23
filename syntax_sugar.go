@@ -9,6 +9,18 @@ func Link(text, url string) string {
 	return fmt.Sprintf("[%s](%s)", text, url)
 }
 
+// FootnoteReference returns text with footnote reference format.
+// If you set id "1", it will be converted to "[^1]".
+func FootnoteReference(id string) string {
+	return fmt.Sprintf("[^%s]", id)
+}
+
+// FootnoteDefinition returns text with footnote definition format.
+// If you set id "1" and text "Hello", it will be converted to "[^1]: Hello".
+func FootnoteDefinition(id, text string) string {
+	return fmt.Sprintf("[^%s]: %s", id, text)
+}
+
 // Image return text with image format.
 // If you set text "Hello" and url "https://example.com/image.png",
 // it will be converted to "![Hello](https://example.com/image.png)".

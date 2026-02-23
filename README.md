@@ -34,6 +34,7 @@ Additionally, complex code that increases the complexity of the library, such as
 - [x] Text with image
 - [x] Plain text
 - [x] Details 
+- [x] Footnotes
 - [x] Alerts; NOTE, TIP, IMPORTANT, CAUTION, WARNING
 - [x] mermaid sequence diagram
 - [x] mermaid entity relationship diagram
