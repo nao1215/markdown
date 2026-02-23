@@ -139,6 +139,17 @@ func TestReferenceLinkDefinition(t *testing.T) {
 			t.Errorf("value is mismatch (-want +got):\n%s", diff)
 		}
 	})
+
+	t.Run("ReferenceLinkDefinition() escapes path style backslashes in title", func(t *testing.T) {
+		t.Parallel()
+
+		want := `[go-site]: https://golang.org "C:\\path\\"`
+		got := ReferenceLinkDefinition("go-site", "https://golang.org", `C:\path\`)
+
+		if diff := cmp.Diff(want, got); diff != "" {
+			t.Errorf("value is mismatch (-want +got):\n%s", diff)
+		}
+	})
 }
 
 func TestInlineMath(t *testing.T) {
