@@ -78,7 +78,7 @@ func (i *Index) walk() error {
 				return nil
 			}
 
-			if !strings.Contains(path, ".md") {
+			if !isMarkdownFile(path) {
 				return godirwalk.SkipThis
 			}
 			i.appendFile(path)
@@ -93,12 +93,20 @@ func (i *Index) walk() error {
 func (i *Index) write() (err error) {
 	if i.w == nil {
 		const readUserOnly = 0600
-		if i.w, err = os.OpenFile(filepath.Clean(filepath.Join(i.targetDir, "index.md")), os.O_WRONLY|os.O_CREATE|os.O_TRUNC, readUserOnly); err != nil {
-			return err
+		f, openErr := os.OpenFile(filepath.Clean(filepath.Join(i.targetDir, "index.md")), os.O_WRONLY|os.O_CREATE|os.O_TRUNC, readUserOnly)
+		if openErr != nil {
+			return openErr
 		}
+		i.w = f
+		defer func() {
+			if closeErr := f.Close(); closeErr != nil && err == nil {
+				err = closeErr
+			}
+		}()
 	}
 
 	markdown := NewMarkdown(i.w)
+	indexPath := filepath.Clean(filepath.Join(i.targetDir, "index.md"))
 	if i.title != "" {
 		markdown.H2(i.title)
 	}
@@ -112,7 +120,15 @@ func (i *Index) write() (err error) {
 		if len(d.files) == 0 {
 			continue
 		}
-		if len(d.files) == 1 && d.files[0] == filepath.Join(i.targetDir, "index.md") {
+
+		markdownFiles := make([]string, 0, len(d.files))
+		for _, f := range d.files {
+			if filepath.Clean(f) == indexPath {
+				continue
+			}
+			markdownFiles = append(markdownFiles, f)
+		}
+		if len(markdownFiles) == 0 {
 			continue
 		}
 
@@ -122,7 +138,7 @@ func (i *Index) write() (err error) {
 		}
 		markdown.H3(subTitle)
 
-		for _, f := range d.files {
+		for _, f := range markdownFiles {
 			if h1 := firstH1orH2(f); h1 != "" {
 				markdown.BulletList(Link(h1, strings.Replace(f, i.targetDir+string(filepath.Separator), "", 1)))
 				continue
@@ -161,6 +177,10 @@ func (i *Index) appendFile(filePath string) {
 			return
 		}
 	}
+}
+
+func isMarkdownFile(path string) bool {
+	return strings.EqualFold(filepath.Ext(path), ".md")
 }
 
 // dir represents a directory and its files.
