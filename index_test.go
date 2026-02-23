@@ -71,3 +71,30 @@ func TestIsMarkdownFile(t *testing.T) {
 		})
 	}
 }
+
+func TestGenerateIndexTwice(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	markdownPath := filepath.Join(dir, "sample.md")
+	if err := os.WriteFile(markdownPath, []byte("# Sample\n"), 0o600); err != nil {
+		t.Fatalf("failed to write markdown file: %v", err)
+	}
+
+	if err := GenerateIndex(dir); err != nil {
+		t.Fatalf("failed to generate index on first run: %v", err)
+	}
+	if err := GenerateIndex(dir); err != nil {
+		t.Fatalf("failed to generate index on second run: %v", err)
+	}
+
+	indexPath := filepath.Join(dir, "index.md")
+	//nolint:gosec // indexPath is created from t.TempDir() in this test.
+	got, err := os.ReadFile(indexPath)
+	if err != nil {
+		t.Fatalf("failed to read generated index: %v", err)
+	}
+	if strings.Contains(string(got), "(index.md)") {
+		t.Fatalf("generated index contains self link: %s", string(got))
+	}
+}

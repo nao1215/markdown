@@ -99,6 +99,7 @@ func (i *Index) write() (err error) {
 	}
 
 	markdown := NewMarkdown(i.w)
+	indexPath := filepath.Clean(filepath.Join(i.targetDir, "index.md"))
 	if i.title != "" {
 		markdown.H2(i.title)
 	}
@@ -112,7 +113,15 @@ func (i *Index) write() (err error) {
 		if len(d.files) == 0 {
 			continue
 		}
-		if len(d.files) == 1 && d.files[0] == filepath.Join(i.targetDir, "index.md") {
+
+		markdownFiles := make([]string, 0, len(d.files))
+		for _, f := range d.files {
+			if filepath.Clean(f) == indexPath {
+				continue
+			}
+			markdownFiles = append(markdownFiles, f)
+		}
+		if len(markdownFiles) == 0 {
 			continue
 		}
 
@@ -122,7 +131,7 @@ func (i *Index) write() (err error) {
 		}
 		markdown.H3(subTitle)
 
-		for _, f := range d.files {
+		for _, f := range markdownFiles {
 			if h1 := firstH1orH2(f); h1 != "" {
 				markdown.BulletList(Link(h1, strings.Replace(f, i.targetDir+string(filepath.Separator), "", 1)))
 				continue
