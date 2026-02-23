@@ -1,4 +1,4 @@
-.PHONY: build test clean
+.PHONY: build test lint clean help changelog tools
 
 APP         = markdown
 VERSION     = $(shell git describe --tags --abbrev=0)
@@ -7,6 +7,7 @@ GO          = go
 GO_BUILD    = $(GO) build
 GO_TEST     = $(GO) test -v
 GO_TOOL     = $(GO) tool
+GO_INSTALL  = $(GO) install
 GOOS        = ""
 GOARCH      = ""
 GO_PKGROOT  = ./...
@@ -19,6 +20,9 @@ clean: ## Clean project
 test: ## Start unit test for server
 	env GOOS=$(GOOS) $(GO_TEST) -cover -coverpkg=$(GO_PKGROOT) -coverprofile=coverage.out $(GO_PKGROOT)
 	$(GO_TOOL) cover -html=coverage.out -o coverage.html
+
+lint: ## Run linter
+	golangci-lint run
 	
 .DEFAULT_GOAL := help
 help: ## Show help message  
