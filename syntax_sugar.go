@@ -26,6 +26,19 @@ func FootnoteDefinition(id, text string) string {
 	return fmt.Sprintf("[^%s]: %s", id, text)
 }
 
+// ReferenceLink returns text with reference link format.
+// If you set text "Go" and id "go-site", it will be converted to "[Go][go-site]".
+func ReferenceLink(text, id string) string {
+	return fmt.Sprintf("[%s][%s]", text, id)
+}
+
+// ReferenceLinkDefinition returns text with reference link definition format.
+// If you set id "go-site" and url "https://golang.org",
+// it will be converted to "[go-site]: https://golang.org".
+func ReferenceLinkDefinition(id, url string) string {
+	return fmt.Sprintf("[%s]: %s", id, url)
+}
+
 // InlineMath returns text with inline mathematical expression format.
 // If you set expression "E=mc^2", it will be converted to "$E=mc^2$".
 func InlineMath(expression string) string {

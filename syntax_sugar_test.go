@@ -67,6 +67,36 @@ func TestFootnoteDefinition(t *testing.T) {
 	})
 }
 
+func TestReferenceLink(t *testing.T) {
+	t.Parallel()
+
+	t.Run("success ReferenceLink()", func(t *testing.T) {
+		t.Parallel()
+
+		want := "[Go][go-site]"
+		got := ReferenceLink("Go", "go-site")
+
+		if diff := cmp.Diff(want, got); diff != "" {
+			t.Errorf("value is mismatch (-want +got):\n%s", diff)
+		}
+	})
+}
+
+func TestReferenceLinkDefinition(t *testing.T) {
+	t.Parallel()
+
+	t.Run("success ReferenceLinkDefinition()", func(t *testing.T) {
+		t.Parallel()
+
+		want := "[go-site]: https://golang.org"
+		got := ReferenceLinkDefinition("go-site", "https://golang.org")
+
+		if diff := cmp.Diff(want, got); diff != "" {
+			t.Errorf("value is mismatch (-want +got):\n%s", diff)
+		}
+	})
+}
+
 func TestInlineMath(t *testing.T) {
 	t.Parallel()
 

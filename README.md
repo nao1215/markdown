@@ -31,6 +31,7 @@ Additionally, complex code that increases the complexity of the library, such as
 - [x] Table
 - [x] Text formatting; bold, italic, code, strikethrough, bold italic
 - [x] Text with link
+- [x] Reference link
 - [x] Text with image
 - [x] Plain text
 - [x] Details 
