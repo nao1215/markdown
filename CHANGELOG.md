@@ -1,52 +1,74 @@
+## [v0.11.0](https://github.com/nao1215/markdown/compare/v0.10.0...v0.11.0) (2026-02-23)
+
+* Add Markdown footnote helpers [#82](https://github.com/nao1215/markdown/pull/82) ([nao1215](https://github.com/nao1215))
+* Add safe helpers for inline and block math expressions [#82](https://github.com/nao1215/markdown/pull/82) ([nao1215](https://github.com/nao1215))
+* Add Markdown reference link helpers [#82](https://github.com/nao1215/markdown/pull/82) ([nao1215](https://github.com/nao1215))
+* Improve table of contents and index generation behavior [#81](https://github.com/nao1215/markdown/pull/81) ([nao1215](https://github.com/nao1215))
+* Improve Makefile and CI configuration [#81](https://github.com/nao1215/markdown/pull/81) ([nao1215](https://github.com/nao1215))
+* Delete unused metrics [#80](https://github.com/nao1215/markdown/pull/80) ([nao1215](https://github.com/nao1215))
+* Bump github.com/olekukonko/tablewriter from 1.1.1 to 1.1.2 [#76](https://github.com/nao1215/markdown/pull/76) ([dependabot](https://github.com/dependabot))
+* Bump github.com/olekukonko/tablewriter from 1.1.2 to 1.1.3 [#78](https://github.com/nao1215/markdown/pull/78) ([dependabot](https://github.com/dependabot))
+
 ## [v0.10.0](https://github.com/nao1215/markdown/compare/v0.9.0...v0.10.0) (2025-11-27)
 
-* Add Mermaid Gantt Chart support ([nao1215](https://github.com/nao1215))
+* Add Mermaid Gantt Chart support [#74](https://github.com/nao1215/markdown/pull/74) ([nao1215](https://github.com/nao1215))
 
-## [v0.9.0](https://github.com/nao1215/markdown/compare/v0.8.2...v0.9.0) (2025-11-27)
+## [v0.9.0](https://github.com/nao1215/markdown/compare/v0.8.3...v0.9.0) (2025-11-27)
 
 * Add Mermaid State Diagram support [#72](https://github.com/nao1215/markdown/pull/72) ([nao1215](https://github.com/nao1215))
 * Add Mermaid Quadrant Chart support [#73](https://github.com/nao1215/markdown/pull/73) ([nao1215](https://github.com/nao1215))
-* Fix TableOfContents generation [#65](https://github.com/nao1215/markdown/pull/65) ([nao1215](https://github.com/nao1215))
 * Bump github.com/olekukonko/tablewriter from 1.1.0 to 1.1.1 [#70](https://github.com/nao1215/markdown/pull/70) ([dependabot](https://github.com/dependabot))
 * Bump actions/checkout from 5 to 6 [#71](https://github.com/nao1215/markdown/pull/71) ([dependabot](https://github.com/dependabot))
 * Bump peter-evans/create-issue-from-file from 5 to 6 [#67](https://github.com/nao1215/markdown/pull/67) ([dependabot](https://github.com/dependabot))
 
+## [v0.8.3](https://github.com/nao1215/markdown/compare/v0.8.2...v0.8.3) (2025-09-29)
+
+* Fix TableOfContents generation [#65](https://github.com/nao1215/markdown/pull/65) ([nao1215](https://github.com/nao1215))
+
 ## [v0.8.2](https://github.com/nao1215/markdown/compare/v0.8.1...v0.8.2) (2025-09-27)
 
 * Add TableOfContents method with customizable depth levels [#64](https://github.com/nao1215/markdown/pull/64) ([nao1215](https://github.com/nao1215))
+* Bump github.com/olekukonko/tablewriter from 1.0.9 to 1.1.0 [#62](https://github.com/nao1215/markdown/pull/62) ([dependabot](https://github.com/dependabot))
+* Bump actions/setup-go from 5 to 6 [#61](https://github.com/nao1215/markdown/pull/61) ([dependabot](https://github.com/dependabot))
 
-## [v0.8.1](https://github.com/nao1215/markdown/compare/v0.8.0...v0.8.1) (2025-01-25)
-
-* Bug fixes and improvements
-
-## [v0.8.0](https://github.com/nao1215/markdown/compare/v0.7.0...v0.8.0) (2025-01-25)
+## [v0.8.1](https://github.com/nao1215/markdown/compare/v0.8.0...v0.8.1) (2025-08-27)
 
 * Add Table alignment support [#59](https://github.com/nao1215/markdown/pull/59) ([nchika](https://github.com/nchika))
-* Bump github.com/olekukonko/tablewriter from 1.0.9 to 1.1.0 [#58](https://github.com/nao1215/markdown/pull/58) ([dependabot](https://github.com/dependabot))
+* Add README in multiple languages (es, fr, ko, ru, zh-cn) [#58](https://github.com/nao1215/markdown/pull/58) ([nao1215](https://github.com/nao1215))
 * Bump actions/checkout from 4 to 5 [#57](https://github.com/nao1215/markdown/pull/57) ([dependabot](https://github.com/dependabot))
-* Bump actions/setup-go from 5 to 6 [#56](https://github.com/nao1215/markdown/pull/56) ([dependabot](https://github.com/dependabot))
 * Bump github.com/olekukonko/tablewriter from 1.0.7 to 1.0.9 [#55](https://github.com/nao1215/markdown/pull/55) ([dependabot](https://github.com/dependabot))
 
-## [v0.7.0](https://github.com/nao1215/markdown/compare/v0.6.0...v0.7.0) (2024-10-13)
+## [v0.8.0](https://github.com/nao1215/markdown/compare/v0.7.1...v0.8.0) (2025-06-15)
 
-* Add README in multiple languages (es, fr, ko, ru, zh-cn) ([nao1215](https://github.com/nao1215))
-* Add error handling improvements ([nao1215](https://github.com/nao1215))
-* Migrate to tablewriter v2 ([nao1215](https://github.com/nao1215))
+* Migrate to tablewriter v2 [#52](https://github.com/nao1215/markdown/pull/52) ([nao1215](https://github.com/nao1215))
+* Add error handling improvements [#52](https://github.com/nao1215/markdown/pull/52) ([nao1215](https://github.com/nao1215))
+* Skip test on Windows runtime [#52](https://github.com/nao1215/markdown/pull/52) ([nao1215](https://github.com/nao1215))
 
-## [v0.6.0](https://github.com/nao1215/markdown/compare/v0.5.0...v0.6.0) (2024-08-12)
+## [v0.7.1](https://github.com/nao1215/markdown/compare/v0.7.0...v0.7.1) (2025-02-25)
 
 * Support go version 1.21 or later ([nao1215](https://github.com/nao1215))
-* Bump github.com/google/go-cmp from 0.6.0 to 0.7.0 ([dependabot](https://github.com/dependabot))
 * Add go 1.24 support ([nao1215](https://github.com/nao1215))
-* Add issue metrics ([nao1215](https://github.com/nao1215))
+* Add issue metrics [#36](https://github.com/nao1215/markdown/pull/36) ([nao1215](https://github.com/nao1215))
+* Fix example [#40](https://github.com/nao1215/markdown/pull/40) ([nao1215](https://github.com/nao1215))
+* Bump github.com/google/go-cmp from 0.6.0 to 0.7.0 [#42](https://github.com/nao1215/markdown/pull/42) ([dependabot](https://github.com/dependabot))
 
-## [v0.5.0](https://github.com/nao1215/markdown/compare/v0.4.0...v0.5.0) (2024-06-20)
+## [v0.7.0](https://github.com/nao1215/markdown/compare/v0.6.0...v0.7.0) (2024-12-18)
 
-* Add Architecture Diagrams support ([nao1215](https://github.com/nao1215))
-* Add Highlight() function to syntax_sugar [#48](https://github.com/nao1215/markdown/pull/48) ([nao1215](https://github.com/nao1215))
-* Add go1.23 support ([nao1215](https://github.com/nao1215))
-* Add blue badge option [#45](https://github.com/nao1215/markdown/pull/45) ([claranceliberi](https://github.com/claranceliberi))
-* Add FUNDING file ([nao1215](https://github.com/nao1215))
+* Add Architecture Diagrams support [#34](https://github.com/nao1215/markdown/pull/34) ([nao1215](https://github.com/nao1215))
+* Add architecture diagram example code [#35](https://github.com/nao1215/markdown/pull/35) ([nao1215](https://github.com/nao1215))
+
+## [v0.6.0](https://github.com/nao1215/markdown/compare/v0.5.0...v0.6.0) (2024-08-29)
+
+* Add Highlight() function to syntax_sugar [#30](https://github.com/nao1215/markdown/pull/30) ([amitaifrey](https://github.com/amitaifrey))
+* Add go1.23 support [#29](https://github.com/nao1215/markdown/pull/29) ([nao1215](https://github.com/nao1215))
+* Add FUNDING file [#28](https://github.com/nao1215/markdown/pull/28) ([nao1215](https://github.com/nao1215))
+* Add all contributors entry [#32](https://github.com/nao1215/markdown/pull/32) ([allcontributors](https://github.com/apps/allcontributors))
+
+## [v0.5.0](https://github.com/nao1215/markdown/compare/v0.4.0...v0.5.0) (2024-06-02)
+
+* Add blue badge option [#26](https://github.com/nao1215/markdown/pull/26) ([claranceliberi](https://github.com/claranceliberi))
+* Update project settings [#25](https://github.com/nao1215/markdown/pull/25) ([nao1215](https://github.com/nao1215))
+* Update README [#27](https://github.com/nao1215/markdown/pull/27) ([nao1215](https://github.com/nao1215))
 
 
 ## [v0.4.0](https://github.com/nao1215/markdown/compare/v0.3.0...v0.4.0) (2024-05-06)
