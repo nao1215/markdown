@@ -1443,4 +1443,19 @@ func TestBuildWithWriteError(t *testing.T) {
 			t.Errorf("Error should mention existing error, got: %v", err)
 		}
 	})
+
+	t.Run("Build with nil writer", func(t *testing.T) {
+		t.Parallel()
+
+		m := NewMarkdown(nil)
+		m.H1("Test")
+
+		err := m.Build()
+		if err == nil {
+			t.Error("Build() should return error when writer is nil")
+		}
+		if !strings.Contains(err.Error(), "destination writer is nil") {
+			t.Errorf("Error should mention nil writer, got: %v", err)
+		}
+	})
 }

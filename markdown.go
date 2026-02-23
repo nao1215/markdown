@@ -210,6 +210,13 @@ func (m *Markdown) PlainTextf(format string, args ...interface{}) *Markdown {
 
 // Build writes markdown text to output destination.
 func (m *Markdown) Build() error {
+	if m.dest == nil {
+		if m.err != nil {
+			return fmt.Errorf("failed to write markdown text: destination writer is nil: %s", m.err.Error()) //nolint:wrapcheck
+		}
+		return errors.New("failed to write markdown text: destination writer is nil")
+	}
+
 	if _, err := fmt.Fprint(m.dest, m.String()); err != nil {
 		if m.err != nil {
 			return fmt.Errorf("failed to write markdown text: %w: %s", err, m.err.Error()) //nolint:wrapcheck
