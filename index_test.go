@@ -98,3 +98,22 @@ func TestGenerateIndexTwice(t *testing.T) {
 		t.Fatalf("generated index contains self link: %s", string(got))
 	}
 }
+
+func TestGenerateIndexClosesFile(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	markdownPath := filepath.Join(dir, "sample.md")
+	if err := os.WriteFile(markdownPath, []byte("# Sample\n"), 0o600); err != nil {
+		t.Fatalf("failed to write markdown file: %v", err)
+	}
+
+	if err := GenerateIndex(dir); err != nil {
+		t.Fatalf("failed to generate index: %v", err)
+	}
+
+	indexPath := filepath.Join(dir, "index.md")
+	if err := os.Remove(indexPath); err != nil {
+		t.Fatalf("failed to remove generated index file: %v", err)
+	}
+}

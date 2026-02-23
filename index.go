@@ -93,9 +93,16 @@ func (i *Index) walk() error {
 func (i *Index) write() (err error) {
 	if i.w == nil {
 		const readUserOnly = 0600
-		if i.w, err = os.OpenFile(filepath.Clean(filepath.Join(i.targetDir, "index.md")), os.O_WRONLY|os.O_CREATE|os.O_TRUNC, readUserOnly); err != nil {
-			return err
+		f, openErr := os.OpenFile(filepath.Clean(filepath.Join(i.targetDir, "index.md")), os.O_WRONLY|os.O_CREATE|os.O_TRUNC, readUserOnly)
+		if openErr != nil {
+			return openErr
 		}
+		i.w = f
+		defer func() {
+			if closeErr := f.Close(); closeErr != nil && err == nil {
+				err = closeErr
+			}
+		}()
 	}
 
 	markdown := NewMarkdown(i.w)
