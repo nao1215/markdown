@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"strings"
+	"unicode"
 
 	"github.com/nao1215/markdown/internal"
 	"github.com/olekukonko/tablewriter"
@@ -384,6 +385,7 @@ func (m *Markdown) generateTableOfContents() []string {
 
 	tocLines := make([]string, 0, len(m.headers))
 	minIndent := int(m.tocOptions.MinDepth)
+	anchorCounts := make(map[string]int, len(m.headers))
 
 	for _, header := range m.headers {
 		// Skip headers outside the specified range
@@ -395,18 +397,36 @@ func (m *Markdown) generateTableOfContents() []string {
 		indent := strings.Repeat("  ", int(header.level)-minIndent)
 
 		// Generate anchor following GitHub's convention
-		anchor := strings.ToLower(strings.ReplaceAll(header.text, " ", "-"))
-		anchor = strings.Map(func(r rune) rune {
-			if (r >= 'a' && r <= 'z') || (r >= '0' && r <= '9') || r == '-' {
-				return r
-			}
-			return -1
-		}, anchor)
+		baseAnchor := generateGitHubAnchor(header.text)
+		count := anchorCounts[baseAnchor]
+		anchor := baseAnchor
+		if count > 0 {
+			anchor = fmt.Sprintf("%s-%d", baseAnchor, count)
+		}
+		anchorCounts[baseAnchor] = count + 1
 
 		tocLines = append(tocLines, fmt.Sprintf("%s- [%s](#%s)", indent, header.text, anchor))
 	}
 
 	return tocLines
+}
+
+func generateGitHubAnchor(text string) string {
+	text = strings.ToLower(text)
+
+	var b strings.Builder
+	b.Grow(len(text))
+
+	for _, r := range text {
+		switch {
+		case r == ' ' || r == '-':
+			b.WriteRune('-')
+		case unicode.IsLetter(r) || unicode.IsNumber(r):
+			b.WriteRune(r)
+		}
+	}
+
+	return b.String()
 }
 
 // Details is markdown details.

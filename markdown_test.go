@@ -720,6 +720,31 @@ func TestTableOfContentsWithSpecialCharacters(t *testing.T) {
 			t.Errorf("value is mismatch (-want +got):\n%s", diff)
 		}
 	})
+
+	t.Run("Table of contents handles unicode and duplicate headers", func(t *testing.T) {
+		t.Parallel()
+
+		m := NewMarkdown(os.Stdout)
+		m.H1("日本語タイトル").
+			H2("同じ").
+			H2("同じ").
+			TableOfContents(TableOfContentsDepthH2)
+
+		want := "# 日本語タイトル" + internal.LineFeed() +
+			"## 同じ" + internal.LineFeed() +
+			"## 同じ" + internal.LineFeed() +
+			TableOfContentsMarkerBegin + internal.LineFeed() +
+			"- [日本語タイトル](#日本語タイトル)" + internal.LineFeed() +
+			"  - [同じ](#同じ)" + internal.LineFeed() +
+			"  - [同じ](#同じ-1)" + internal.LineFeed() +
+			TableOfContentsMarkerEnd + internal.LineFeed() +
+			""
+		got := m.String()
+
+		if diff := cmp.Diff(want, got); diff != "" {
+			t.Errorf("value is mismatch (-want +got):\n%s", diff)
+		}
+	})
 }
 
 func TestTableOfContentsMethodCompatibility(t *testing.T) {
