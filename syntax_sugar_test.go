@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/nao1215/markdown/internal"
 )
 
 func TestLink(t *testing.T) {
@@ -59,6 +60,58 @@ func TestFootnoteDefinition(t *testing.T) {
 
 		want := "[^1]: This is footnote"
 		got := FootnoteDefinition("1", "This is footnote")
+
+		if diff := cmp.Diff(want, got); diff != "" {
+			t.Errorf("value is mismatch (-want +got):\n%s", diff)
+		}
+	})
+}
+
+func TestInlineMath(t *testing.T) {
+	t.Parallel()
+
+	t.Run("success InlineMath()", func(t *testing.T) {
+		t.Parallel()
+
+		want := "$E=mc^2$"
+		got := InlineMath("E=mc^2")
+
+		if diff := cmp.Diff(want, got); diff != "" {
+			t.Errorf("value is mismatch (-want +got):\n%s", diff)
+		}
+	})
+
+	t.Run("InlineMath() escapes dollar signs", func(t *testing.T) {
+		t.Parallel()
+
+		want := "$price = \\$100$"
+		got := InlineMath("price = $100")
+
+		if diff := cmp.Diff(want, got); diff != "" {
+			t.Errorf("value is mismatch (-want +got):\n%s", diff)
+		}
+	})
+}
+
+func TestBlockMath(t *testing.T) {
+	t.Parallel()
+
+	t.Run("success BlockMath()", func(t *testing.T) {
+		t.Parallel()
+
+		want := "$$" + internal.LineFeed() + "x^2 + y^2 = z^2" + internal.LineFeed() + "$$"
+		got := BlockMath("x^2 + y^2 = z^2")
+
+		if diff := cmp.Diff(want, got); diff != "" {
+			t.Errorf("value is mismatch (-want +got):\n%s", diff)
+		}
+	})
+
+	t.Run("BlockMath() escapes dollar signs", func(t *testing.T) {
+		t.Parallel()
+
+		want := "$$" + internal.LineFeed() + "cost = \\$x + \\$y" + internal.LineFeed() + "$$"
+		got := BlockMath("cost = $x + $y")
 
 		if diff := cmp.Diff(want, got); diff != "" {
 			t.Errorf("value is mismatch (-want +got):\n%s", diff)

@@ -1,6 +1,11 @@
 package markdown
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+
+	"github.com/nao1215/markdown/internal"
+)
 
 // Link return text with link format.
 // If you set text "Hello" and url "https://example.com",
@@ -19,6 +24,27 @@ func FootnoteReference(id string) string {
 // If you set id "1" and text "Hello", it will be converted to "[^1]: Hello".
 func FootnoteDefinition(id, text string) string {
 	return fmt.Sprintf("[^%s]: %s", id, text)
+}
+
+// InlineMath returns text with inline mathematical expression format.
+// If you set expression "E=mc^2", it will be converted to "$E=mc^2$".
+func InlineMath(expression string) string {
+	return fmt.Sprintf("$%s$", escapeMathExpression(expression))
+}
+
+// BlockMath returns text with block mathematical expression format.
+// If you set expression "x^2 + y^2 = z^2", it will be converted to:
+//
+//	$$
+//	x^2 + y^2 = z^2
+//	$$
+func BlockMath(expression string) string {
+	lf := internal.LineFeed()
+	return fmt.Sprintf("$$%s%s%s$$", lf, escapeMathExpression(expression), lf)
+}
+
+func escapeMathExpression(expression string) string {
+	return strings.ReplaceAll(expression, "$", "\\$")
 }
 
 // Image return text with image format.
