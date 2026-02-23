@@ -31,9 +31,12 @@ Additionally, complex code that increases the complexity of the library, such as
 - [x] Table
 - [x] Text formatting; bold, italic, code, strikethrough, bold italic
 - [x] Text with link
+- [x] Reference link
 - [x] Text with image
 - [x] Plain text
 - [x] Details 
+- [x] Footnotes
+- [x] Mathematical expressions
 - [x] Alerts; NOTE, TIP, IMPORTANT, CAUTION, WARNING
 - [x] mermaid sequence diagram
 - [x] mermaid entity relationship diagram
