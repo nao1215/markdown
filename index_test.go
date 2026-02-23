@@ -46,3 +46,28 @@ func TestGenerateIndex(t *testing.T) {
 		}
 	})
 }
+
+func TestIsMarkdownFile(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		path string
+		want bool
+	}{
+		{path: "README.md", want: true},
+		{path: "README.MD", want: true},
+		{path: "note.md.bak", want: false},
+		{path: "dummy.txt", want: false},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.path, func(t *testing.T) {
+			t.Parallel()
+
+			if got := isMarkdownFile(tt.path); got != tt.want {
+				t.Errorf("isMarkdownFile(%q) = %v, want %v", tt.path, got, tt.want)
+			}
+		})
+	}
+}

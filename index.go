@@ -78,7 +78,7 @@ func (i *Index) walk() error {
 				return nil
 			}
 
-			if !strings.Contains(path, ".md") {
+			if !isMarkdownFile(path) {
 				return godirwalk.SkipThis
 			}
 			i.appendFile(path)
@@ -161,6 +161,10 @@ func (i *Index) appendFile(filePath string) {
 			return
 		}
 	}
+}
+
+func isMarkdownFile(path string) bool {
+	return strings.EqualFold(filepath.Ext(path), ".md")
 }
 
 // dir represents a directory and its files.
