@@ -9,7 +9,7 @@ on:
 
 jobs:
   unit_test:
-    name: Unit test (linux)
+    name: Unit test (${{ matrix.os }}, Go ${{ matrix.go }})
 
     strategy:
       matrix:
@@ -18,10 +18,9 @@ jobs:
           - "windows-latest"
           - "macos-latest"
         go:
-          - "1"
-          - "1.25"
-          - "1.24"
           - "1.23"
+          - "1.24"
+          - "1.25"
       fail-fast: false
     runs-on: ${{ matrix.os }}
 
@@ -34,4 +33,3 @@ jobs:
 
       - name: Run tests with coverage report output
         run: go test -cover -coverpkg=./... -coverprofile=coverage.out ./...
-
