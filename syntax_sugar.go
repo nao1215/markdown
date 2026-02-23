@@ -42,7 +42,8 @@ func ReferenceLinkDefinition(id, url string, title ...string) string {
 		return fmt.Sprintf("[%s]: %s", id, url)
 	}
 
-	escapedTitle := strings.ReplaceAll(title[0], "\"", "\\\"")
+	r := strings.NewReplacer(`\`, `\\`, `"`, `\"`)
+	escapedTitle := r.Replace(title[0])
 	return fmt.Sprintf("[%s]: %s \"%s\"", id, url, escapedTitle)
 }
 
