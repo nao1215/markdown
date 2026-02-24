@@ -153,6 +153,27 @@ func TestDiagram_InteractionsAndStyles(t *testing.T) {
 	}
 }
 
+func TestDiagram_QuoteEscapesControlChars(t *testing.T) {
+	t.Parallel()
+
+	d := NewDiagram(io.Discard).
+		Class("CheckoutService").
+		Note("line1\nline2").
+		NoteFor("CheckoutService", "head\rline").
+		Link("CheckoutService", "https://example.com/docs\\checkout", "tab\ttooltip")
+
+	want := `classDiagram
+    class CheckoutService
+    note "line1&#92;nline2"
+    note for CheckoutService "head&#92;rline"
+    link CheckoutService "https://example.com/docs&#92;checkout" "tab&#92;ttooltip"`
+
+	got := strings.ReplaceAll(d.String(), "\r\n", "\n")
+	if diff := cmp.Diff(want, got); diff != "" {
+		t.Errorf("value is mismatch (-want +got):\n%s", diff)
+	}
+}
+
 func TestDiagram_ClassMemberOptions(t *testing.T) {
 	t.Parallel()
 

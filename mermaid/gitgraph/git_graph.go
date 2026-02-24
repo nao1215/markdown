@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"strconv"
 	"strings"
 
 	"github.com/nao1215/markdown/internal"
@@ -382,7 +381,10 @@ func formatRefName(name string) string {
 }
 
 func quote(v string) string {
-	return strconv.Quote(normalizeQuoted(v))
+	s := normalizeQuoted(v)
+	escaped := strings.ReplaceAll(s, `\`, "&#92;")
+	escaped = strings.ReplaceAll(escaped, `"`, "&quot;")
+	return `"` + escaped + `"`
 }
 
 func normalizeQuoted(v string) string {

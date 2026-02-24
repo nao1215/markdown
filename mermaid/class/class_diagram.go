@@ -6,7 +6,6 @@ package class
 import (
 	"fmt"
 	"io"
-	"strconv"
 	"strings"
 
 	"github.com/nao1215/markdown/internal"
@@ -609,7 +608,12 @@ func (d *Diagram) ClassShorthand(className, classDefName string) *Diagram {
 }
 
 func quote(s string) string {
-	return strconv.Quote(s)
+	escaped := strings.ReplaceAll(s, `\`, "&#92;")
+	escaped = strings.ReplaceAll(escaped, "\r", "&#92;r")
+	escaped = strings.ReplaceAll(escaped, "\n", "&#92;n")
+	escaped = strings.ReplaceAll(escaped, "\t", "&#92;t")
+	escaped = strings.ReplaceAll(escaped, `"`, "&quot;")
+	return `"` + escaped + `"`
 }
 
 func normalizeAnnotation(annotation string) string {

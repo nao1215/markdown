@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"strconv"
 	"strings"
 	"unicode"
 
@@ -859,7 +858,9 @@ func isMermaidKeyword(value string) bool {
 }
 
 func quote(value string) string {
-	return strconv.Quote(value)
+	escaped := strings.ReplaceAll(value, `\`, "&#92;")
+	escaped = strings.ReplaceAll(escaped, `"`, "&quot;")
+	return `"` + escaped + `"`
 }
 
 func normalizeQuoted(value string) string {
