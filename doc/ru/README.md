@@ -12,7 +12,7 @@
 # Что такое пакет markdown
 Пакет markdown - это простой конструктор markdown на языке Golang. Пакет markdown собирает Markdown используя цепочку методов, не используя шаблонизатор как [html/template](https://pkg.go.dev/html/template). Синтаксис Markdown следует **GitHub Markdown**.
 
-Пакет markdown изначально был разработан для сохранения результатов тестов в [nao1215/spectest](https://github.com/nao1215/spectest). Поэтому пакет markdown реализует функции, необходимые для spectest. Например, пакет markdown поддерживает **диаграммы последовательности mermaid (диаграммы сущностей-связей, диаграммы последовательности, диаграммы пути пользователя, диаграммы git graph, диаграммы mindmap, диаграммы требований, XY-диаграммы, Packet-диаграммы, блок-схемы, круговые диаграммы, квадрантные диаграммы, диаграммы состояний, диаграммы классов, диаграммы Ганта, архитектурные диаграммы)**, которые были необходимой функцией в spectest.
+Пакет markdown изначально был разработан для сохранения результатов тестов в [nao1215/spectest](https://github.com/nao1215/spectest). Поэтому пакет markdown реализует функции, необходимые для spectest. Например, пакет markdown поддерживает **диаграммы последовательности mermaid (диаграммы сущностей-связей, диаграммы последовательности, диаграммы пути пользователя, диаграммы git graph, диаграммы mindmap, диаграммы требований, XY-диаграммы, Packet-диаграммы, Block-диаграммы, блок-схемы, круговые диаграммы, квадрантные диаграммы, диаграммы состояний, диаграммы классов, диаграммы Ганта, архитектурные диаграммы)**, которые были необходимой функцией в spectest.
 
 Кроме того, сложный код, который увеличивает сложность библиотеки, такой как создание вложенных списков, добавляться не будет. Я хочу сохранить эту библиотеку максимально простой.
 
@@ -42,6 +42,7 @@
 - [x] диаграммы требований mermaid
 - [x] XY-диаграммы mermaid
 - [x] Packet-диаграммы mermaid
+- [x] Block-диаграммы mermaid
 - [x] диаграммы сущностей-связей mermaid
 - [x] блок-схемы mermaid
 - [x] круговые диаграммы mermaid
@@ -812,6 +813,81 @@ packet
     32-47: "Length"
     48-63: "Checksum"
     64-95: "Data (variable length)"
+```
+
+### Синтаксис Block-диаграммы Mermaid
+
+```go
+package main
+
+import (
+	"io"
+	"os"
+
+	"github.com/nao1215/markdown"
+	"github.com/nao1215/markdown/mermaid/block"
+)
+
+//go:generate go run main.go
+
+func main() {
+	diagram := block.NewDiagram(
+		io.Discard,
+		block.WithTitle("Checkout Architecture"),
+	).
+		Columns(3).
+		Row(
+			block.Node("Frontend"),
+			block.ArrowRight("toBackend", block.WithArrowLabel("calls")),
+			block.Node("Backend"),
+		).
+		Row(
+			block.Space(2),
+			block.ArrowDown("toDB"),
+		).
+		Row(
+			block.Node("Database", block.WithNodeLabel("Primary DB"), block.WithNodeShape(block.ShapeCylinder)),
+			block.Space(),
+			block.Node("Cache", block.WithNodeLabel("Cache"), block.WithNodeShape(block.ShapeRound)),
+		).
+		Link("Backend", "Database").
+		LinkWithLabel("Backend", "reads from", "Cache").
+		String()
+
+	if err := markdown.NewMarkdown(os.Stdout).
+		H2("Block Diagram").
+		CodeBlocks(markdown.SyntaxHighlightMermaid, diagram).
+		Build(); err != nil {
+		panic(err)
+	}
+}
+```
+
+Вывод простого текста: [markdown здесь](../block/generated.md)
+````text
+## Block Diagram
+```mermaid
+block
+    title Checkout Architecture
+    columns 3
+    Frontend toBackend<["calls"]>(right) Backend
+    space:2 toDB<["&nbsp;"]>(down)
+    Database[("Primary DB")] space Cache("Cache")
+    Backend --> Database
+    Backend -- "reads from" --> Cache
+```
+````
+
+Вывод Mermaid:
+```mermaid
+block
+    title Checkout Architecture
+    columns 3
+    Frontend toBackend<["calls"]>(right) Backend
+    space:2 toDB<["&nbsp;"]>(down)
+    Database[("Primary DB")] space Cache("Cache")
+    Backend --> Database
+    Backend -- "reads from" --> Cache
 ```
 
 ### Синтаксис диаграммы сущностей-связей

@@ -12,7 +12,7 @@
 # What is markdown package
 The Package markdown is a simple markdown builder in golang. The markdown package assembles Markdown using method chaining, not uses a template engine like [html/template](https://pkg.go.dev/html/template). The syntax of Markdown follows **GitHub Markdown**.
   
-The markdown package was initially developed to save test results in [nao1215/spectest](https://github.com/nao1215/spectest). Therefore, the markdown package implements the features required by spectest. For example, the markdown package supports **mermaid diagrams (entity relationship diagram, sequence diagram, user journey diagram, git graph diagram, mindmap diagram, requirement diagram, xy chart, packet diagram, flowchart, pie chart, quadrant chart, state diagram, class diagram, Gantt chart, architecture diagram)**, which was a necessary feature in spectest.
+The markdown package was initially developed to save test results in [nao1215/spectest](https://github.com/nao1215/spectest). Therefore, the markdown package implements the features required by spectest. For example, the markdown package supports **mermaid diagrams (entity relationship diagram, sequence diagram, user journey diagram, git graph diagram, mindmap diagram, requirement diagram, xy chart, packet diagram, block diagram, flowchart, pie chart, quadrant chart, state diagram, class diagram, Gantt chart, architecture diagram)**, which was a necessary feature in spectest.
   
 Additionally, complex code that increases the complexity of the library, such as generating nested lists, will not be added. I want to keep this library as simple as possible.
   
@@ -45,6 +45,7 @@ Additionally, complex code that increases the complexity of the library, such as
 - [x] mermaid requirement diagram
 - [x] mermaid xy chart
 - [x] mermaid packet diagram
+- [x] mermaid block diagram
 - [x] mermaid entity relationship diagram
 - [x] mermaid flowchart 
 - [x] mermaid pie chart
@@ -816,6 +817,81 @@ packet
     32-47: "Length"
     48-63: "Checksum"
     64-95: "Data (variable length)"
+```
+
+### Mermaid block syntax
+
+```go
+package main
+
+import (
+	"io"
+	"os"
+
+	"github.com/nao1215/markdown"
+	"github.com/nao1215/markdown/mermaid/block"
+)
+
+//go:generate go run main.go
+
+func main() {
+	diagram := block.NewDiagram(
+		io.Discard,
+		block.WithTitle("Checkout Architecture"),
+	).
+		Columns(3).
+		Row(
+			block.Node("Frontend"),
+			block.ArrowRight("toBackend", block.WithArrowLabel("calls")),
+			block.Node("Backend"),
+		).
+		Row(
+			block.Space(2),
+			block.ArrowDown("toDB"),
+		).
+		Row(
+			block.Node("Database", block.WithNodeLabel("Primary DB"), block.WithNodeShape(block.ShapeCylinder)),
+			block.Space(),
+			block.Node("Cache", block.WithNodeLabel("Cache"), block.WithNodeShape(block.ShapeRound)),
+		).
+		Link("Backend", "Database").
+		LinkWithLabel("Backend", "reads from", "Cache").
+		String()
+
+	if err := markdown.NewMarkdown(os.Stdout).
+		H2("Block Diagram").
+		CodeBlocks(markdown.SyntaxHighlightMermaid, diagram).
+		Build(); err != nil {
+		panic(err)
+	}
+}
+```
+
+Plain text output: [markdown is here](./doc/block/generated.md)
+````text
+## Block Diagram
+```mermaid
+block
+    title Checkout Architecture
+    columns 3
+    Frontend toBackend<["calls"]>(right) Backend
+    space:2 toDB<["&nbsp;"]>(down)
+    Database[("Primary DB")] space Cache("Cache")
+    Backend --> Database
+    Backend -- "reads from" --> Cache
+```
+````
+
+Mermaid output:
+```mermaid
+block
+    title Checkout Architecture
+    columns 3
+    Frontend toBackend<["calls"]>(right) Backend
+    space:2 toDB<["&nbsp;"]>(down)
+    Database[("Primary DB")] space Cache("Cache")
+    Backend --> Database
+    Backend -- "reads from" --> Cache
 ```
 
 ### Entity Relationship Diagram syntax

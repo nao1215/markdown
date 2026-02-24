@@ -12,7 +12,7 @@
 # Qu'est-ce que le package markdown
 Le package markdown est un constructeur de markdown simple en Golang. Le package markdown assemble le Markdown en utilisant le chaînage de méthodes, n'utilise pas un moteur de modèles comme [html/template](https://pkg.go.dev/html/template). La syntaxe de Markdown suit **GitHub Markdown**.
 
-Le package markdown a été initialement développé pour sauvegarder les résultats de tests dans [nao1215/spectest](https://github.com/nao1215/spectest). Par conséquent, le package markdown implémente les fonctionnalités requises par spectest. Par exemple, le package markdown prend en charge **les diagrammes de séquence mermaid (diagramme de relation d'entité, diagramme de séquence, diagramme de parcours utilisateur, diagramme git graph, diagramme de carte mentale, diagramme d'exigences, graphique XY, diagramme Packet, organigramme, graphique en secteurs, graphique à quadrants, diagramme d'état, diagramme de classes, diagramme de Gantt, diagramme d'architecture)**, ce qui était une fonctionnalité nécessaire dans spectest.
+Le package markdown a été initialement développé pour sauvegarder les résultats de tests dans [nao1215/spectest](https://github.com/nao1215/spectest). Par conséquent, le package markdown implémente les fonctionnalités requises par spectest. Par exemple, le package markdown prend en charge **les diagrammes de séquence mermaid (diagramme de relation d'entité, diagramme de séquence, diagramme de parcours utilisateur, diagramme git graph, diagramme de carte mentale, diagramme d'exigences, graphique XY, diagramme Packet, diagramme Block, organigramme, graphique en secteurs, graphique à quadrants, diagramme d'état, diagramme de classes, diagramme de Gantt, diagramme d'architecture)**, ce qui était une fonctionnalité nécessaire dans spectest.
 
 De plus, le code complexe qui augmente la complexité de la bibliothèque, tel que la génération de listes imbriquées, ne sera pas ajouté. Je veux garder cette bibliothèque aussi simple que possible.
 
@@ -42,6 +42,7 @@ De plus, le code complexe qui augmente la complexité de la bibliothèque, tel q
 - [x] diagramme d'exigences mermaid
 - [x] graphique XY mermaid
 - [x] diagramme Packet mermaid
+- [x] diagramme Block mermaid
 - [x] diagramme de relation d'entité mermaid
 - [x] organigramme mermaid
 - [x] graphique en secteurs mermaid
@@ -813,6 +814,81 @@ packet
     32-47: "Length"
     48-63: "Checksum"
     64-95: "Data (variable length)"
+```
+
+### Syntaxe du diagramme Block Mermaid
+
+```go
+package main
+
+import (
+	"io"
+	"os"
+
+	"github.com/nao1215/markdown"
+	"github.com/nao1215/markdown/mermaid/block"
+)
+
+//go:generate go run main.go
+
+func main() {
+	diagram := block.NewDiagram(
+		io.Discard,
+		block.WithTitle("Checkout Architecture"),
+	).
+		Columns(3).
+		Row(
+			block.Node("Frontend"),
+			block.ArrowRight("toBackend", block.WithArrowLabel("calls")),
+			block.Node("Backend"),
+		).
+		Row(
+			block.Space(2),
+			block.ArrowDown("toDB"),
+		).
+		Row(
+			block.Node("Database", block.WithNodeLabel("Primary DB"), block.WithNodeShape(block.ShapeCylinder)),
+			block.Space(),
+			block.Node("Cache", block.WithNodeLabel("Cache"), block.WithNodeShape(block.ShapeRound)),
+		).
+		Link("Backend", "Database").
+		LinkWithLabel("Backend", "reads from", "Cache").
+		String()
+
+	if err := markdown.NewMarkdown(os.Stdout).
+		H2("Block Diagram").
+		CodeBlocks(markdown.SyntaxHighlightMermaid, diagram).
+		Build(); err != nil {
+		panic(err)
+	}
+}
+```
+
+Sortie de texte brut : [markdown est ici](../block/generated.md)
+````text
+## Block Diagram
+```mermaid
+block
+    title Checkout Architecture
+    columns 3
+    Frontend toBackend<["calls"]>(right) Backend
+    space:2 toDB<["&nbsp;"]>(down)
+    Database[("Primary DB")] space Cache("Cache")
+    Backend --> Database
+    Backend -- "reads from" --> Cache
+```
+````
+
+Sortie Mermaid :
+```mermaid
+block
+    title Checkout Architecture
+    columns 3
+    Frontend toBackend<["calls"]>(right) Backend
+    space:2 toDB<["&nbsp;"]>(down)
+    Database[("Primary DB")] space Cache("Cache")
+    Backend --> Database
+    Backend -- "reads from" --> Cache
 ```
 
 ### Syntaxe du diagramme de relation d'entité
