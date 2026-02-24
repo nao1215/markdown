@@ -2,12 +2,19 @@ package class
 
 import (
 	"bytes"
+	"errors"
 	"io"
 	"strings"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
 )
+
+type failingWriter struct{}
+
+func (f failingWriter) Write([]byte) (int, error) {
+	return 0, errors.New("write failed")
+}
 
 func TestNewDiagram(t *testing.T) {
 	t.Parallel()
@@ -33,7 +40,6 @@ classDiagram`,
 	}
 
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -241,5 +247,22 @@ func TestDiagram_Error(t *testing.T) {
 	d := NewDiagram(io.Discard)
 	if err := d.Error(); err != nil {
 		t.Errorf("expected nil, got %v", err)
+	}
+}
+
+func TestDiagram_BuildStoresError(t *testing.T) {
+	t.Parallel()
+
+	d := NewDiagram(failingWriter{})
+	err := d.Build()
+	if err == nil {
+		t.Fatal("expected error, got nil")
+	}
+
+	if d.Error() == nil {
+		t.Fatal("expected persisted error, got nil")
+	}
+	if !errors.Is(d.Error(), err) {
+		t.Fatalf("expected Error() to wrap returned error, got %v", d.Error())
 	}
 }

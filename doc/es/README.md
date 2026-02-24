@@ -277,6 +277,7 @@ Tu insignia se verá así;
 package main
 
 import (
+	"io"
 	"os"
 
 	"github.com/nao1215/markdown"
@@ -975,7 +976,7 @@ func main() {
 ```
 
 Salida de texto plano: [markdown está aquí](../class/generated.md)
-````
+````text
 ## Class Diagram
 ```mermaid
 ---

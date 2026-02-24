@@ -277,6 +277,7 @@ Votre badge ressemblera à ceci ;
 package main
 
 import (
+	"io"
 	"os"
 
 	"github.com/nao1215/markdown"
@@ -975,7 +976,7 @@ func main() {
 ```
 
 Sortie de texte brut : [markdown est ici](../class/generated.md)
-````
+````text
 ## Class Diagram
 ```mermaid
 ---

@@ -277,6 +277,7 @@ markdown 包可以创建红色、黄色和绿色状态徽章。
 package main
 
 import (
+	"io"
 	"os"
 
 	"github.com/nao1215/markdown"
@@ -975,7 +976,7 @@ func main() {
 ```
 
 纯文本输出: [markdown 在这里](../class/generated.md)
-````
+````text
 ## Class Diagram
 ```mermaid
 ---

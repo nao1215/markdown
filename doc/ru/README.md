@@ -975,7 +975,7 @@ func main() {
 ```
 
 Вывод простого текста: [markdown здесь](../class/generated.md)
-````
+````text
 ## Class Diagram
 ```mermaid
 ---

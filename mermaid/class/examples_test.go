@@ -3,6 +3,7 @@
 package class_test
 
 import (
+	"io"
 	"os"
 
 	md "github.com/nao1215/markdown"
@@ -15,7 +16,7 @@ import (
 // causing failures when testing on Windows.
 func ExampleDiagram() {
 	diagram := class.NewDiagram(
-		os.Stdout,
+		io.Discard,
 		class.WithTitle("Checkout Domain"),
 	).
 		SetDirection(class.DirectionLR).

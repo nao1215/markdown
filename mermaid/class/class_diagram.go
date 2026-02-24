@@ -60,10 +60,8 @@ func (d *Diagram) Error() error {
 // Build writes the class diagram body to the output destination.
 func (d *Diagram) Build() error {
 	if _, err := fmt.Fprint(d.dest, d.String()); err != nil {
-		if d.err != nil {
-			return fmt.Errorf("failed to write: %w: %s", err, d.err.Error()) //nolint:wrapcheck
-		}
-		return fmt.Errorf("failed to write: %w", err)
+		d.err = fmt.Errorf("failed to write: %w", err)
+		return d.err
 	}
 	return nil
 }
@@ -257,12 +255,12 @@ func (d *Diagram) Class(name string, opts ...ClassMemberOption) *Diagram {
 }
 
 func (d *Diagram) appendClassMembers(name string, members []string) {
-	d.body = append(d.body, fmt.Sprintf("    class %s", name))
 	if len(members) == 0 {
+		d.body = append(d.body, fmt.Sprintf("    class %s", name))
 		return
 	}
 
-	d.body[len(d.body)-1] = fmt.Sprintf("    class %s {", name)
+	d.body = append(d.body, fmt.Sprintf("    class %s {", name))
 	for _, member := range members {
 		d.body = append(d.body, fmt.Sprintf("        %s", member))
 	}
@@ -637,12 +635,7 @@ func normalizeQuoted(v string) string {
 }
 
 func visibilityMarker(v Visibility) string {
-	switch v {
-	case VisibilityPublic, VisibilityPrivate, VisibilityProtected, VisibilityPackage:
-		return string(v)
-	default:
-		return string(v)
-	}
+	return string(v)
 }
 
 func formatFieldMember(visibility Visibility, fieldType, fieldName string) string {
