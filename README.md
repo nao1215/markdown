@@ -12,7 +12,7 @@
 # What is markdown package
 The Package markdown is a simple markdown builder in golang. The markdown package assembles Markdown using method chaining, not uses a template engine like [html/template](https://pkg.go.dev/html/template). The syntax of Markdown follows **GitHub Markdown**.
   
-The markdown package was initially developed to save test results in [nao1215/spectest](https://github.com/nao1215/spectest). Therefore, the markdown package implements the features required by spectest. For example, the markdown package supports **mermaid diagrams (entity relationship diagram, sequence diagram, user journey diagram, git graph diagram, mindmap diagram, requirement diagram, flowchart, pie chart, quadrant chart, state diagram, class diagram, Gantt chart, architecture diagram)**, which was a necessary feature in spectest.
+The markdown package was initially developed to save test results in [nao1215/spectest](https://github.com/nao1215/spectest). Therefore, the markdown package implements the features required by spectest. For example, the markdown package supports **mermaid diagrams (entity relationship diagram, sequence diagram, user journey diagram, git graph diagram, mindmap diagram, requirement diagram, xy chart, flowchart, pie chart, quadrant chart, state diagram, class diagram, Gantt chart, architecture diagram)**, which was a necessary feature in spectest.
   
 Additionally, complex code that increases the complexity of the library, such as generating nested lists, will not be added. I want to keep this library as simple as possible.
   
@@ -43,6 +43,7 @@ Additionally, complex code that increases the complexity of the library, such as
 - [x] mermaid git graph diagram
 - [x] mermaid mindmap diagram
 - [x] mermaid requirement diagram
+- [x] mermaid xy chart
 - [x] mermaid entity relationship diagram
 - [x] mermaid flowchart 
 - [x] mermaid pie chart
@@ -695,6 +696,64 @@ requirementDiagram
     RememberSession - verifies -> Login
     classDef critical fill:#f96,stroke:#333,stroke-width:2px
     classDef service fill:#9cf,stroke:#333,stroke-width:1px
+```
+
+### Mermaid XY chart syntax
+
+```go
+package main
+
+import (
+	"io"
+	"os"
+
+	"github.com/nao1215/markdown"
+	"github.com/nao1215/markdown/mermaid/xychart"
+)
+
+//go:generate go run main.go
+
+func main() {
+	diagram := xychart.NewDiagram(
+		io.Discard,
+		xychart.WithTitle("Sales Revenue"),
+	).
+		XAxisLabels("Jan", "Feb", "Mar", "Apr", "May", "Jun").
+		YAxisRangeWithTitle("Revenue (k$)", 0, 100).
+		Bar(25, 40, 60, 80, 70, 90).
+		Line(30, 50, 70, 85, 75, 95).
+		String()
+
+	if err := markdown.NewMarkdown(os.Stdout).
+		H2("XY Chart").
+		CodeBlocks(markdown.SyntaxHighlightMermaid, diagram).
+		Build(); err != nil {
+		panic(err)
+	}
+}
+```
+
+Plain text output: [markdown is here](./doc/xychart/generated.md)
+````text
+## XY Chart
+```mermaid
+xychart
+    title "Sales Revenue"
+    x-axis [Jan, Feb, Mar, Apr, May, Jun]
+    y-axis "Revenue (k$)" 0 --> 100
+    bar [25, 40, 60, 80, 70, 90]
+    line [30, 50, 70, 85, 75, 95]
+```
+````
+
+Mermaid output:
+```mermaid
+xychart
+    title "Sales Revenue"
+    x-axis [Jan, Feb, Mar, Apr, May, Jun]
+    y-axis "Revenue (k$)" 0 --> 100
+    bar [25, 40, 60, 80, 70, 90]
+    line [30, 50, 70, 85, 75, 95]
 ```
 
 ### Entity Relationship Diagram syntax

@@ -12,7 +12,7 @@
 # 什么是 markdown 包
 markdown 包是一个用 Golang 编写的简单 markdown 构建器。markdown 包使用方法链接来组装 Markdown，而不使用像 [html/template](https://pkg.go.dev/html/template) 这样的模板引擎。Markdown 的语法遵循 **GitHub Markdown**。
 
-markdown 包最初是为了在 [nao1215/spectest](https://github.com/nao1215/spectest) 中保存测试结果而开发的。因此，markdown 包实现了 spectest 所需的功能。例如，markdown 包支持 **mermaid 序列图（实体关系图、序列图、用户旅程图、Git Graph 图、思维导图、需求图、流程图、饼图、象限图、状态图、类图、甘特图、架构图）**，这是 spectest 中的必要功能。
+markdown 包最初是为了在 [nao1215/spectest](https://github.com/nao1215/spectest) 中保存测试结果而开发的。因此，markdown 包实现了 spectest 所需的功能。例如，markdown 包支持 **mermaid 序列图（实体关系图、序列图、用户旅程图、Git Graph 图、思维导图、需求图、XY 图、流程图、饼图、象限图、状态图、类图、甘特图、架构图）**，这是 spectest 中的必要功能。
 
 此外，不会添加增加库复杂性的复杂代码，例如生成嵌套列表。我希望保持这个库尽可能简单。
 
@@ -40,6 +40,7 @@ markdown 包最初是为了在 [nao1215/spectest](https://github.com/nao1215/spe
 - [x] mermaid Git Graph 图
 - [x] mermaid 思维导图
 - [x] mermaid 需求图
+- [x] mermaid XY 图
 - [x] mermaid 实体关系图
 - [x] mermaid 流程图
 - [x] mermaid 饼图
@@ -692,6 +693,64 @@ requirementDiagram
     RememberSession - verifies -> Login
     classDef critical fill:#f96,stroke:#333,stroke-width:2px
     classDef service fill:#9cf,stroke:#333,stroke-width:1px
+```
+
+### Mermaid XY 图语法
+
+```go
+package main
+
+import (
+	"io"
+	"os"
+
+	"github.com/nao1215/markdown"
+	"github.com/nao1215/markdown/mermaid/xychart"
+)
+
+//go:generate go run main.go
+
+func main() {
+	diagram := xychart.NewDiagram(
+		io.Discard,
+		xychart.WithTitle("Sales Revenue"),
+	).
+		XAxisLabels("Jan", "Feb", "Mar", "Apr", "May", "Jun").
+		YAxisRangeWithTitle("Revenue (k$)", 0, 100).
+		Bar(25, 40, 60, 80, 70, 90).
+		Line(30, 50, 70, 85, 75, 95).
+		String()
+
+	if err := markdown.NewMarkdown(os.Stdout).
+		H2("XY Chart").
+		CodeBlocks(markdown.SyntaxHighlightMermaid, diagram).
+		Build(); err != nil {
+		panic(err)
+	}
+}
+```
+
+纯文本输出: [markdown 在这里](../xychart/generated.md)
+````text
+## XY Chart
+```mermaid
+xychart
+    title "Sales Revenue"
+    x-axis [Jan, Feb, Mar, Apr, May, Jun]
+    y-axis "Revenue (k$)" 0 --> 100
+    bar [25, 40, 60, 80, 70, 90]
+    line [30, 50, 70, 85, 75, 95]
+```
+````
+
+Mermaid 输出:
+```mermaid
+xychart
+    title "Sales Revenue"
+    x-axis [Jan, Feb, Mar, Apr, May, Jun]
+    y-axis "Revenue (k$)" 0 --> 100
+    bar [25, 40, 60, 80, 70, 90]
+    line [30, 50, 70, 85, 75, 95]
 ```
 
 ### 实体关系图语法
