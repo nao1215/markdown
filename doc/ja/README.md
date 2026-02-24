@@ -12,7 +12,7 @@
 # markdown パッケージとは
 markdown パッケージは、Golangでのシンプルなマークダウンビルダーです。markdown パッケージは、[html/template](https://pkg.go.dev/html/template) のようなテンプレートエンジンを使用せず、メソッドチェーンを使用してMarkdownを組み立てます。Markdownの構文は**GitHub Markdown**に従います。
 
-markdown パッケージは、[nao1215/spectest](https://github.com/nao1215/spectest) でテスト結果を保存するために最初に開発されました。そのため、markdown パッケージは spectest で必要な機能を実装しています。例えば、markdown パッケージは、spectest で必要な機能である**mermaid 図（実体関係図、シーケンス図、ユーザージャーニー図、Git Graph 図、マインドマップ図、フローチャート、パイチャート、四象限図、状態遷移図、クラス図、ガントチャート、アーキテクチャ図）**をサポートしています。
+markdown パッケージは、[nao1215/spectest](https://github.com/nao1215/spectest) でテスト結果を保存するために最初に開発されました。そのため、markdown パッケージは spectest で必要な機能を実装しています。例えば、markdown パッケージは、spectest で必要な機能である**mermaid 図（実体関係図、シーケンス図、ユーザージャーニー図、Git Graph 図、マインドマップ図、要件図、フローチャート、パイチャート、四象限図、状態遷移図、クラス図、ガントチャート、アーキテクチャ図）**をサポートしています。
 
 また、ネストしたリストの生成などのライブラリの複雑性を増加させる複雑なコードは追加されません。このライブラリをできる限りシンプルに保ちたいと考えています。
 
@@ -39,6 +39,7 @@ markdown パッケージは、[nao1215/spectest](https://github.com/nao1215/spec
 - [x] mermaid ユーザージャーニー図
 - [x] mermaid Git Graph 図
 - [x] mermaid マインドマップ図
+- [x] mermaid 要件図
 - [x] mermaid 実体関係図
 - [x] mermaid フローチャート 
 - [x] mermaid パイチャート
@@ -568,6 +569,128 @@ mindmap
         Execution
             Q1
             Q2
+```
+
+### Mermaid 要件図構文
+
+```go
+package main
+
+import (
+	"io"
+	"os"
+
+	"github.com/nao1215/markdown"
+	"github.com/nao1215/markdown/mermaid/requirement"
+)
+
+//go:generate go run main.go
+
+func main() {
+	diagram := requirement.NewDiagram(
+		io.Discard,
+		requirement.WithTitle("Checkout Requirements"),
+	).
+		SetDirection(requirement.DirectionTB).
+		Requirement(
+			"Login",
+			requirement.WithID("REQ-1"),
+			requirement.WithText("The system shall support login."),
+			requirement.WithRisk(requirement.RiskHigh),
+			requirement.WithVerifyMethod(requirement.VerifyMethodTest),
+			requirement.WithRequirementClasses("critical"),
+		).
+		FunctionalRequirement(
+			"RememberSession",
+			requirement.WithID("REQ-2"),
+			requirement.WithText("The system shall remember the user."),
+			requirement.WithRisk(requirement.RiskMedium),
+			requirement.WithVerifyMethod(requirement.VerifyMethodInspection),
+		).
+		Element(
+			"AuthService",
+			requirement.WithElementType("system"),
+			requirement.WithDocRef("docs/auth.md"),
+			requirement.WithElementClasses("service"),
+		).
+		From("AuthService").
+		Satisfies("Login").
+		From("RememberSession").
+		Verifies("Login").
+		ClassDefs(
+			requirement.Def("critical", "fill:#f96,stroke:#333,stroke-width:2px"),
+			requirement.Def("service", "fill:#9cf,stroke:#333,stroke-width:1px"),
+		).
+		String()
+
+	if err := markdown.NewMarkdown(os.Stdout).
+		H2("Requirement Diagram").
+		CodeBlocks(markdown.SyntaxHighlightMermaid, diagram).
+		Build(); err != nil {
+		panic(err)
+	}
+}
+```
+
+プレーンテキスト出力: [markdownはこちら](../requirement/generated.md)
+````text
+## Requirement Diagram
+```mermaid
+---
+title: Checkout Requirements
+---
+requirementDiagram
+    direction TB
+    requirement Login:::critical {
+        id: "REQ-1"
+        text: "The system shall support login."
+        risk: High
+        verifymethod: Test
+    }
+    functionalRequirement RememberSession {
+        id: "REQ-2"
+        text: "The system shall remember the user."
+        risk: Medium
+        verifymethod: Inspection
+    }
+    element AuthService:::service {
+        type: "system"
+        docRef: "docs/auth.md"
+    }
+    AuthService - satisfies -> Login
+    RememberSession - verifies -> Login
+    classDef critical fill:#f96,stroke:#333,stroke-width:2px
+    classDef service fill:#9cf,stroke:#333,stroke-width:1px
+```
+````
+
+Mermaid出力:
+```mermaid
+---
+title: Checkout Requirements
+---
+requirementDiagram
+    direction TB
+    requirement Login:::critical {
+        id: "REQ-1"
+        text: "The system shall support login."
+        risk: High
+        verifymethod: Test
+    }
+    functionalRequirement RememberSession {
+        id: "REQ-2"
+        text: "The system shall remember the user."
+        risk: Medium
+        verifymethod: Inspection
+    }
+    element AuthService:::service {
+        type: "system"
+        docRef: "docs/auth.md"
+    }
+    AuthService - satisfies -> Login
+    RememberSession - verifies -> Login
+    classDef critical fill:#f96,stroke:#333,stroke-width:2px
+    classDef service fill:#9cf,stroke:#333,stroke-width:1px
 ```
 
 ### 実体関係図構文

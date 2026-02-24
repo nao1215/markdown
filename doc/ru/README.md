@@ -12,7 +12,7 @@
 # Что такое пакет markdown
 Пакет markdown - это простой конструктор markdown на языке Golang. Пакет markdown собирает Markdown используя цепочку методов, не используя шаблонизатор как [html/template](https://pkg.go.dev/html/template). Синтаксис Markdown следует **GitHub Markdown**.
 
-Пакет markdown изначально был разработан для сохранения результатов тестов в [nao1215/spectest](https://github.com/nao1215/spectest). Поэтому пакет markdown реализует функции, необходимые для spectest. Например, пакет markdown поддерживает **диаграммы последовательности mermaid (диаграммы сущностей-связей, диаграммы последовательности, диаграммы пути пользователя, диаграммы git graph, диаграммы mindmap, блок-схемы, круговые диаграммы, квадрантные диаграммы, диаграммы состояний, диаграммы классов, диаграммы Ганта, архитектурные диаграммы)**, которые были необходимой функцией в spectest.
+Пакет markdown изначально был разработан для сохранения результатов тестов в [nao1215/spectest](https://github.com/nao1215/spectest). Поэтому пакет markdown реализует функции, необходимые для spectest. Например, пакет markdown поддерживает **диаграммы последовательности mermaid (диаграммы сущностей-связей, диаграммы последовательности, диаграммы пути пользователя, диаграммы git graph, диаграммы mindmap, диаграммы требований, блок-схемы, круговые диаграммы, квадрантные диаграммы, диаграммы состояний, диаграммы классов, диаграммы Ганта, архитектурные диаграммы)**, которые были необходимой функцией в spectest.
 
 Кроме того, сложный код, который увеличивает сложность библиотеки, такой как создание вложенных списков, добавляться не будет. Я хочу сохранить эту библиотеку максимально простой.
 
@@ -39,6 +39,7 @@
 - [x] диаграммы пути пользователя mermaid
 - [x] диаграммы git graph mermaid
 - [x] диаграммы mindmap mermaid
+- [x] диаграммы требований mermaid
 - [x] диаграммы сущностей-связей mermaid
 - [x] блок-схемы mermaid
 - [x] круговые диаграммы mermaid
@@ -568,6 +569,128 @@ mindmap
         Execution
             Q1
             Q2
+```
+
+### Синтаксис диаграммы требований Mermaid
+
+```go
+package main
+
+import (
+	"io"
+	"os"
+
+	"github.com/nao1215/markdown"
+	"github.com/nao1215/markdown/mermaid/requirement"
+)
+
+//go:generate go run main.go
+
+func main() {
+	diagram := requirement.NewDiagram(
+		io.Discard,
+		requirement.WithTitle("Checkout Requirements"),
+	).
+		SetDirection(requirement.DirectionTB).
+		Requirement(
+			"Login",
+			requirement.WithID("REQ-1"),
+			requirement.WithText("The system shall support login."),
+			requirement.WithRisk(requirement.RiskHigh),
+			requirement.WithVerifyMethod(requirement.VerifyMethodTest),
+			requirement.WithRequirementClasses("critical"),
+		).
+		FunctionalRequirement(
+			"RememberSession",
+			requirement.WithID("REQ-2"),
+			requirement.WithText("The system shall remember the user."),
+			requirement.WithRisk(requirement.RiskMedium),
+			requirement.WithVerifyMethod(requirement.VerifyMethodInspection),
+		).
+		Element(
+			"AuthService",
+			requirement.WithElementType("system"),
+			requirement.WithDocRef("docs/auth.md"),
+			requirement.WithElementClasses("service"),
+		).
+		From("AuthService").
+		Satisfies("Login").
+		From("RememberSession").
+		Verifies("Login").
+		ClassDefs(
+			requirement.Def("critical", "fill:#f96,stroke:#333,stroke-width:2px"),
+			requirement.Def("service", "fill:#9cf,stroke:#333,stroke-width:1px"),
+		).
+		String()
+
+	if err := markdown.NewMarkdown(os.Stdout).
+		H2("Requirement Diagram").
+		CodeBlocks(markdown.SyntaxHighlightMermaid, diagram).
+		Build(); err != nil {
+		panic(err)
+	}
+}
+```
+
+Вывод простого текста: [markdown здесь](../requirement/generated.md)
+````text
+## Requirement Diagram
+```mermaid
+---
+title: Checkout Requirements
+---
+requirementDiagram
+    direction TB
+    requirement Login:::critical {
+        id: "REQ-1"
+        text: "The system shall support login."
+        risk: High
+        verifymethod: Test
+    }
+    functionalRequirement RememberSession {
+        id: "REQ-2"
+        text: "The system shall remember the user."
+        risk: Medium
+        verifymethod: Inspection
+    }
+    element AuthService:::service {
+        type: "system"
+        docRef: "docs/auth.md"
+    }
+    AuthService - satisfies -> Login
+    RememberSession - verifies -> Login
+    classDef critical fill:#f96,stroke:#333,stroke-width:2px
+    classDef service fill:#9cf,stroke:#333,stroke-width:1px
+```
+````
+
+Вывод Mermaid:
+```mermaid
+---
+title: Checkout Requirements
+---
+requirementDiagram
+    direction TB
+    requirement Login:::critical {
+        id: "REQ-1"
+        text: "The system shall support login."
+        risk: High
+        verifymethod: Test
+    }
+    functionalRequirement RememberSession {
+        id: "REQ-2"
+        text: "The system shall remember the user."
+        risk: Medium
+        verifymethod: Inspection
+    }
+    element AuthService:::service {
+        type: "system"
+        docRef: "docs/auth.md"
+    }
+    AuthService - satisfies -> Login
+    RememberSession - verifies -> Login
+    classDef critical fill:#f96,stroke:#333,stroke-width:2px
+    classDef service fill:#9cf,stroke:#333,stroke-width:1px
 ```
 
 ### Синтаксис диаграммы сущностей-связей
