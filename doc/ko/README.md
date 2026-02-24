@@ -12,7 +12,7 @@
 # markdown 패키지란 무엇인가
 markdown 패키지는 Golang으로 작성된 간단한 마크다운 빌더입니다. markdown 패키지는 [html/template](https://pkg.go.dev/html/template)과 같은 템플릿 엔진을 사용하지 않고 메서드 체이닝을 사용하여 Markdown을 조립합니다. Markdown의 구문은 **GitHub Markdown**을 따릅니다.
 
-markdown 패키지는 원래 [nao1215/spectest](https://github.com/nao1215/spectest)에서 테스트 결과를 저장하기 위해 개발되었습니다. 따라서 markdown 패키지는 spectest에 필요한 기능을 구현합니다. 예를 들어, markdown 패키지는 spectest에서 필요한 기능이었던 **mermaid 시퀀스 다이어그램(개체 관계 다이어그램, 시퀀스 다이어그램, 사용자 여정 다이어그램, Git Graph 다이어그램, 마인드맵 다이어그램, 요구사항 다이어그램, XY 차트, Packet 다이어그램, Block 다이어그램, 플로우차트, 파이 차트, 사분면 차트, 상태 다이어그램, 클래스 다이어그램, 간트 차트, 아키텍처 다이어그램)**을 지원합니다.
+markdown 패키지는 원래 [nao1215/spectest](https://github.com/nao1215/spectest)에서 테스트 결과를 저장하기 위해 개발되었습니다. 따라서 markdown 패키지는 spectest에 필요한 기능을 구현합니다. 예를 들어, markdown 패키지는 spectest에서 필요한 기능이었던 **mermaid 시퀀스 다이어그램(개체 관계 다이어그램, 시퀀스 다이어그램, 사용자 여정 다이어그램, Git Graph 다이어그램, 마인드맵 다이어그램, 요구사항 다이어그램, XY 차트, Packet 다이어그램, Block 다이어그램, Kanban 다이어그램, 플로우차트, 파이 차트, 사분면 차트, 상태 다이어그램, 클래스 다이어그램, 간트 차트, 아키텍처 다이어그램)**을 지원합니다.
 
 또한 중첩된 목록 생성과 같은 라이브러리의 복잡성을 증가시키는 복잡한 코드는 추가되지 않을 것입니다. 이 라이브러리를 가능한 한 단순하게 유지하고 싶습니다.
 
@@ -43,6 +43,7 @@ markdown 패키지는 원래 [nao1215/spectest](https://github.com/nao1215/spect
 - [x] mermaid XY 차트
 - [x] mermaid Packet 다이어그램
 - [x] mermaid Block 다이어그램
+- [x] mermaid Kanban 다이어그램
 - [x] mermaid 개체 관계 다이어그램
 - [x] mermaid 플로우차트
 - [x] mermaid 파이 차트
@@ -889,6 +890,83 @@ block
     Database[("Primary DB")] space Cache("Cache")
     Backend --> Database
     Backend -- "reads from" --> Cache
+```
+
+### Mermaid Kanban 다이어그램 구문
+
+```go
+package main
+
+import (
+	"io"
+	"os"
+
+	"github.com/nao1215/markdown"
+	"github.com/nao1215/markdown/mermaid/kanban"
+)
+
+//go:generate go run main.go
+
+func main() {
+	diagram := kanban.NewDiagram(
+		io.Discard,
+		kanban.WithTitle("Sprint Board"),
+		kanban.WithTicketBaseURL("https://example.com/tickets/"),
+	).
+		Column("Todo").
+		Task("Define scope").
+		Task(
+			"Create login page",
+			kanban.WithTaskTicket("MB-101"),
+			kanban.WithTaskAssigned("Alice"),
+			kanban.WithTaskPriority(kanban.PriorityHigh),
+		).
+		Column("In Progress").
+		Task("Review API", kanban.WithTaskPriority(kanban.PriorityVeryHigh)).
+		String()
+
+	if err := markdown.NewMarkdown(os.Stdout).
+		H2("Kanban Diagram").
+		CodeBlocks(markdown.SyntaxHighlightMermaid, diagram).
+		Build(); err != nil {
+		panic(err)
+	}
+}
+```
+
+일반 텍스트 출력: [markdown은 여기](../kanban/generated.md)
+````text
+## Kanban Diagram
+```mermaid
+---
+title: Sprint Board
+config:
+  kanban:
+    ticketBaseUrl: 'https://example.com/tickets/'
+---
+kanban
+    [Todo]
+        [Define scope]
+        [Create login page]@{ ticket: 'MB-101', assigned: 'Alice', priority: 'High' }
+    [In Progress]
+        [Review API]@{ priority: 'Very High' }
+```
+````
+
+Mermaid 출력:
+```mermaid
+---
+title: Sprint Board
+config:
+  kanban:
+    ticketBaseUrl: 'https://example.com/tickets/'
+---
+kanban
+    [Todo]
+        [Define scope]
+        [Create login page]@{ ticket: 'MB-101', assigned: 'Alice', priority: 'High' }
+    [In Progress]
+        [Review API]@{ priority: 'Very High' }
 ```
 
 ### 개체 관계 다이어그램 구문

@@ -12,7 +12,7 @@
 # Qu'est-ce que le package markdown
 Le package markdown est un constructeur de markdown simple en Golang. Le package markdown assemble le Markdown en utilisant le chaînage de méthodes, n'utilise pas un moteur de modèles comme [html/template](https://pkg.go.dev/html/template). La syntaxe de Markdown suit **GitHub Markdown**.
 
-Le package markdown a été initialement développé pour sauvegarder les résultats de tests dans [nao1215/spectest](https://github.com/nao1215/spectest). Par conséquent, le package markdown implémente les fonctionnalités requises par spectest. Par exemple, le package markdown prend en charge **les diagrammes de séquence mermaid (diagramme de relation d'entité, diagramme de séquence, diagramme de parcours utilisateur, diagramme git graph, diagramme de carte mentale, diagramme d'exigences, graphique XY, diagramme Packet, diagramme Block, organigramme, graphique en secteurs, graphique à quadrants, diagramme d'état, diagramme de classes, diagramme de Gantt, diagramme d'architecture)**, ce qui était une fonctionnalité nécessaire dans spectest.
+Le package markdown a été initialement développé pour sauvegarder les résultats de tests dans [nao1215/spectest](https://github.com/nao1215/spectest). Par conséquent, le package markdown implémente les fonctionnalités requises par spectest. Par exemple, le package markdown prend en charge **les diagrammes de séquence mermaid (diagramme de relation d'entité, diagramme de séquence, diagramme de parcours utilisateur, diagramme git graph, diagramme de carte mentale, diagramme d'exigences, graphique XY, diagramme Packet, diagramme Block, diagramme Kanban, organigramme, graphique en secteurs, graphique à quadrants, diagramme d'état, diagramme de classes, diagramme de Gantt, diagramme d'architecture)**, ce qui était une fonctionnalité nécessaire dans spectest.
 
 De plus, le code complexe qui augmente la complexité de la bibliothèque, tel que la génération de listes imbriquées, ne sera pas ajouté. Je veux garder cette bibliothèque aussi simple que possible.
 
@@ -43,6 +43,7 @@ De plus, le code complexe qui augmente la complexité de la bibliothèque, tel q
 - [x] graphique XY mermaid
 - [x] diagramme Packet mermaid
 - [x] diagramme Block mermaid
+- [x] diagramme Kanban mermaid
 - [x] diagramme de relation d'entité mermaid
 - [x] organigramme mermaid
 - [x] graphique en secteurs mermaid
@@ -889,6 +890,83 @@ block
     Database[("Primary DB")] space Cache("Cache")
     Backend --> Database
     Backend -- "reads from" --> Cache
+```
+
+### Syntaxe du diagramme Kanban Mermaid
+
+```go
+package main
+
+import (
+	"io"
+	"os"
+
+	"github.com/nao1215/markdown"
+	"github.com/nao1215/markdown/mermaid/kanban"
+)
+
+//go:generate go run main.go
+
+func main() {
+	diagram := kanban.NewDiagram(
+		io.Discard,
+		kanban.WithTitle("Sprint Board"),
+		kanban.WithTicketBaseURL("https://example.com/tickets/"),
+	).
+		Column("Todo").
+		Task("Define scope").
+		Task(
+			"Create login page",
+			kanban.WithTaskTicket("MB-101"),
+			kanban.WithTaskAssigned("Alice"),
+			kanban.WithTaskPriority(kanban.PriorityHigh),
+		).
+		Column("In Progress").
+		Task("Review API", kanban.WithTaskPriority(kanban.PriorityVeryHigh)).
+		String()
+
+	if err := markdown.NewMarkdown(os.Stdout).
+		H2("Kanban Diagram").
+		CodeBlocks(markdown.SyntaxHighlightMermaid, diagram).
+		Build(); err != nil {
+		panic(err)
+	}
+}
+```
+
+Sortie de texte brut : [markdown est ici](../kanban/generated.md)
+````text
+## Kanban Diagram
+```mermaid
+---
+title: Sprint Board
+config:
+  kanban:
+    ticketBaseUrl: 'https://example.com/tickets/'
+---
+kanban
+    [Todo]
+        [Define scope]
+        [Create login page]@{ ticket: 'MB-101', assigned: 'Alice', priority: 'High' }
+    [In Progress]
+        [Review API]@{ priority: 'Very High' }
+```
+````
+
+Sortie Mermaid :
+```mermaid
+---
+title: Sprint Board
+config:
+  kanban:
+    ticketBaseUrl: 'https://example.com/tickets/'
+---
+kanban
+    [Todo]
+        [Define scope]
+        [Create login page]@{ ticket: 'MB-101', assigned: 'Alice', priority: 'High' }
+    [In Progress]
+        [Review API]@{ priority: 'Very High' }
 ```
 
 ### Syntaxe du diagramme de relation d'entité

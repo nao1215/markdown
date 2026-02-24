@@ -12,7 +12,7 @@
 # ¿Qué es el paquete markdown?
 El paquete markdown es un constructor de markdown simple en Golang. El paquete markdown ensambla Markdown usando encadenamiento de métodos, no utiliza un motor de plantillas como [html/template](https://pkg.go.dev/html/template). La sintaxis de Markdown sigue **GitHub Markdown**.
 
-El paquete markdown fue inicialmente desarrollado para guardar resultados de pruebas en [nao1215/spectest](https://github.com/nao1215/spectest). Por lo tanto, el paquete markdown implementa las características requeridas por spectest. Por ejemplo, el paquete markdown soporta **diagramas de secuencia mermaid (diagrama de relación de entidad, diagrama de secuencia, diagrama de recorrido del usuario, diagrama git graph, diagrama de mapa mental, diagrama de requisitos, gráfico XY, diagrama Packet, diagrama Block, diagrama de flujo, gráfico circular, gráfico de cuadrantes, diagrama de estado, diagrama de clases, diagrama de Gantt, diagrama de arquitectura)**, que era una característica necesaria en spectest.
+El paquete markdown fue inicialmente desarrollado para guardar resultados de pruebas en [nao1215/spectest](https://github.com/nao1215/spectest). Por lo tanto, el paquete markdown implementa las características requeridas por spectest. Por ejemplo, el paquete markdown soporta **diagramas de secuencia mermaid (diagrama de relación de entidad, diagrama de secuencia, diagrama de recorrido del usuario, diagrama git graph, diagrama de mapa mental, diagrama de requisitos, gráfico XY, diagrama Packet, diagrama Block, diagrama Kanban, diagrama de flujo, gráfico circular, gráfico de cuadrantes, diagrama de estado, diagrama de clases, diagrama de Gantt, diagrama de arquitectura)**, que era una característica necesaria en spectest.
 
 Además, no se añadirá código complejo que aumente la complejidad de la biblioteca, como generar listas anidadas. Quiero mantener esta biblioteca lo más simple posible.
 
@@ -43,6 +43,7 @@ Además, no se añadirá código complejo que aumente la complejidad de la bibli
 - [x] gráfico XY mermaid
 - [x] diagrama Packet mermaid
 - [x] diagrama Block mermaid
+- [x] diagrama Kanban mermaid
 - [x] diagrama de relación de entidad mermaid
 - [x] diagrama de flujo mermaid 
 - [x] gráfico circular mermaid
@@ -889,6 +890,83 @@ block
     Database[("Primary DB")] space Cache("Cache")
     Backend --> Database
     Backend -- "reads from" --> Cache
+```
+
+### Sintaxis del diagrama Kanban de Mermaid
+
+```go
+package main
+
+import (
+	"io"
+	"os"
+
+	"github.com/nao1215/markdown"
+	"github.com/nao1215/markdown/mermaid/kanban"
+)
+
+//go:generate go run main.go
+
+func main() {
+	diagram := kanban.NewDiagram(
+		io.Discard,
+		kanban.WithTitle("Sprint Board"),
+		kanban.WithTicketBaseURL("https://example.com/tickets/"),
+	).
+		Column("Todo").
+		Task("Define scope").
+		Task(
+			"Create login page",
+			kanban.WithTaskTicket("MB-101"),
+			kanban.WithTaskAssigned("Alice"),
+			kanban.WithTaskPriority(kanban.PriorityHigh),
+		).
+		Column("In Progress").
+		Task("Review API", kanban.WithTaskPriority(kanban.PriorityVeryHigh)).
+		String()
+
+	if err := markdown.NewMarkdown(os.Stdout).
+		H2("Kanban Diagram").
+		CodeBlocks(markdown.SyntaxHighlightMermaid, diagram).
+		Build(); err != nil {
+		panic(err)
+	}
+}
+```
+
+Salida de texto plano: [markdown está aquí](../kanban/generated.md)
+````text
+## Kanban Diagram
+```mermaid
+---
+title: Sprint Board
+config:
+  kanban:
+    ticketBaseUrl: 'https://example.com/tickets/'
+---
+kanban
+    [Todo]
+        [Define scope]
+        [Create login page]@{ ticket: 'MB-101', assigned: 'Alice', priority: 'High' }
+    [In Progress]
+        [Review API]@{ priority: 'Very High' }
+```
+````
+
+Salida Mermaid:
+```mermaid
+---
+title: Sprint Board
+config:
+  kanban:
+    ticketBaseUrl: 'https://example.com/tickets/'
+---
+kanban
+    [Todo]
+        [Define scope]
+        [Create login page]@{ ticket: 'MB-101', assigned: 'Alice', priority: 'High' }
+    [In Progress]
+        [Review API]@{ priority: 'Very High' }
 ```
 
 ### Sintaxis del diagrama de relación de entidad

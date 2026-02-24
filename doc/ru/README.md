@@ -12,7 +12,7 @@
 # Что такое пакет markdown
 Пакет markdown - это простой конструктор markdown на языке Golang. Пакет markdown собирает Markdown используя цепочку методов, не используя шаблонизатор как [html/template](https://pkg.go.dev/html/template). Синтаксис Markdown следует **GitHub Markdown**.
 
-Пакет markdown изначально был разработан для сохранения результатов тестов в [nao1215/spectest](https://github.com/nao1215/spectest). Поэтому пакет markdown реализует функции, необходимые для spectest. Например, пакет markdown поддерживает **диаграммы последовательности mermaid (диаграммы сущностей-связей, диаграммы последовательности, диаграммы пути пользователя, диаграммы git graph, диаграммы mindmap, диаграммы требований, XY-диаграммы, Packet-диаграммы, Block-диаграммы, блок-схемы, круговые диаграммы, квадрантные диаграммы, диаграммы состояний, диаграммы классов, диаграммы Ганта, архитектурные диаграммы)**, которые были необходимой функцией в spectest.
+Пакет markdown изначально был разработан для сохранения результатов тестов в [nao1215/spectest](https://github.com/nao1215/spectest). Поэтому пакет markdown реализует функции, необходимые для spectest. Например, пакет markdown поддерживает **диаграммы последовательности mermaid (диаграммы сущностей-связей, диаграммы последовательности, диаграммы пути пользователя, диаграммы git graph, диаграммы mindmap, диаграммы требований, XY-диаграммы, Packet-диаграммы, Block-диаграммы, Kanban-диаграммы, блок-схемы, круговые диаграммы, квадрантные диаграммы, диаграммы состояний, диаграммы классов, диаграммы Ганта, архитектурные диаграммы)**, которые были необходимой функцией в spectest.
 
 Кроме того, сложный код, который увеличивает сложность библиотеки, такой как создание вложенных списков, добавляться не будет. Я хочу сохранить эту библиотеку максимально простой.
 
@@ -43,6 +43,7 @@
 - [x] XY-диаграммы mermaid
 - [x] Packet-диаграммы mermaid
 - [x] Block-диаграммы mermaid
+- [x] Kanban-диаграммы mermaid
 - [x] диаграммы сущностей-связей mermaid
 - [x] блок-схемы mermaid
 - [x] круговые диаграммы mermaid
@@ -888,6 +889,83 @@ block
     Database[("Primary DB")] space Cache("Cache")
     Backend --> Database
     Backend -- "reads from" --> Cache
+```
+
+### Синтаксис Kanban-диаграммы Mermaid
+
+```go
+package main
+
+import (
+	"io"
+	"os"
+
+	"github.com/nao1215/markdown"
+	"github.com/nao1215/markdown/mermaid/kanban"
+)
+
+//go:generate go run main.go
+
+func main() {
+	diagram := kanban.NewDiagram(
+		io.Discard,
+		kanban.WithTitle("Sprint Board"),
+		kanban.WithTicketBaseURL("https://example.com/tickets/"),
+	).
+		Column("Todo").
+		Task("Define scope").
+		Task(
+			"Create login page",
+			kanban.WithTaskTicket("MB-101"),
+			kanban.WithTaskAssigned("Alice"),
+			kanban.WithTaskPriority(kanban.PriorityHigh),
+		).
+		Column("In Progress").
+		Task("Review API", kanban.WithTaskPriority(kanban.PriorityVeryHigh)).
+		String()
+
+	if err := markdown.NewMarkdown(os.Stdout).
+		H2("Kanban Diagram").
+		CodeBlocks(markdown.SyntaxHighlightMermaid, diagram).
+		Build(); err != nil {
+		panic(err)
+	}
+}
+```
+
+Вывод простого текста: [markdown здесь](../kanban/generated.md)
+````text
+## Kanban Diagram
+```mermaid
+---
+title: Sprint Board
+config:
+  kanban:
+    ticketBaseUrl: 'https://example.com/tickets/'
+---
+kanban
+    [Todo]
+        [Define scope]
+        [Create login page]@{ ticket: 'MB-101', assigned: 'Alice', priority: 'High' }
+    [In Progress]
+        [Review API]@{ priority: 'Very High' }
+```
+````
+
+Вывод Mermaid:
+```mermaid
+---
+title: Sprint Board
+config:
+  kanban:
+    ticketBaseUrl: 'https://example.com/tickets/'
+---
+kanban
+    [Todo]
+        [Define scope]
+        [Create login page]@{ ticket: 'MB-101', assigned: 'Alice', priority: 'High' }
+    [In Progress]
+        [Review API]@{ priority: 'Very High' }
 ```
 
 ### Синтаксис диаграммы сущностей-связей
