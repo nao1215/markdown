@@ -12,7 +12,7 @@
 # ¿Qué es el paquete markdown?
 El paquete markdown es un constructor de markdown simple en Golang. El paquete markdown ensambla Markdown usando encadenamiento de métodos, no utiliza un motor de plantillas como [html/template](https://pkg.go.dev/html/template). La sintaxis de Markdown sigue **GitHub Markdown**.
 
-El paquete markdown fue inicialmente desarrollado para guardar resultados de pruebas en [nao1215/spectest](https://github.com/nao1215/spectest). Por lo tanto, el paquete markdown implementa las características requeridas por spectest. Por ejemplo, el paquete markdown soporta **diagramas de secuencia mermaid (diagrama de relación de entidad, diagrama de secuencia, diagrama de recorrido del usuario, diagrama git graph, diagrama de mapa mental, diagrama de requisitos, gráfico XY, diagrama Packet, diagrama de flujo, gráfico circular, gráfico de cuadrantes, diagrama de estado, diagrama de clases, diagrama de Gantt, diagrama de arquitectura)**, que era una característica necesaria en spectest.
+El paquete markdown fue inicialmente desarrollado para guardar resultados de pruebas en [nao1215/spectest](https://github.com/nao1215/spectest). Por lo tanto, el paquete markdown implementa las características requeridas por spectest. Por ejemplo, el paquete markdown soporta **diagramas de secuencia mermaid (diagrama de relación de entidad, diagrama de secuencia, diagrama de recorrido del usuario, diagrama git graph, diagrama de mapa mental, diagrama de requisitos, gráfico XY, diagrama Packet, diagrama Block, diagrama de flujo, gráfico circular, gráfico de cuadrantes, diagrama de estado, diagrama de clases, diagrama de Gantt, diagrama de arquitectura)**, que era una característica necesaria en spectest.
 
 Además, no se añadirá código complejo que aumente la complejidad de la biblioteca, como generar listas anidadas. Quiero mantener esta biblioteca lo más simple posible.
 
@@ -42,6 +42,7 @@ Además, no se añadirá código complejo que aumente la complejidad de la bibli
 - [x] diagrama de requisitos mermaid
 - [x] gráfico XY mermaid
 - [x] diagrama Packet mermaid
+- [x] diagrama Block mermaid
 - [x] diagrama de relación de entidad mermaid
 - [x] diagrama de flujo mermaid 
 - [x] gráfico circular mermaid
@@ -813,6 +814,81 @@ packet
     32-47: "Length"
     48-63: "Checksum"
     64-95: "Data (variable length)"
+```
+
+### Sintaxis del diagrama Block de Mermaid
+
+```go
+package main
+
+import (
+	"io"
+	"os"
+
+	"github.com/nao1215/markdown"
+	"github.com/nao1215/markdown/mermaid/block"
+)
+
+//go:generate go run main.go
+
+func main() {
+	diagram := block.NewDiagram(
+		io.Discard,
+		block.WithTitle("Checkout Architecture"),
+	).
+		Columns(3).
+		Row(
+			block.Node("Frontend"),
+			block.ArrowRight("toBackend", block.WithArrowLabel("calls")),
+			block.Node("Backend"),
+		).
+		Row(
+			block.Space(2),
+			block.ArrowDown("toDB"),
+		).
+		Row(
+			block.Node("Database", block.WithNodeLabel("Primary DB"), block.WithNodeShape(block.ShapeCylinder)),
+			block.Space(),
+			block.Node("Cache", block.WithNodeLabel("Cache"), block.WithNodeShape(block.ShapeRound)),
+		).
+		Link("Backend", "Database").
+		LinkWithLabel("Backend", "reads from", "Cache").
+		String()
+
+	if err := markdown.NewMarkdown(os.Stdout).
+		H2("Block Diagram").
+		CodeBlocks(markdown.SyntaxHighlightMermaid, diagram).
+		Build(); err != nil {
+		panic(err)
+	}
+}
+```
+
+Salida de texto plano: [markdown está aquí](../block/generated.md)
+````text
+## Block Diagram
+```mermaid
+block
+    title Checkout Architecture
+    columns 3
+    Frontend toBackend<["calls"]>(right) Backend
+    space:2 toDB<["&nbsp;"]>(down)
+    Database[("Primary DB")] space Cache("Cache")
+    Backend --> Database
+    Backend -- "reads from" --> Cache
+```
+````
+
+Salida Mermaid:
+```mermaid
+block
+    title Checkout Architecture
+    columns 3
+    Frontend toBackend<["calls"]>(right) Backend
+    space:2 toDB<["&nbsp;"]>(down)
+    Database[("Primary DB")] space Cache("Cache")
+    Backend --> Database
+    Backend -- "reads from" --> Cache
 ```
 
 ### Sintaxis del diagrama de relación de entidad

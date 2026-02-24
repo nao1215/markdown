@@ -12,7 +12,7 @@
 # markdown パッケージとは
 markdown パッケージは、Golangでのシンプルなマークダウンビルダーです。markdown パッケージは、[html/template](https://pkg.go.dev/html/template) のようなテンプレートエンジンを使用せず、メソッドチェーンを使用してMarkdownを組み立てます。Markdownの構文は**GitHub Markdown**に従います。
 
-markdown パッケージは、[nao1215/spectest](https://github.com/nao1215/spectest) でテスト結果を保存するために最初に開発されました。そのため、markdown パッケージは spectest で必要な機能を実装しています。例えば、markdown パッケージは、spectest で必要な機能である**mermaid 図（実体関係図、シーケンス図、ユーザージャーニー図、Git Graph 図、マインドマップ図、要件図、XY チャート、Packet 図、フローチャート、パイチャート、四象限図、状態遷移図、クラス図、ガントチャート、アーキテクチャ図）**をサポートしています。
+markdown パッケージは、[nao1215/spectest](https://github.com/nao1215/spectest) でテスト結果を保存するために最初に開発されました。そのため、markdown パッケージは spectest で必要な機能を実装しています。例えば、markdown パッケージは、spectest で必要な機能である**mermaid 図（実体関係図、シーケンス図、ユーザージャーニー図、Git Graph 図、マインドマップ図、要件図、XY チャート、Packet 図、Block 図、フローチャート、パイチャート、四象限図、状態遷移図、クラス図、ガントチャート、アーキテクチャ図）**をサポートしています。
 
 また、ネストしたリストの生成などのライブラリの複雑性を増加させる複雑なコードは追加されません。このライブラリをできる限りシンプルに保ちたいと考えています。
 
@@ -42,6 +42,7 @@ markdown パッケージは、[nao1215/spectest](https://github.com/nao1215/spec
 - [x] mermaid 要件図
 - [x] mermaid XY チャート
 - [x] mermaid Packet 図
+- [x] mermaid Block 図
 - [x] mermaid 実体関係図
 - [x] mermaid フローチャート 
 - [x] mermaid パイチャート
@@ -812,6 +813,81 @@ packet
     32-47: "Length"
     48-63: "Checksum"
     64-95: "Data (variable length)"
+```
+
+### Mermaid Block 図構文
+
+```go
+package main
+
+import (
+	"io"
+	"os"
+
+	"github.com/nao1215/markdown"
+	"github.com/nao1215/markdown/mermaid/block"
+)
+
+//go:generate go run main.go
+
+func main() {
+	diagram := block.NewDiagram(
+		io.Discard,
+		block.WithTitle("Checkout Architecture"),
+	).
+		Columns(3).
+		Row(
+			block.Node("Frontend"),
+			block.ArrowRight("toBackend", block.WithArrowLabel("calls")),
+			block.Node("Backend"),
+		).
+		Row(
+			block.Space(2),
+			block.ArrowDown("toDB"),
+		).
+		Row(
+			block.Node("Database", block.WithNodeLabel("Primary DB"), block.WithNodeShape(block.ShapeCylinder)),
+			block.Space(),
+			block.Node("Cache", block.WithNodeLabel("Cache"), block.WithNodeShape(block.ShapeRound)),
+		).
+		Link("Backend", "Database").
+		LinkWithLabel("Backend", "reads from", "Cache").
+		String()
+
+	if err := markdown.NewMarkdown(os.Stdout).
+		H2("Block Diagram").
+		CodeBlocks(markdown.SyntaxHighlightMermaid, diagram).
+		Build(); err != nil {
+		panic(err)
+	}
+}
+```
+
+プレーンテキスト出力: [markdownはこちら](../block/generated.md)
+````text
+## Block Diagram
+```mermaid
+block
+    title Checkout Architecture
+    columns 3
+    Frontend toBackend<["calls"]>(right) Backend
+    space:2 toDB<["&nbsp;"]>(down)
+    Database[("Primary DB")] space Cache("Cache")
+    Backend --> Database
+    Backend -- "reads from" --> Cache
+```
+````
+
+Mermaid出力:
+```mermaid
+block
+    title Checkout Architecture
+    columns 3
+    Frontend toBackend<["calls"]>(right) Backend
+    space:2 toDB<["&nbsp;"]>(down)
+    Database[("Primary DB")] space Cache("Cache")
+    Backend --> Database
+    Backend -- "reads from" --> Cache
 ```
 
 ### 実体関係図構文
