@@ -12,7 +12,7 @@
 # markdown パッケージとは
 markdown パッケージは、Golangでのシンプルなマークダウンビルダーです。markdown パッケージは、[html/template](https://pkg.go.dev/html/template) のようなテンプレートエンジンを使用せず、メソッドチェーンを使用してMarkdownを組み立てます。Markdownの構文は**GitHub Markdown**に従います。
 
-markdown パッケージは、[nao1215/spectest](https://github.com/nao1215/spectest) でテスト結果を保存するために最初に開発されました。そのため、markdown パッケージは spectest で必要な機能を実装しています。例えば、markdown パッケージは、spectest で必要な機能である**mermaid 図（実体関係図、シーケンス図、ユーザージャーニー図、Git Graph 図、マインドマップ図、要件図、XY チャート、Packet 図、Block 図、フローチャート、パイチャート、四象限図、状態遷移図、クラス図、ガントチャート、アーキテクチャ図）**をサポートしています。
+markdown パッケージは、[nao1215/spectest](https://github.com/nao1215/spectest) でテスト結果を保存するために最初に開発されました。そのため、markdown パッケージは spectest で必要な機能を実装しています。例えば、markdown パッケージは、spectest で必要な機能である**mermaid 図（実体関係図、シーケンス図、ユーザージャーニー図、Git Graph 図、マインドマップ図、要件図、XY チャート、Packet 図、Block 図、Kanban 図、フローチャート、パイチャート、四象限図、状態遷移図、クラス図、ガントチャート、アーキテクチャ図）**をサポートしています。
 
 また、ネストしたリストの生成などのライブラリの複雑性を増加させる複雑なコードは追加されません。このライブラリをできる限りシンプルに保ちたいと考えています。
 
@@ -43,6 +43,7 @@ markdown パッケージは、[nao1215/spectest](https://github.com/nao1215/spec
 - [x] mermaid XY チャート
 - [x] mermaid Packet 図
 - [x] mermaid Block 図
+- [x] mermaid Kanban 図
 - [x] mermaid 実体関係図
 - [x] mermaid フローチャート 
 - [x] mermaid パイチャート
@@ -888,6 +889,83 @@ block
     Database[("Primary DB")] space Cache("Cache")
     Backend --> Database
     Backend -- "reads from" --> Cache
+```
+
+### Mermaid Kanban 構文
+
+```go
+package main
+
+import (
+	"io"
+	"os"
+
+	"github.com/nao1215/markdown"
+	"github.com/nao1215/markdown/mermaid/kanban"
+)
+
+//go:generate go run main.go
+
+func main() {
+	diagram := kanban.NewDiagram(
+		io.Discard,
+		kanban.WithTitle("Sprint Board"),
+		kanban.WithTicketBaseURL("https://example.com/tickets/"),
+	).
+		Column("Todo").
+		Task("Define scope").
+		Task(
+			"Create login page",
+			kanban.WithTaskTicket("MB-101"),
+			kanban.WithTaskAssigned("Alice"),
+			kanban.WithTaskPriority(kanban.PriorityHigh),
+		).
+		Column("In Progress").
+		Task("Review API", kanban.WithTaskPriority(kanban.PriorityVeryHigh)).
+		String()
+
+	if err := markdown.NewMarkdown(os.Stdout).
+		H2("Kanban Diagram").
+		CodeBlocks(markdown.SyntaxHighlightMermaid, diagram).
+		Build(); err != nil {
+		panic(err)
+	}
+}
+```
+
+プレーンテキスト出力: [markdownはこちら](../kanban/generated.md)
+````text
+## Kanban Diagram
+```mermaid
+---
+title: Sprint Board
+config:
+  kanban:
+    ticketBaseUrl: 'https://example.com/tickets/'
+---
+kanban
+    [Todo]
+        [Define scope]
+        [Create login page]@{ ticket: 'MB-101', assigned: 'Alice', priority: 'High' }
+    [In Progress]
+        [Review API]@{ priority: 'Very High' }
+```
+````
+
+Mermaid出力:
+```mermaid
+---
+title: Sprint Board
+config:
+  kanban:
+    ticketBaseUrl: 'https://example.com/tickets/'
+---
+kanban
+    [Todo]
+        [Define scope]
+        [Create login page]@{ ticket: 'MB-101', assigned: 'Alice', priority: 'High' }
+    [In Progress]
+        [Review API]@{ priority: 'Very High' }
 ```
 
 ### 実体関係図構文
