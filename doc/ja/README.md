@@ -12,7 +12,7 @@
 # markdown パッケージとは
 markdown パッケージは、Golangでのシンプルなマークダウンビルダーです。markdown パッケージは、[html/template](https://pkg.go.dev/html/template) のようなテンプレートエンジンを使用せず、メソッドチェーンを使用してMarkdownを組み立てます。Markdownの構文は**GitHub Markdown**に従います。
 
-markdown パッケージは、[nao1215/spectest](https://github.com/nao1215/spectest) でテスト結果を保存するために最初に開発されました。そのため、markdown パッケージは spectest で必要な機能を実装しています。例えば、markdown パッケージは、spectest で必要な機能である**mermaid 図（実体関係図、シーケンス図、フローチャート、パイチャート、四象限図、状態遷移図、ガントチャート、アーキテクチャ図）**をサポートしています。
+markdown パッケージは、[nao1215/spectest](https://github.com/nao1215/spectest) でテスト結果を保存するために最初に開発されました。そのため、markdown パッケージは spectest で必要な機能を実装しています。例えば、markdown パッケージは、spectest で必要な機能である**mermaid 図（実体関係図、シーケンス図、フローチャート、パイチャート、四象限図、状態遷移図、クラス図、ガントチャート、アーキテクチャ図）**をサポートしています。
 
 また、ネストしたリストの生成などのライブラリの複雑性を増加させる複雑なコードは追加されません。このライブラリをできる限りシンプルに保ちたいと考えています。
 
@@ -41,6 +41,7 @@ markdown パッケージは、[nao1215/spectest](https://github.com/nao1215/spec
 - [x] mermaid パイチャート
 - [x] mermaid 四象限図
 - [x] mermaid 状態遷移図
+- [x] mermaid クラス図
 - [x] mermaid ガントチャート
 - [x] mermaid アーキテクチャ図（ベータ機能） 
 
@@ -279,7 +280,7 @@ import (
 	"os"
 
 	"github.com/nao1215/markdown"
-	"github.com/nao1215/mermaid/sequence"
+	"github.com/nao1215/markdown/mermaid/sequence"
 )
 
 //go:generate go run main.go
@@ -911,6 +912,117 @@ stateDiagram-v2
     note right of Processing : Preparing items
 
     Delivered --> [*]
+```
+
+### クラス図の構文
+
+```go
+package main
+
+import (
+	"io"
+	"os"
+
+	"github.com/nao1215/markdown"
+	"github.com/nao1215/markdown/mermaid/class"
+)
+
+//go:generate go run main.go
+
+func main() {
+	f, err := os.Create("generated.md")
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+
+	diagram := class.NewDiagram(
+		io.Discard,
+		class.WithTitle("Checkout Domain"),
+	).
+		SetDirection(class.DirectionLR).
+		Class(
+			"Order",
+			class.WithPublicField("string", "id"),
+			class.WithPublicMethod("Create", "error", "items []LineItem"),
+			class.WithPublicMethod("Pay", "error"),
+		).
+		Class(
+			"LineItem",
+			class.WithPublicField("string", "sku"),
+			class.WithPublicField("int", "quantity"),
+			class.WithPublicMethod("Subtotal", "int"),
+		).
+		Interface("PaymentGateway")
+
+	diagram.From("Order").
+		Composition("LineItem", class.WithOneToMany(), class.WithRelationLabel("contains")).
+		Association("PaymentGateway", class.WithRelationLabel("uses"))
+
+	diagramString := diagram.
+		NoteFor("Order", "Aggregate Root").
+		String()
+
+	err = markdown.NewMarkdown(f).
+		H2("Class Diagram").
+		CodeBlocks(markdown.SyntaxHighlightMermaid, diagramString).
+		Build()
+
+	if err != nil {
+		panic(err)
+	}
+}
+```
+
+プレーンテキスト出力: [markdownはこちら](../class/generated.md)
+````text
+## Class Diagram
+```mermaid
+---
+title: Checkout Domain
+---
+classDiagram
+    direction LR
+    class Order {
+        +string id
+        +Create(items []LineItem) error
+        +Pay() error
+    }
+    class LineItem {
+        +string sku
+        +int quantity
+        +Subtotal() int
+    }
+    class PaymentGateway
+    <<Interface>> PaymentGateway
+    Order "1" *-- "many" LineItem : contains
+    Order --> PaymentGateway : uses
+    note for Order "Aggregate Root"
+```
+````
+
+Mermaid出力:
+```mermaid
+---
+title: Checkout Domain
+---
+classDiagram
+    direction LR
+    class Order {
+        +string id
+        +Create(items []LineItem) error
+        +Pay() error
+    }
+    class LineItem {
+        +string sku
+        +int quantity
+        +Subtotal() int
+    }
+    class PaymentGateway
+    <<Interface>> PaymentGateway
+    Order "1" *-- "many" LineItem : contains
+    Order --> PaymentGateway : uses
+    note for Order "Aggregate Root"
 ```
 
 ### 四象限図の構文
