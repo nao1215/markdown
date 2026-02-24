@@ -12,7 +12,7 @@
 # markdown パッケージとは
 markdown パッケージは、Golangでのシンプルなマークダウンビルダーです。markdown パッケージは、[html/template](https://pkg.go.dev/html/template) のようなテンプレートエンジンを使用せず、メソッドチェーンを使用してMarkdownを組み立てます。Markdownの構文は**GitHub Markdown**に従います。
 
-markdown パッケージは、[nao1215/spectest](https://github.com/nao1215/spectest) でテスト結果を保存するために最初に開発されました。そのため、markdown パッケージは spectest で必要な機能を実装しています。例えば、markdown パッケージは、spectest で必要な機能である**mermaid 図（実体関係図、シーケンス図、フローチャート、パイチャート、四象限図、状態遷移図、クラス図、ガントチャート、アーキテクチャ図）**をサポートしています。
+markdown パッケージは、[nao1215/spectest](https://github.com/nao1215/spectest) でテスト結果を保存するために最初に開発されました。そのため、markdown パッケージは spectest で必要な機能を実装しています。例えば、markdown パッケージは、spectest で必要な機能である**mermaid 図（実体関係図、シーケンス図、ユーザージャーニー図、フローチャート、パイチャート、四象限図、状態遷移図、クラス図、ガントチャート、アーキテクチャ図）**をサポートしています。
 
 また、ネストしたリストの生成などのライブラリの複雑性を増加させる複雑なコードは追加されません。このライブラリをできる限りシンプルに保ちたいと考えています。
 
@@ -36,6 +36,7 @@ markdown パッケージは、[nao1215/spectest](https://github.com/nao1215/spec
 - [x] 詳細 
 - [x] アラート; NOTE、TIP、IMPORTANT、CAUTION、WARNING
 - [x] mermaid シーケンス図
+- [x] mermaid ユーザージャーニー図
 - [x] mermaid 実体関係図
 - [x] mermaid フローチャート 
 - [x] mermaid パイチャート
@@ -358,6 +359,73 @@ sequenceDiagram
     end
 
     David-->>Sophia: wake up, wake up
+```
+
+### Mermaid ユーザージャーニー図構文
+
+```go
+package main
+
+import (
+	"io"
+	"os"
+
+	"github.com/nao1215/markdown"
+	"github.com/nao1215/markdown/mermaid/userjourney"
+)
+
+//go:generate go run main.go
+
+func main() {
+	diagram := userjourney.NewDiagram(
+		io.Discard,
+		userjourney.WithTitle("Checkout Journey"),
+	).
+		Section("Discover").
+		Task("Browse products", userjourney.ScoreVerySatisfied, "Customer").
+		Task("Add item to cart", userjourney.ScoreSatisfied, "Customer").
+		LF().
+		Section("Checkout").
+		Task("Enter shipping details", userjourney.ScoreNeutral, "Customer").
+		Task("Complete payment", userjourney.ScoreSatisfied, "Customer", "Payment Service").
+		String()
+
+	if err := markdown.NewMarkdown(os.Stdout).
+		H2("User Journey Diagram").
+		CodeBlocks(markdown.SyntaxHighlightMermaid, diagram).
+		Build(); err != nil {
+		panic(err)
+	}
+}
+```
+
+プレーンテキスト出力: [markdownはこちら](../userjourney/generated.md)
+````text
+## User Journey Diagram
+```mermaid
+journey
+    title Checkout Journey
+    section Discover
+        Browse products: 5: Customer
+        Add item to cart: 4: Customer
+
+    section Checkout
+        Enter shipping details: 3: Customer
+        Complete payment: 4: Customer, Payment Service
+```
+````
+
+Mermaid出力:
+```mermaid
+journey
+    title Checkout Journey
+    section Discover
+        Browse products: 5: Customer
+        Add item to cart: 4: Customer
+
+    section Checkout
+        Enter shipping details: 3: Customer
+        Complete payment: 4: Customer, Payment Service
 ```
 
 ### 実体関係図構文
