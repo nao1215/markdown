@@ -12,7 +12,7 @@
 # Что такое пакет markdown
 Пакет markdown - это простой конструктор markdown на языке Golang. Пакет markdown собирает Markdown используя цепочку методов, не используя шаблонизатор как [html/template](https://pkg.go.dev/html/template). Синтаксис Markdown следует **GitHub Markdown**.
 
-Пакет markdown изначально был разработан для сохранения результатов тестов в [nao1215/spectest](https://github.com/nao1215/spectest). Поэтому пакет markdown реализует функции, необходимые для spectest. Например, пакет markdown поддерживает **диаграммы последовательности mermaid (диаграммы сущностей-связей, диаграммы последовательности, диаграммы пути пользователя, блок-схемы, круговые диаграммы, квадрантные диаграммы, диаграммы состояний, диаграммы классов, диаграммы Ганта, архитектурные диаграммы)**, которые были необходимой функцией в spectest.
+Пакет markdown изначально был разработан для сохранения результатов тестов в [nao1215/spectest](https://github.com/nao1215/spectest). Поэтому пакет markdown реализует функции, необходимые для spectest. Например, пакет markdown поддерживает **диаграммы последовательности mermaid (диаграммы сущностей-связей, диаграммы последовательности, диаграммы пути пользователя, диаграммы git graph, блок-схемы, круговые диаграммы, квадрантные диаграммы, диаграммы состояний, диаграммы классов, диаграммы Ганта, архитектурные диаграммы)**, которые были необходимой функцией в spectest.
 
 Кроме того, сложный код, который увеличивает сложность библиотеки, такой как создание вложенных списков, добавляться не будет. Я хочу сохранить эту библиотеку максимально простой.
 
@@ -37,6 +37,7 @@
 - [x] Уведомления; NOTE, TIP, IMPORTANT, CAUTION, WARNING
 - [x] диаграммы последовательности mermaid
 - [x] диаграммы пути пользователя mermaid
+- [x] диаграммы git graph mermaid
 - [x] диаграммы сущностей-связей mermaid
 - [x] блок-схемы mermaid
 - [x] круговые диаграммы mermaid
@@ -426,6 +427,74 @@ journey
     section Checkout
         Enter shipping details: 3: Customer
         Complete payment: 4: Customer, Payment Service
+```
+
+### Синтаксис git graph Mermaid
+
+```go
+package main
+
+import (
+	"io"
+	"os"
+
+	"github.com/nao1215/markdown"
+	"github.com/nao1215/markdown/mermaid/gitgraph"
+)
+
+//go:generate go run main.go
+
+func main() {
+	diagram := gitgraph.NewDiagram(
+		io.Discard,
+		gitgraph.WithTitle("Release Flow"),
+	).
+		Commit(gitgraph.WithCommitID("init"), gitgraph.WithCommitTag("v0.1.0")).
+		Branch("develop", gitgraph.WithBranchOrder(2)).
+		Checkout("develop").
+		Commit(gitgraph.WithCommitType(gitgraph.CommitTypeHighlight)).
+		Checkout("main").
+		Merge("develop", gitgraph.WithCommitTag("v1.0.0")).
+		String()
+
+	if err := markdown.NewMarkdown(os.Stdout).
+		H2("Git Graph").
+		CodeBlocks(markdown.SyntaxHighlightMermaid, diagram).
+		Build(); err != nil {
+		panic(err)
+	}
+}
+```
+
+Вывод простого текста: [markdown здесь](../gitgraph/generated.md)
+````text
+## Git Graph
+```mermaid
+---
+title: Release Flow
+---
+gitGraph
+    commit id: "init" tag: "v0.1.0"
+    branch develop order: 2
+    checkout develop
+    commit type: HIGHLIGHT
+    checkout main
+    merge develop tag: "v1.0.0"
+```
+````
+
+Вывод Mermaid:
+```mermaid
+---
+title: Release Flow
+---
+gitGraph
+    commit id: "init" tag: "v0.1.0"
+    branch develop order: 2
+    checkout develop
+    commit type: HIGHLIGHT
+    checkout main
+    merge develop tag: "v1.0.0"
 ```
 
 ### Синтаксис диаграммы сущностей-связей

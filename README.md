@@ -12,7 +12,7 @@
 # What is markdown package
 The Package markdown is a simple markdown builder in golang. The markdown package assembles Markdown using method chaining, not uses a template engine like [html/template](https://pkg.go.dev/html/template). The syntax of Markdown follows **GitHub Markdown**.
   
-The markdown package was initially developed to save test results in [nao1215/spectest](https://github.com/nao1215/spectest). Therefore, the markdown package implements the features required by spectest. For example, the markdown package supports **mermaid diagrams (entity relationship diagram, sequence diagram, user journey diagram, flowchart, pie chart, quadrant chart, state diagram, class diagram, Gantt chart, architecture diagram)**, which was a necessary feature in spectest.
+The markdown package was initially developed to save test results in [nao1215/spectest](https://github.com/nao1215/spectest). Therefore, the markdown package implements the features required by spectest. For example, the markdown package supports **mermaid diagrams (entity relationship diagram, sequence diagram, user journey diagram, git graph diagram, flowchart, pie chart, quadrant chart, state diagram, class diagram, Gantt chart, architecture diagram)**, which was a necessary feature in spectest.
   
 Additionally, complex code that increases the complexity of the library, such as generating nested lists, will not be added. I want to keep this library as simple as possible.
   
@@ -40,6 +40,7 @@ Additionally, complex code that increases the complexity of the library, such as
 - [x] Alerts; NOTE, TIP, IMPORTANT, CAUTION, WARNING
 - [x] mermaid sequence diagram
 - [x] mermaid user journey diagram
+- [x] mermaid git graph diagram
 - [x] mermaid entity relationship diagram
 - [x] mermaid flowchart 
 - [x] mermaid pie chart
@@ -430,6 +431,74 @@ journey
     section Checkout
         Enter shipping details: 3: Customer
         Complete payment: 4: Customer, Payment Service
+```
+
+### Mermaid git graph syntax
+
+```go
+package main
+
+import (
+	"io"
+	"os"
+
+	"github.com/nao1215/markdown"
+	"github.com/nao1215/markdown/mermaid/gitgraph"
+)
+
+//go:generate go run main.go
+
+func main() {
+	diagram := gitgraph.NewDiagram(
+		io.Discard,
+		gitgraph.WithTitle("Release Flow"),
+	).
+		Commit(gitgraph.WithCommitID("init"), gitgraph.WithCommitTag("v0.1.0")).
+		Branch("develop", gitgraph.WithBranchOrder(2)).
+		Checkout("develop").
+		Commit(gitgraph.WithCommitType(gitgraph.CommitTypeHighlight)).
+		Checkout("main").
+		Merge("develop", gitgraph.WithCommitTag("v1.0.0")).
+		String()
+
+	if err := markdown.NewMarkdown(os.Stdout).
+		H2("Git Graph").
+		CodeBlocks(markdown.SyntaxHighlightMermaid, diagram).
+		Build(); err != nil {
+		panic(err)
+	}
+}
+```
+
+Plain text output: [markdown is here](./doc/gitgraph/generated.md)
+````text
+## Git Graph
+```mermaid
+---
+title: Release Flow
+---
+gitGraph
+    commit id: "init" tag: "v0.1.0"
+    branch develop order: 2
+    checkout develop
+    commit type: HIGHLIGHT
+    checkout main
+    merge develop tag: "v1.0.0"
+```
+````
+
+Mermaid output:
+```mermaid
+---
+title: Release Flow
+---
+gitGraph
+    commit id: "init" tag: "v0.1.0"
+    branch develop order: 2
+    checkout develop
+    commit type: HIGHLIGHT
+    checkout main
+    merge develop tag: "v1.0.0"
 ```
 
 ### Entity Relationship Diagram syntax
