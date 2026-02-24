@@ -1,3 +1,11 @@
+## [v0.13.0](https://github.com/nao1215/markdown/compare/v0.12.0...v0.13.0) (2026-02-24)
+
+* Add Mermaid Requirement Diagram support [#87](https://github.com/nao1215/markdown/pull/87) ([nao1215](https://github.com/nao1215))
+* Add Mermaid XY Chart support [#88](https://github.com/nao1215/markdown/pull/88) ([nao1215](https://github.com/nao1215))
+* Add Mermaid Packet Diagram support [#89](https://github.com/nao1215/markdown/pull/89) ([nao1215](https://github.com/nao1215))
+* Add Mermaid Block Diagram support [#90](https://github.com/nao1215/markdown/pull/90) ([nao1215](https://github.com/nao1215))
+* Add Mermaid Kanban Diagram support [#91](https://github.com/nao1215/markdown/pull/91) ([nao1215](https://github.com/nao1215))
+
 ## [v0.12.0](https://github.com/nao1215/markdown/compare/v0.11.0...v0.12.0) (2026-02-24)
 
 * Add Mermaid Class Diagram support [#83](https://github.com/nao1215/markdown/pull/83) ([nao1215](https://github.com/nao1215))
