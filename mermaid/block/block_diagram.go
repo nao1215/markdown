@@ -472,6 +472,9 @@ func (d *Diagram) Block(build func(*Diagram), opts ...BlockOption) *Diagram {
 	d.indent++
 	build(d)
 	d.indent--
+	if d.err != nil {
+		return d
+	}
 	d.appendLine("end")
 	return d
 }

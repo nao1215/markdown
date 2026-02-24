@@ -234,6 +234,16 @@ func TestDiagram_Error(t *testing.T) {
 			want: `block`,
 		},
 		{
+			name: "block callback error does not append end",
+			run: func() *Diagram {
+				return NewDiagram(io.Discard).
+					Block(func(blk *Diagram) {
+						blk.Columns(0)
+					})
+			},
+			want: "block\n    block",
+		},
+		{
 			name: "nil block builder",
 			run: func() *Diagram {
 				return NewDiagram(io.Discard).Block(nil)
