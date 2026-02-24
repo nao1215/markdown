@@ -12,7 +12,7 @@
 # 什么是 markdown 包
 markdown 包是一个用 Golang 编写的简单 markdown 构建器。markdown 包使用方法链接来组装 Markdown，而不使用像 [html/template](https://pkg.go.dev/html/template) 这样的模板引擎。Markdown 的语法遵循 **GitHub Markdown**。
 
-markdown 包最初是为了在 [nao1215/spectest](https://github.com/nao1215/spectest) 中保存测试结果而开发的。因此，markdown 包实现了 spectest 所需的功能。例如，markdown 包支持 **mermaid 序列图（实体关系图、序列图、流程图、饼图、象限图、状态图、甘特图、架构图）**，这是 spectest 中的必要功能。
+markdown 包最初是为了在 [nao1215/spectest](https://github.com/nao1215/spectest) 中保存测试结果而开发的。因此，markdown 包实现了 spectest 所需的功能。例如，markdown 包支持 **mermaid 序列图（实体关系图、序列图、流程图、饼图、象限图、状态图、类图、甘特图、架构图）**，这是 spectest 中的必要功能。
 
 此外，不会添加增加库复杂性的复杂代码，例如生成嵌套列表。我希望保持这个库尽可能简单。
 
@@ -41,6 +41,7 @@ markdown 包最初是为了在 [nao1215/spectest](https://github.com/nao1215/spe
 - [x] mermaid 饼图
 - [x] mermaid 象限图
 - [x] mermaid 状态图
+- [x] mermaid 类图
 - [x] mermaid 甘特图
 - [x] mermaid 架构图（测试版功能）
 
@@ -279,7 +280,7 @@ import (
 	"os"
 
 	"github.com/nao1215/markdown"
-	"github.com/nao1215/mermaid/sequence"
+	"github.com/nao1215/markdown/mermaid/sequence"
 )
 
 //go:generate go run main.go
@@ -911,6 +912,117 @@ stateDiagram-v2
     note right of Processing : Preparing items
 
     Delivered --> [*]
+```
+
+### 类图语法
+
+```go
+package main
+
+import (
+	"io"
+	"os"
+
+	"github.com/nao1215/markdown"
+	"github.com/nao1215/markdown/mermaid/class"
+)
+
+//go:generate go run main.go
+
+func main() {
+	f, err := os.Create("generated.md")
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+
+	diagram := class.NewDiagram(
+		io.Discard,
+		class.WithTitle("Checkout Domain"),
+	).
+		SetDirection(class.DirectionLR).
+		Class(
+			"Order",
+			class.WithPublicField("string", "id"),
+			class.WithPublicMethod("Create", "error", "items []LineItem"),
+			class.WithPublicMethod("Pay", "error"),
+		).
+		Class(
+			"LineItem",
+			class.WithPublicField("string", "sku"),
+			class.WithPublicField("int", "quantity"),
+			class.WithPublicMethod("Subtotal", "int"),
+		).
+		Interface("PaymentGateway")
+
+	diagram.From("Order").
+		Composition("LineItem", class.WithOneToMany(), class.WithRelationLabel("contains")).
+		Association("PaymentGateway", class.WithRelationLabel("uses"))
+
+	diagramString := diagram.
+		NoteFor("Order", "Aggregate Root").
+		String()
+
+	err = markdown.NewMarkdown(f).
+		H2("Class Diagram").
+		CodeBlocks(markdown.SyntaxHighlightMermaid, diagramString).
+		Build()
+
+	if err != nil {
+		panic(err)
+	}
+}
+```
+
+纯文本输出: [markdown 在这里](../class/generated.md)
+````
+## Class Diagram
+```mermaid
+---
+title: Checkout Domain
+---
+classDiagram
+    direction LR
+    class Order {
+        +string id
+        +Create(items []LineItem) error
+        +Pay() error
+    }
+    class LineItem {
+        +string sku
+        +int quantity
+        +Subtotal() int
+    }
+    class PaymentGateway
+    <<Interface>> PaymentGateway
+    Order "1" *-- "many" LineItem : contains
+    Order --> PaymentGateway : uses
+    note for Order "Aggregate Root"
+```
+````
+
+Mermaid 输出:
+```mermaid
+---
+title: Checkout Domain
+---
+classDiagram
+    direction LR
+    class Order {
+        +string id
+        +Create(items []LineItem) error
+        +Pay() error
+    }
+    class LineItem {
+        +string sku
+        +int quantity
+        +Subtotal() int
+    }
+    class PaymentGateway
+    <<Interface>> PaymentGateway
+    Order "1" *-- "many" LineItem : contains
+    Order --> PaymentGateway : uses
+    note for Order "Aggregate Root"
 ```
 
 ### 象限图语法

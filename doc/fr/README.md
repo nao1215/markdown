@@ -12,7 +12,7 @@
 # Qu'est-ce que le package markdown
 Le package markdown est un constructeur de markdown simple en Golang. Le package markdown assemble le Markdown en utilisant le chaînage de méthodes, n'utilise pas un moteur de modèles comme [html/template](https://pkg.go.dev/html/template). La syntaxe de Markdown suit **GitHub Markdown**.
 
-Le package markdown a été initialement développé pour sauvegarder les résultats de tests dans [nao1215/spectest](https://github.com/nao1215/spectest). Par conséquent, le package markdown implémente les fonctionnalités requises par spectest. Par exemple, le package markdown prend en charge **les diagrammes de séquence mermaid (diagramme de relation d'entité, diagramme de séquence, organigramme, graphique en secteurs, graphique à quadrants, diagramme d'état, diagramme de Gantt, diagramme d'architecture)**, ce qui était une fonctionnalité nécessaire dans spectest.
+Le package markdown a été initialement développé pour sauvegarder les résultats de tests dans [nao1215/spectest](https://github.com/nao1215/spectest). Par conséquent, le package markdown implémente les fonctionnalités requises par spectest. Par exemple, le package markdown prend en charge **les diagrammes de séquence mermaid (diagramme de relation d'entité, diagramme de séquence, organigramme, graphique en secteurs, graphique à quadrants, diagramme d'état, diagramme de classes, diagramme de Gantt, diagramme d'architecture)**, ce qui était une fonctionnalité nécessaire dans spectest.
 
 De plus, le code complexe qui augmente la complexité de la bibliothèque, tel que la génération de listes imbriquées, ne sera pas ajouté. Je veux garder cette bibliothèque aussi simple que possible.
 
@@ -41,6 +41,7 @@ De plus, le code complexe qui augmente la complexité de la bibliothèque, tel q
 - [x] graphique en secteurs mermaid
 - [x] graphique à quadrants mermaid
 - [x] diagramme d'état mermaid
+- [x] diagramme de classes mermaid
 - [x] diagramme de Gantt mermaid
 - [x] diagramme d'architecture mermaid (fonctionnalité bêta)
 
@@ -279,7 +280,7 @@ import (
 	"os"
 
 	"github.com/nao1215/markdown"
-	"github.com/nao1215/mermaid/sequence"
+	"github.com/nao1215/markdown/mermaid/sequence"
 )
 
 //go:generate go run main.go
@@ -911,6 +912,117 @@ stateDiagram-v2
     note right of Processing : Preparing items
 
     Delivered --> [*]
+```
+
+### Syntaxe du diagramme de classes
+
+```go
+package main
+
+import (
+	"io"
+	"os"
+
+	"github.com/nao1215/markdown"
+	"github.com/nao1215/markdown/mermaid/class"
+)
+
+//go:generate go run main.go
+
+func main() {
+	f, err := os.Create("generated.md")
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+
+	diagram := class.NewDiagram(
+		io.Discard,
+		class.WithTitle("Checkout Domain"),
+	).
+		SetDirection(class.DirectionLR).
+		Class(
+			"Order",
+			class.WithPublicField("string", "id"),
+			class.WithPublicMethod("Create", "error", "items []LineItem"),
+			class.WithPublicMethod("Pay", "error"),
+		).
+		Class(
+			"LineItem",
+			class.WithPublicField("string", "sku"),
+			class.WithPublicField("int", "quantity"),
+			class.WithPublicMethod("Subtotal", "int"),
+		).
+		Interface("PaymentGateway")
+
+	diagram.From("Order").
+		Composition("LineItem", class.WithOneToMany(), class.WithRelationLabel("contains")).
+		Association("PaymentGateway", class.WithRelationLabel("uses"))
+
+	diagramString := diagram.
+		NoteFor("Order", "Aggregate Root").
+		String()
+
+	err = markdown.NewMarkdown(f).
+		H2("Class Diagram").
+		CodeBlocks(markdown.SyntaxHighlightMermaid, diagramString).
+		Build()
+
+	if err != nil {
+		panic(err)
+	}
+}
+```
+
+Sortie de texte brut : [markdown est ici](../class/generated.md)
+````
+## Class Diagram
+```mermaid
+---
+title: Checkout Domain
+---
+classDiagram
+    direction LR
+    class Order {
+        +string id
+        +Create(items []LineItem) error
+        +Pay() error
+    }
+    class LineItem {
+        +string sku
+        +int quantity
+        +Subtotal() int
+    }
+    class PaymentGateway
+    <<Interface>> PaymentGateway
+    Order "1" *-- "many" LineItem : contains
+    Order --> PaymentGateway : uses
+    note for Order "Aggregate Root"
+```
+````
+
+Sortie Mermaid :
+```mermaid
+---
+title: Checkout Domain
+---
+classDiagram
+    direction LR
+    class Order {
+        +string id
+        +Create(items []LineItem) error
+        +Pay() error
+    }
+    class LineItem {
+        +string sku
+        +int quantity
+        +Subtotal() int
+    }
+    class PaymentGateway
+    <<Interface>> PaymentGateway
+    Order "1" *-- "many" LineItem : contains
+    Order --> PaymentGateway : uses
+    note for Order "Aggregate Root"
 ```
 
 ### Syntaxe du graphique à quadrants
