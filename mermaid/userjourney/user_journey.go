@@ -4,6 +4,7 @@
 package userjourney
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"strings"
@@ -33,8 +34,6 @@ const (
 type Diagram struct {
 	// body is user journey diagram body.
 	body []string
-	// config is the configuration for the user journey diagram.
-	config *config
 	// dest is output destination for user journey diagram body.
 	dest io.Writer
 	// err manages errors that occur in all parts of the user journey diagram building.
@@ -57,9 +56,8 @@ func NewDiagram(w io.Writer, opts ...Option) *Diagram {
 	}
 
 	return &Diagram{
-		body:   lines,
-		dest:   w,
-		config: c,
+		body: lines,
+		dest: w,
 	}
 }
 
@@ -94,7 +92,11 @@ func (d *Diagram) Section(name string) *Diagram {
 
 	trimmed := strings.TrimSpace(name)
 	if trimmed == "" {
-		d.setError(fmt.Errorf("section name must not be empty"))
+		d.setError(errors.New("section name must not be empty"))
+		return d
+	}
+	if containsNewline(trimmed) {
+		d.setError(errors.New("section name must not contain newline characters"))
 		return d
 	}
 
@@ -118,7 +120,11 @@ func (d *Diagram) Task(name string, score Score, actors ...string) *Diagram {
 
 	trimmedName := strings.TrimSpace(name)
 	if trimmedName == "" {
-		d.setError(fmt.Errorf("task name must not be empty"))
+		d.setError(errors.New("task name must not be empty"))
+		return d
+	}
+	if containsNewline(trimmedName) {
+		d.setError(errors.New("task name must not contain newline characters"))
 		return d
 	}
 
@@ -134,8 +140,13 @@ func (d *Diagram) Task(name string, score Score, actors ...string) *Diagram {
 		return d
 	}
 
+	trimmedActors, err := normalizeActors(actors...)
+	if err != nil {
+		d.setError(err)
+		return d
+	}
+
 	taskLine := fmt.Sprintf("        %s: %d", trimmedName, score)
-	trimmedActors := normalizeActors(actors...)
 	if len(trimmedActors) > 0 {
 		taskLine = fmt.Sprintf("%s: %s", taskLine, strings.Join(trimmedActors, ", "))
 	}
@@ -155,7 +166,11 @@ func (d *Diagram) TaskIn(section, task string, score Score, actors ...string) *D
 
 	trimmedSection := strings.TrimSpace(section)
 	if trimmedSection == "" {
-		d.setError(fmt.Errorf("section name must not be empty"))
+		d.setError(errors.New("section name must not be empty"))
+		return d
+	}
+	if containsNewline(trimmedSection) {
+		d.setError(errors.New("section name must not contain newline characters"))
 		return d
 	}
 
@@ -185,14 +200,22 @@ func isValidScore(score Score) bool {
 	return score >= ScoreVeryDissatisfied && score <= ScoreVerySatisfied
 }
 
-func normalizeActors(actors ...string) []string {
+func normalizeActors(actors ...string) ([]string, error) {
 	normalized := make([]string, 0, len(actors))
 	for _, actor := range actors {
 		trimmed := strings.TrimSpace(actor)
 		// Ignore blank actors so callers can safely pass optional values.
-		if trimmed != "" {
-			normalized = append(normalized, trimmed)
+		if trimmed == "" {
+			continue
 		}
+		if containsNewline(trimmed) {
+			return nil, errors.New("actor name must not contain newline characters")
+		}
+		normalized = append(normalized, trimmed)
 	}
-	return normalized
+	return normalized, nil
+}
+
+func containsNewline(s string) bool {
+	return strings.ContainsAny(s, "\n\r")
 }

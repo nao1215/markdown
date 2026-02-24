@@ -227,6 +227,68 @@ func TestDiagram_LFAfterErrorShortCircuits(t *testing.T) {
 	}
 }
 
+func TestDiagram_NewlineValidation(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		run  func() *Diagram
+		want string
+	}{
+		{
+			name: "section name with newline",
+			run: func() *Diagram {
+				return NewDiagram(io.Discard).Section("Discover\nInjected")
+			},
+			want: "journey",
+		},
+		{
+			name: "task name with newline",
+			run: func() *Diagram {
+				return NewDiagram(io.Discard).
+					Section("Discover").
+					Task("Browse\nproducts", ScoreNeutral, "Customer")
+			},
+			want: `journey
+    section Discover`,
+		},
+		{
+			name: "taskin section with newline",
+			run: func() *Diagram {
+				return NewDiagram(io.Discard).
+					TaskIn("Discover\nInjected", "Browse products", ScoreNeutral, "Customer")
+			},
+			want: "journey",
+		},
+		{
+			name: "actor name with newline",
+			run: func() *Diagram {
+				return NewDiagram(io.Discard).
+					Section("Discover").
+					Task("Browse products", ScoreNeutral, "Customer\nOps")
+			},
+			want: `journey
+    section Discover`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			d := tt.run()
+			if d.Error() == nil {
+				t.Fatal("expected error, got nil")
+			}
+
+			got := strings.ReplaceAll(d.String(), "\r\n", "\n")
+			if diff := cmp.Diff(tt.want, got); diff != "" {
+				t.Errorf("value is mismatch (-want +got):\n%s", diff)
+			}
+		})
+	}
+}
+
 func TestDiagram_BuildStoresError(t *testing.T) {
 	t.Parallel()
 

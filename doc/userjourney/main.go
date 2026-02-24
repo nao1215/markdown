@@ -11,6 +11,8 @@ import (
 	"github.com/nao1215/markdown/mermaid/userjourney"
 )
 
+// This file is gated by //go:build linux || darwin, so //go:generate is skipped
+// on Windows. To regenerate generated.md on Windows, run under WSL or via CI.
 //go:generate go run main.go
 
 func main() {
