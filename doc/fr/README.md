@@ -12,7 +12,7 @@
 # Qu'est-ce que le package markdown
 Le package markdown est un constructeur de markdown simple en Golang. Le package markdown assemble le Markdown en utilisant le chaînage de méthodes, n'utilise pas un moteur de modèles comme [html/template](https://pkg.go.dev/html/template). La syntaxe de Markdown suit **GitHub Markdown**.
 
-Le package markdown a été initialement développé pour sauvegarder les résultats de tests dans [nao1215/spectest](https://github.com/nao1215/spectest). Par conséquent, le package markdown implémente les fonctionnalités requises par spectest. Par exemple, le package markdown prend en charge **les diagrammes de séquence mermaid (diagramme de relation d'entité, diagramme de séquence, diagramme de parcours utilisateur, diagramme git graph, organigramme, graphique en secteurs, graphique à quadrants, diagramme d'état, diagramme de classes, diagramme de Gantt, diagramme d'architecture)**, ce qui était une fonctionnalité nécessaire dans spectest.
+Le package markdown a été initialement développé pour sauvegarder les résultats de tests dans [nao1215/spectest](https://github.com/nao1215/spectest). Par conséquent, le package markdown implémente les fonctionnalités requises par spectest. Par exemple, le package markdown prend en charge **les diagrammes de séquence mermaid (diagramme de relation d'entité, diagramme de séquence, diagramme de parcours utilisateur, diagramme git graph, diagramme de carte mentale, organigramme, graphique en secteurs, graphique à quadrants, diagramme d'état, diagramme de classes, diagramme de Gantt, diagramme d'architecture)**, ce qui était une fonctionnalité nécessaire dans spectest.
 
 De plus, le code complexe qui augmente la complexité de la bibliothèque, tel que la génération de listes imbriquées, ne sera pas ajouté. Je veux garder cette bibliothèque aussi simple que possible.
 
@@ -38,6 +38,7 @@ De plus, le code complexe qui augmente la complexité de la bibliothèque, tel q
 - [x] diagramme de séquence mermaid
 - [x] diagramme de parcours utilisateur mermaid
 - [x] diagramme git graph mermaid
+- [x] diagramme de carte mentale mermaid
 - [x] diagramme de relation d'entité mermaid
 - [x] organigramme mermaid
 - [x] graphique en secteurs mermaid
@@ -496,6 +497,78 @@ gitGraph
     commit type: HIGHLIGHT
     checkout main
     merge develop tag: "v1.0.0"
+```
+
+### Syntaxe de la carte mentale Mermaid
+
+```go
+package main
+
+import (
+	"io"
+	"os"
+
+	"github.com/nao1215/markdown"
+	"github.com/nao1215/markdown/mermaid/mindmap"
+)
+
+//go:generate go run main.go
+
+func main() {
+	diagram := mindmap.NewDiagram(
+		io.Discard,
+		mindmap.WithTitle("Product Strategy Mindmap"),
+	).
+		Root("Product Strategy").
+		Child("Market").
+		Child("SMB").
+		Sibling("Enterprise").
+		Parent().
+		Sibling("Execution").
+		Child("Q1").
+		Sibling("Q2").
+		String()
+
+	if err := markdown.NewMarkdown(os.Stdout).
+		H2("Mindmap").
+		CodeBlocks(markdown.SyntaxHighlightMermaid, diagram).
+		Build(); err != nil {
+		panic(err)
+	}
+}
+```
+
+Sortie de texte brut : [markdown est ici](../mindmap/generated.md)
+````text
+## Mindmap
+```mermaid
+---
+title: Product Strategy Mindmap
+---
+mindmap
+    Product Strategy
+        Market
+            SMB
+            Enterprise
+        Execution
+            Q1
+            Q2
+```
+````
+
+Sortie Mermaid :
+```mermaid
+---
+title: Product Strategy Mindmap
+---
+mindmap
+    Product Strategy
+        Market
+            SMB
+            Enterprise
+        Execution
+            Q1
+            Q2
 ```
 
 ### Syntaxe du diagramme de relation d'entité

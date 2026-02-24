@@ -12,7 +12,7 @@
 # 什么是 markdown 包
 markdown 包是一个用 Golang 编写的简单 markdown 构建器。markdown 包使用方法链接来组装 Markdown，而不使用像 [html/template](https://pkg.go.dev/html/template) 这样的模板引擎。Markdown 的语法遵循 **GitHub Markdown**。
 
-markdown 包最初是为了在 [nao1215/spectest](https://github.com/nao1215/spectest) 中保存测试结果而开发的。因此，markdown 包实现了 spectest 所需的功能。例如，markdown 包支持 **mermaid 序列图（实体关系图、序列图、用户旅程图、Git Graph 图、流程图、饼图、象限图、状态图、类图、甘特图、架构图）**，这是 spectest 中的必要功能。
+markdown 包最初是为了在 [nao1215/spectest](https://github.com/nao1215/spectest) 中保存测试结果而开发的。因此，markdown 包实现了 spectest 所需的功能。例如，markdown 包支持 **mermaid 序列图（实体关系图、序列图、用户旅程图、Git Graph 图、思维导图、流程图、饼图、象限图、状态图、类图、甘特图、架构图）**，这是 spectest 中的必要功能。
 
 此外，不会添加增加库复杂性的复杂代码，例如生成嵌套列表。我希望保持这个库尽可能简单。
 
@@ -38,6 +38,7 @@ markdown 包最初是为了在 [nao1215/spectest](https://github.com/nao1215/spe
 - [x] mermaid 序列图
 - [x] mermaid 用户旅程图
 - [x] mermaid Git Graph 图
+- [x] mermaid 思维导图
 - [x] mermaid 实体关系图
 - [x] mermaid 流程图
 - [x] mermaid 饼图
@@ -496,6 +497,78 @@ gitGraph
     commit type: HIGHLIGHT
     checkout main
     merge develop tag: "v1.0.0"
+```
+
+### Mermaid 思维导图语法
+
+```go
+package main
+
+import (
+	"io"
+	"os"
+
+	"github.com/nao1215/markdown"
+	"github.com/nao1215/markdown/mermaid/mindmap"
+)
+
+//go:generate go run main.go
+
+func main() {
+	diagram := mindmap.NewDiagram(
+		io.Discard,
+		mindmap.WithTitle("Product Strategy Mindmap"),
+	).
+		Root("Product Strategy").
+		Child("Market").
+		Child("SMB").
+		Sibling("Enterprise").
+		Parent().
+		Sibling("Execution").
+		Child("Q1").
+		Sibling("Q2").
+		String()
+
+	if err := markdown.NewMarkdown(os.Stdout).
+		H2("Mindmap").
+		CodeBlocks(markdown.SyntaxHighlightMermaid, diagram).
+		Build(); err != nil {
+		panic(err)
+	}
+}
+```
+
+纯文本输出: [markdown 在这里](../mindmap/generated.md)
+````text
+## Mindmap
+```mermaid
+---
+title: Product Strategy Mindmap
+---
+mindmap
+    Product Strategy
+        Market
+            SMB
+            Enterprise
+        Execution
+            Q1
+            Q2
+```
+````
+
+Mermaid 输出:
+```mermaid
+---
+title: Product Strategy Mindmap
+---
+mindmap
+    Product Strategy
+        Market
+            SMB
+            Enterprise
+        Execution
+            Q1
+            Q2
 ```
 
 ### 实体关系图语法

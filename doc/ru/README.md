@@ -12,7 +12,7 @@
 # Что такое пакет markdown
 Пакет markdown - это простой конструктор markdown на языке Golang. Пакет markdown собирает Markdown используя цепочку методов, не используя шаблонизатор как [html/template](https://pkg.go.dev/html/template). Синтаксис Markdown следует **GitHub Markdown**.
 
-Пакет markdown изначально был разработан для сохранения результатов тестов в [nao1215/spectest](https://github.com/nao1215/spectest). Поэтому пакет markdown реализует функции, необходимые для spectest. Например, пакет markdown поддерживает **диаграммы последовательности mermaid (диаграммы сущностей-связей, диаграммы последовательности, диаграммы пути пользователя, диаграммы git graph, блок-схемы, круговые диаграммы, квадрантные диаграммы, диаграммы состояний, диаграммы классов, диаграммы Ганта, архитектурные диаграммы)**, которые были необходимой функцией в spectest.
+Пакет markdown изначально был разработан для сохранения результатов тестов в [nao1215/spectest](https://github.com/nao1215/spectest). Поэтому пакет markdown реализует функции, необходимые для spectest. Например, пакет markdown поддерживает **диаграммы последовательности mermaid (диаграммы сущностей-связей, диаграммы последовательности, диаграммы пути пользователя, диаграммы git graph, диаграммы mindmap, блок-схемы, круговые диаграммы, квадрантные диаграммы, диаграммы состояний, диаграммы классов, диаграммы Ганта, архитектурные диаграммы)**, которые были необходимой функцией в spectest.
 
 Кроме того, сложный код, который увеличивает сложность библиотеки, такой как создание вложенных списков, добавляться не будет. Я хочу сохранить эту библиотеку максимально простой.
 
@@ -38,6 +38,7 @@
 - [x] диаграммы последовательности mermaid
 - [x] диаграммы пути пользователя mermaid
 - [x] диаграммы git graph mermaid
+- [x] диаграммы mindmap mermaid
 - [x] диаграммы сущностей-связей mermaid
 - [x] блок-схемы mermaid
 - [x] круговые диаграммы mermaid
@@ -495,6 +496,78 @@ gitGraph
     commit type: HIGHLIGHT
     checkout main
     merge develop tag: "v1.0.0"
+```
+
+### Синтаксис mindmap Mermaid
+
+```go
+package main
+
+import (
+	"io"
+	"os"
+
+	"github.com/nao1215/markdown"
+	"github.com/nao1215/markdown/mermaid/mindmap"
+)
+
+//go:generate go run main.go
+
+func main() {
+	diagram := mindmap.NewDiagram(
+		io.Discard,
+		mindmap.WithTitle("Product Strategy Mindmap"),
+	).
+		Root("Product Strategy").
+		Child("Market").
+		Child("SMB").
+		Sibling("Enterprise").
+		Parent().
+		Sibling("Execution").
+		Child("Q1").
+		Sibling("Q2").
+		String()
+
+	if err := markdown.NewMarkdown(os.Stdout).
+		H2("Mindmap").
+		CodeBlocks(markdown.SyntaxHighlightMermaid, diagram).
+		Build(); err != nil {
+		panic(err)
+	}
+}
+```
+
+Вывод простого текста: [markdown здесь](../mindmap/generated.md)
+````text
+## Mindmap
+```mermaid
+---
+title: Product Strategy Mindmap
+---
+mindmap
+    Product Strategy
+        Market
+            SMB
+            Enterprise
+        Execution
+            Q1
+            Q2
+```
+````
+
+Вывод Mermaid:
+```mermaid
+---
+title: Product Strategy Mindmap
+---
+mindmap
+    Product Strategy
+        Market
+            SMB
+            Enterprise
+        Execution
+            Q1
+            Q2
 ```
 
 ### Синтаксис диаграммы сущностей-связей

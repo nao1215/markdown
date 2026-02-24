@@ -12,7 +12,7 @@
 # What is markdown package
 The Package markdown is a simple markdown builder in golang. The markdown package assembles Markdown using method chaining, not uses a template engine like [html/template](https://pkg.go.dev/html/template). The syntax of Markdown follows **GitHub Markdown**.
   
-The markdown package was initially developed to save test results in [nao1215/spectest](https://github.com/nao1215/spectest). Therefore, the markdown package implements the features required by spectest. For example, the markdown package supports **mermaid diagrams (entity relationship diagram, sequence diagram, user journey diagram, git graph diagram, flowchart, pie chart, quadrant chart, state diagram, class diagram, Gantt chart, architecture diagram)**, which was a necessary feature in spectest.
+The markdown package was initially developed to save test results in [nao1215/spectest](https://github.com/nao1215/spectest). Therefore, the markdown package implements the features required by spectest. For example, the markdown package supports **mermaid diagrams (entity relationship diagram, sequence diagram, user journey diagram, git graph diagram, mindmap diagram, flowchart, pie chart, quadrant chart, state diagram, class diagram, Gantt chart, architecture diagram)**, which was a necessary feature in spectest.
   
 Additionally, complex code that increases the complexity of the library, such as generating nested lists, will not be added. I want to keep this library as simple as possible.
   
@@ -41,6 +41,7 @@ Additionally, complex code that increases the complexity of the library, such as
 - [x] mermaid sequence diagram
 - [x] mermaid user journey diagram
 - [x] mermaid git graph diagram
+- [x] mermaid mindmap diagram
 - [x] mermaid entity relationship diagram
 - [x] mermaid flowchart 
 - [x] mermaid pie chart
@@ -499,6 +500,78 @@ gitGraph
     commit type: HIGHLIGHT
     checkout main
     merge develop tag: "v1.0.0"
+```
+
+### Mermaid mindmap syntax
+
+```go
+package main
+
+import (
+	"io"
+	"os"
+
+	"github.com/nao1215/markdown"
+	"github.com/nao1215/markdown/mermaid/mindmap"
+)
+
+//go:generate go run main.go
+
+func main() {
+	diagram := mindmap.NewDiagram(
+		io.Discard,
+		mindmap.WithTitle("Product Strategy Mindmap"),
+	).
+		Root("Product Strategy").
+		Child("Market").
+		Child("SMB").
+		Sibling("Enterprise").
+		Parent().
+		Sibling("Execution").
+		Child("Q1").
+		Sibling("Q2").
+		String()
+
+	if err := markdown.NewMarkdown(os.Stdout).
+		H2("Mindmap").
+		CodeBlocks(markdown.SyntaxHighlightMermaid, diagram).
+		Build(); err != nil {
+		panic(err)
+	}
+}
+```
+
+Plain text output: [markdown is here](./doc/mindmap/generated.md)
+````text
+## Mindmap
+```mermaid
+---
+title: Product Strategy Mindmap
+---
+mindmap
+    Product Strategy
+        Market
+            SMB
+            Enterprise
+        Execution
+            Q1
+            Q2
+```
+````
+
+Mermaid output:
+```mermaid
+---
+title: Product Strategy Mindmap
+---
+mindmap
+    Product Strategy
+        Market
+            SMB
+            Enterprise
+        Execution
+            Q1
+            Q2
 ```
 
 ### Entity Relationship Diagram syntax
