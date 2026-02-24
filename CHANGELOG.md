@@ -1,3 +1,10 @@
+## [v0.12.0](https://github.com/nao1215/markdown/compare/v0.11.0...v0.12.0) (2026-02-24)
+
+* Add Mermaid Class Diagram support [#83](https://github.com/nao1215/markdown/pull/83) ([nao1215](https://github.com/nao1215))
+* Add Mermaid User Journey Diagram support [#84](https://github.com/nao1215/markdown/pull/84) ([nao1215](https://github.com/nao1215))
+* Add Mermaid Git Graph Diagram support [#85](https://github.com/nao1215/markdown/pull/85) ([nao1215](https://github.com/nao1215))
+* Add Mermaid Mindmap Diagram support [#86](https://github.com/nao1215/markdown/pull/86) ([nao1215](https://github.com/nao1215))
+
 ## [v0.11.0](https://github.com/nao1215/markdown/compare/v0.10.0...v0.11.0) (2026-02-23)
 
 * Add Markdown footnote helpers [#82](https://github.com/nao1215/markdown/pull/82) ([nao1215](https://github.com/nao1215))
