@@ -12,7 +12,7 @@
 # ¿Qué es el paquete markdown?
 El paquete markdown es un constructor de markdown simple en Golang. El paquete markdown ensambla Markdown usando encadenamiento de métodos, no utiliza un motor de plantillas como [html/template](https://pkg.go.dev/html/template). La sintaxis de Markdown sigue **GitHub Markdown**.
 
-El paquete markdown fue inicialmente desarrollado para guardar resultados de pruebas en [nao1215/spectest](https://github.com/nao1215/spectest). Por lo tanto, el paquete markdown implementa las características requeridas por spectest. Por ejemplo, el paquete markdown soporta **diagramas de secuencia mermaid (diagrama de relación de entidad, diagrama de secuencia, diagrama de recorrido del usuario, diagrama git graph, diagrama de mapa mental, diagrama de flujo, gráfico circular, gráfico de cuadrantes, diagrama de estado, diagrama de clases, diagrama de Gantt, diagrama de arquitectura)**, que era una característica necesaria en spectest.
+El paquete markdown fue inicialmente desarrollado para guardar resultados de pruebas en [nao1215/spectest](https://github.com/nao1215/spectest). Por lo tanto, el paquete markdown implementa las características requeridas por spectest. Por ejemplo, el paquete markdown soporta **diagramas de secuencia mermaid (diagrama de relación de entidad, diagrama de secuencia, diagrama de recorrido del usuario, diagrama git graph, diagrama de mapa mental, diagrama de requisitos, diagrama de flujo, gráfico circular, gráfico de cuadrantes, diagrama de estado, diagrama de clases, diagrama de Gantt, diagrama de arquitectura)**, que era una característica necesaria en spectest.
 
 Además, no se añadirá código complejo que aumente la complejidad de la biblioteca, como generar listas anidadas. Quiero mantener esta biblioteca lo más simple posible.
 
@@ -39,6 +39,7 @@ Además, no se añadirá código complejo que aumente la complejidad de la bibli
 - [x] diagrama de recorrido del usuario mermaid
 - [x] diagrama git graph mermaid
 - [x] diagrama de mapa mental mermaid
+- [x] diagrama de requisitos mermaid
 - [x] diagrama de relación de entidad mermaid
 - [x] diagrama de flujo mermaid 
 - [x] gráfico circular mermaid
@@ -569,6 +570,128 @@ mindmap
         Execution
             Q1
             Q2
+```
+
+### Sintaxis del diagrama de requisitos Mermaid
+
+```go
+package main
+
+import (
+	"io"
+	"os"
+
+	"github.com/nao1215/markdown"
+	"github.com/nao1215/markdown/mermaid/requirement"
+)
+
+//go:generate go run main.go
+
+func main() {
+	diagram := requirement.NewDiagram(
+		io.Discard,
+		requirement.WithTitle("Checkout Requirements"),
+	).
+		SetDirection(requirement.DirectionTB).
+		Requirement(
+			"Login",
+			requirement.WithID("REQ-1"),
+			requirement.WithText("The system shall support login."),
+			requirement.WithRisk(requirement.RiskHigh),
+			requirement.WithVerifyMethod(requirement.VerifyMethodTest),
+			requirement.WithRequirementClasses("critical"),
+		).
+		FunctionalRequirement(
+			"RememberSession",
+			requirement.WithID("REQ-2"),
+			requirement.WithText("The system shall remember the user."),
+			requirement.WithRisk(requirement.RiskMedium),
+			requirement.WithVerifyMethod(requirement.VerifyMethodInspection),
+		).
+		Element(
+			"AuthService",
+			requirement.WithElementType("system"),
+			requirement.WithDocRef("docs/auth.md"),
+			requirement.WithElementClasses("service"),
+		).
+		From("AuthService").
+		Satisfies("Login").
+		From("RememberSession").
+		Verifies("Login").
+		ClassDefs(
+			requirement.Def("critical", "fill:#f96,stroke:#333,stroke-width:2px"),
+			requirement.Def("service", "fill:#9cf,stroke:#333,stroke-width:1px"),
+		).
+		String()
+
+	if err := markdown.NewMarkdown(os.Stdout).
+		H2("Requirement Diagram").
+		CodeBlocks(markdown.SyntaxHighlightMermaid, diagram).
+		Build(); err != nil {
+		panic(err)
+	}
+}
+```
+
+Salida de texto plano: [markdown está aquí](../requirement/generated.md)
+````text
+## Requirement Diagram
+```mermaid
+---
+title: Checkout Requirements
+---
+requirementDiagram
+    direction TB
+    requirement Login:::critical {
+        id: "REQ-1"
+        text: "The system shall support login."
+        risk: High
+        verifymethod: Test
+    }
+    functionalRequirement RememberSession {
+        id: "REQ-2"
+        text: "The system shall remember the user."
+        risk: Medium
+        verifymethod: Inspection
+    }
+    element AuthService:::service {
+        type: "system"
+        docRef: "docs/auth.md"
+    }
+    AuthService - satisfies -> Login
+    RememberSession - verifies -> Login
+    classDef critical fill:#f96,stroke:#333,stroke-width:2px
+    classDef service fill:#9cf,stroke:#333,stroke-width:1px
+```
+````
+
+Salida Mermaid:
+```mermaid
+---
+title: Checkout Requirements
+---
+requirementDiagram
+    direction TB
+    requirement Login:::critical {
+        id: "REQ-1"
+        text: "The system shall support login."
+        risk: High
+        verifymethod: Test
+    }
+    functionalRequirement RememberSession {
+        id: "REQ-2"
+        text: "The system shall remember the user."
+        risk: Medium
+        verifymethod: Inspection
+    }
+    element AuthService:::service {
+        type: "system"
+        docRef: "docs/auth.md"
+    }
+    AuthService - satisfies -> Login
+    RememberSession - verifies -> Login
+    classDef critical fill:#f96,stroke:#333,stroke-width:2px
+    classDef service fill:#9cf,stroke:#333,stroke-width:1px
 ```
 
 ### Sintaxis del diagrama de relación de entidad

@@ -12,7 +12,7 @@
 # markdown 패키지란 무엇인가
 markdown 패키지는 Golang으로 작성된 간단한 마크다운 빌더입니다. markdown 패키지는 [html/template](https://pkg.go.dev/html/template)과 같은 템플릿 엔진을 사용하지 않고 메서드 체이닝을 사용하여 Markdown을 조립합니다. Markdown의 구문은 **GitHub Markdown**을 따릅니다.
 
-markdown 패키지는 원래 [nao1215/spectest](https://github.com/nao1215/spectest)에서 테스트 결과를 저장하기 위해 개발되었습니다. 따라서 markdown 패키지는 spectest에 필요한 기능을 구현합니다. 예를 들어, markdown 패키지는 spectest에서 필요한 기능이었던 **mermaid 시퀀스 다이어그램(개체 관계 다이어그램, 시퀀스 다이어그램, 사용자 여정 다이어그램, Git Graph 다이어그램, 마인드맵 다이어그램, 플로우차트, 파이 차트, 사분면 차트, 상태 다이어그램, 클래스 다이어그램, 간트 차트, 아키텍처 다이어그램)**을 지원합니다.
+markdown 패키지는 원래 [nao1215/spectest](https://github.com/nao1215/spectest)에서 테스트 결과를 저장하기 위해 개발되었습니다. 따라서 markdown 패키지는 spectest에 필요한 기능을 구현합니다. 예를 들어, markdown 패키지는 spectest에서 필요한 기능이었던 **mermaid 시퀀스 다이어그램(개체 관계 다이어그램, 시퀀스 다이어그램, 사용자 여정 다이어그램, Git Graph 다이어그램, 마인드맵 다이어그램, 요구사항 다이어그램, 플로우차트, 파이 차트, 사분면 차트, 상태 다이어그램, 클래스 다이어그램, 간트 차트, 아키텍처 다이어그램)**을 지원합니다.
 
 또한 중첩된 목록 생성과 같은 라이브러리의 복잡성을 증가시키는 복잡한 코드는 추가되지 않을 것입니다. 이 라이브러리를 가능한 한 단순하게 유지하고 싶습니다.
 
@@ -39,6 +39,7 @@ markdown 패키지는 원래 [nao1215/spectest](https://github.com/nao1215/spect
 - [x] mermaid 사용자 여정 다이어그램
 - [x] mermaid Git Graph 다이어그램
 - [x] mermaid 마인드맵 다이어그램
+- [x] mermaid 요구사항 다이어그램
 - [x] mermaid 개체 관계 다이어그램
 - [x] mermaid 플로우차트
 - [x] mermaid 파이 차트
@@ -569,6 +570,128 @@ mindmap
         Execution
             Q1
             Q2
+```
+
+### Mermaid 요구사항 다이어그램 구문
+
+```go
+package main
+
+import (
+	"io"
+	"os"
+
+	"github.com/nao1215/markdown"
+	"github.com/nao1215/markdown/mermaid/requirement"
+)
+
+//go:generate go run main.go
+
+func main() {
+	diagram := requirement.NewDiagram(
+		io.Discard,
+		requirement.WithTitle("Checkout Requirements"),
+	).
+		SetDirection(requirement.DirectionTB).
+		Requirement(
+			"Login",
+			requirement.WithID("REQ-1"),
+			requirement.WithText("The system shall support login."),
+			requirement.WithRisk(requirement.RiskHigh),
+			requirement.WithVerifyMethod(requirement.VerifyMethodTest),
+			requirement.WithRequirementClasses("critical"),
+		).
+		FunctionalRequirement(
+			"RememberSession",
+			requirement.WithID("REQ-2"),
+			requirement.WithText("The system shall remember the user."),
+			requirement.WithRisk(requirement.RiskMedium),
+			requirement.WithVerifyMethod(requirement.VerifyMethodInspection),
+		).
+		Element(
+			"AuthService",
+			requirement.WithElementType("system"),
+			requirement.WithDocRef("docs/auth.md"),
+			requirement.WithElementClasses("service"),
+		).
+		From("AuthService").
+		Satisfies("Login").
+		From("RememberSession").
+		Verifies("Login").
+		ClassDefs(
+			requirement.Def("critical", "fill:#f96,stroke:#333,stroke-width:2px"),
+			requirement.Def("service", "fill:#9cf,stroke:#333,stroke-width:1px"),
+		).
+		String()
+
+	if err := markdown.NewMarkdown(os.Stdout).
+		H2("Requirement Diagram").
+		CodeBlocks(markdown.SyntaxHighlightMermaid, diagram).
+		Build(); err != nil {
+		panic(err)
+	}
+}
+```
+
+일반 텍스트 출력: [markdown은 여기](../requirement/generated.md)
+````text
+## Requirement Diagram
+```mermaid
+---
+title: Checkout Requirements
+---
+requirementDiagram
+    direction TB
+    requirement Login:::critical {
+        id: "REQ-1"
+        text: "The system shall support login."
+        risk: High
+        verifymethod: Test
+    }
+    functionalRequirement RememberSession {
+        id: "REQ-2"
+        text: "The system shall remember the user."
+        risk: Medium
+        verifymethod: Inspection
+    }
+    element AuthService:::service {
+        type: "system"
+        docRef: "docs/auth.md"
+    }
+    AuthService - satisfies -> Login
+    RememberSession - verifies -> Login
+    classDef critical fill:#f96,stroke:#333,stroke-width:2px
+    classDef service fill:#9cf,stroke:#333,stroke-width:1px
+```
+````
+
+Mermaid 출력:
+```mermaid
+---
+title: Checkout Requirements
+---
+requirementDiagram
+    direction TB
+    requirement Login:::critical {
+        id: "REQ-1"
+        text: "The system shall support login."
+        risk: High
+        verifymethod: Test
+    }
+    functionalRequirement RememberSession {
+        id: "REQ-2"
+        text: "The system shall remember the user."
+        risk: Medium
+        verifymethod: Inspection
+    }
+    element AuthService:::service {
+        type: "system"
+        docRef: "docs/auth.md"
+    }
+    AuthService - satisfies -> Login
+    RememberSession - verifies -> Login
+    classDef critical fill:#f96,stroke:#333,stroke-width:2px
+    classDef service fill:#9cf,stroke:#333,stroke-width:1px
 ```
 
 ### 개체 관계 다이어그램 구문

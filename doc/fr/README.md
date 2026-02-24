@@ -12,7 +12,7 @@
 # Qu'est-ce que le package markdown
 Le package markdown est un constructeur de markdown simple en Golang. Le package markdown assemble le Markdown en utilisant le chaînage de méthodes, n'utilise pas un moteur de modèles comme [html/template](https://pkg.go.dev/html/template). La syntaxe de Markdown suit **GitHub Markdown**.
 
-Le package markdown a été initialement développé pour sauvegarder les résultats de tests dans [nao1215/spectest](https://github.com/nao1215/spectest). Par conséquent, le package markdown implémente les fonctionnalités requises par spectest. Par exemple, le package markdown prend en charge **les diagrammes de séquence mermaid (diagramme de relation d'entité, diagramme de séquence, diagramme de parcours utilisateur, diagramme git graph, diagramme de carte mentale, organigramme, graphique en secteurs, graphique à quadrants, diagramme d'état, diagramme de classes, diagramme de Gantt, diagramme d'architecture)**, ce qui était une fonctionnalité nécessaire dans spectest.
+Le package markdown a été initialement développé pour sauvegarder les résultats de tests dans [nao1215/spectest](https://github.com/nao1215/spectest). Par conséquent, le package markdown implémente les fonctionnalités requises par spectest. Par exemple, le package markdown prend en charge **les diagrammes de séquence mermaid (diagramme de relation d'entité, diagramme de séquence, diagramme de parcours utilisateur, diagramme git graph, diagramme de carte mentale, diagramme d'exigences, organigramme, graphique en secteurs, graphique à quadrants, diagramme d'état, diagramme de classes, diagramme de Gantt, diagramme d'architecture)**, ce qui était une fonctionnalité nécessaire dans spectest.
 
 De plus, le code complexe qui augmente la complexité de la bibliothèque, tel que la génération de listes imbriquées, ne sera pas ajouté. Je veux garder cette bibliothèque aussi simple que possible.
 
@@ -39,6 +39,7 @@ De plus, le code complexe qui augmente la complexité de la bibliothèque, tel q
 - [x] diagramme de parcours utilisateur mermaid
 - [x] diagramme git graph mermaid
 - [x] diagramme de carte mentale mermaid
+- [x] diagramme d'exigences mermaid
 - [x] diagramme de relation d'entité mermaid
 - [x] organigramme mermaid
 - [x] graphique en secteurs mermaid
@@ -569,6 +570,128 @@ mindmap
         Execution
             Q1
             Q2
+```
+
+### Syntaxe du diagramme d'exigences Mermaid
+
+```go
+package main
+
+import (
+	"io"
+	"os"
+
+	"github.com/nao1215/markdown"
+	"github.com/nao1215/markdown/mermaid/requirement"
+)
+
+//go:generate go run main.go
+
+func main() {
+	diagram := requirement.NewDiagram(
+		io.Discard,
+		requirement.WithTitle("Checkout Requirements"),
+	).
+		SetDirection(requirement.DirectionTB).
+		Requirement(
+			"Login",
+			requirement.WithID("REQ-1"),
+			requirement.WithText("The system shall support login."),
+			requirement.WithRisk(requirement.RiskHigh),
+			requirement.WithVerifyMethod(requirement.VerifyMethodTest),
+			requirement.WithRequirementClasses("critical"),
+		).
+		FunctionalRequirement(
+			"RememberSession",
+			requirement.WithID("REQ-2"),
+			requirement.WithText("The system shall remember the user."),
+			requirement.WithRisk(requirement.RiskMedium),
+			requirement.WithVerifyMethod(requirement.VerifyMethodInspection),
+		).
+		Element(
+			"AuthService",
+			requirement.WithElementType("system"),
+			requirement.WithDocRef("docs/auth.md"),
+			requirement.WithElementClasses("service"),
+		).
+		From("AuthService").
+		Satisfies("Login").
+		From("RememberSession").
+		Verifies("Login").
+		ClassDefs(
+			requirement.Def("critical", "fill:#f96,stroke:#333,stroke-width:2px"),
+			requirement.Def("service", "fill:#9cf,stroke:#333,stroke-width:1px"),
+		).
+		String()
+
+	if err := markdown.NewMarkdown(os.Stdout).
+		H2("Requirement Diagram").
+		CodeBlocks(markdown.SyntaxHighlightMermaid, diagram).
+		Build(); err != nil {
+		panic(err)
+	}
+}
+```
+
+Sortie de texte brut : [markdown est ici](../requirement/generated.md)
+````text
+## Requirement Diagram
+```mermaid
+---
+title: Checkout Requirements
+---
+requirementDiagram
+    direction TB
+    requirement Login:::critical {
+        id: "REQ-1"
+        text: "The system shall support login."
+        risk: High
+        verifymethod: Test
+    }
+    functionalRequirement RememberSession {
+        id: "REQ-2"
+        text: "The system shall remember the user."
+        risk: Medium
+        verifymethod: Inspection
+    }
+    element AuthService:::service {
+        type: "system"
+        docRef: "docs/auth.md"
+    }
+    AuthService - satisfies -> Login
+    RememberSession - verifies -> Login
+    classDef critical fill:#f96,stroke:#333,stroke-width:2px
+    classDef service fill:#9cf,stroke:#333,stroke-width:1px
+```
+````
+
+Sortie Mermaid :
+```mermaid
+---
+title: Checkout Requirements
+---
+requirementDiagram
+    direction TB
+    requirement Login:::critical {
+        id: "REQ-1"
+        text: "The system shall support login."
+        risk: High
+        verifymethod: Test
+    }
+    functionalRequirement RememberSession {
+        id: "REQ-2"
+        text: "The system shall remember the user."
+        risk: Medium
+        verifymethod: Inspection
+    }
+    element AuthService:::service {
+        type: "system"
+        docRef: "docs/auth.md"
+    }
+    AuthService - satisfies -> Login
+    RememberSession - verifies -> Login
+    classDef critical fill:#f96,stroke:#333,stroke-width:2px
+    classDef service fill:#9cf,stroke:#333,stroke-width:1px
 ```
 
 ### Syntaxe du diagramme de relation d'entité
