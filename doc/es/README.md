@@ -12,7 +12,7 @@
 # ¿Qué es el paquete markdown?
 El paquete markdown es un constructor de markdown simple en Golang. El paquete markdown ensambla Markdown usando encadenamiento de métodos, no utiliza un motor de plantillas como [html/template](https://pkg.go.dev/html/template). La sintaxis de Markdown sigue **GitHub Markdown**.
 
-El paquete markdown fue inicialmente desarrollado para guardar resultados de pruebas en [nao1215/spectest](https://github.com/nao1215/spectest). Por lo tanto, el paquete markdown implementa las características requeridas por spectest. Por ejemplo, el paquete markdown soporta **diagramas de secuencia mermaid (diagrama de relación de entidad, diagrama de secuencia, diagrama de recorrido del usuario, diagrama de flujo, gráfico circular, gráfico de cuadrantes, diagrama de estado, diagrama de clases, diagrama de Gantt, diagrama de arquitectura)**, que era una característica necesaria en spectest.
+El paquete markdown fue inicialmente desarrollado para guardar resultados de pruebas en [nao1215/spectest](https://github.com/nao1215/spectest). Por lo tanto, el paquete markdown implementa las características requeridas por spectest. Por ejemplo, el paquete markdown soporta **diagramas de secuencia mermaid (diagrama de relación de entidad, diagrama de secuencia, diagrama de recorrido del usuario, diagrama git graph, diagrama de flujo, gráfico circular, gráfico de cuadrantes, diagrama de estado, diagrama de clases, diagrama de Gantt, diagrama de arquitectura)**, que era una característica necesaria en spectest.
 
 Además, no se añadirá código complejo que aumente la complejidad de la biblioteca, como generar listas anidadas. Quiero mantener esta biblioteca lo más simple posible.
 
@@ -37,6 +37,7 @@ Además, no se añadirá código complejo que aumente la complejidad de la bibli
 - [x] Alertas; NOTE, TIP, IMPORTANT, CAUTION, WARNING
 - [x] diagrama de secuencia mermaid
 - [x] diagrama de recorrido del usuario mermaid
+- [x] diagrama git graph mermaid
 - [x] diagrama de relación de entidad mermaid
 - [x] diagrama de flujo mermaid 
 - [x] gráfico circular mermaid
@@ -427,6 +428,74 @@ journey
     section Checkout
         Enter shipping details: 3: Customer
         Complete payment: 4: Customer, Payment Service
+```
+
+### Sintaxis de git graph Mermaid
+
+```go
+package main
+
+import (
+	"io"
+	"os"
+
+	"github.com/nao1215/markdown"
+	"github.com/nao1215/markdown/mermaid/gitgraph"
+)
+
+//go:generate go run main.go
+
+func main() {
+	diagram := gitgraph.NewDiagram(
+		io.Discard,
+		gitgraph.WithTitle("Release Flow"),
+	).
+		Commit(gitgraph.WithCommitID("init"), gitgraph.WithCommitTag("v0.1.0")).
+		Branch("develop", gitgraph.WithBranchOrder(2)).
+		Checkout("develop").
+		Commit(gitgraph.WithCommitType(gitgraph.CommitTypeHighlight)).
+		Checkout("main").
+		Merge("develop", gitgraph.WithCommitTag("v1.0.0")).
+		String()
+
+	if err := markdown.NewMarkdown(os.Stdout).
+		H2("Git Graph").
+		CodeBlocks(markdown.SyntaxHighlightMermaid, diagram).
+		Build(); err != nil {
+		panic(err)
+	}
+}
+```
+
+Salida de texto plano: [markdown está aquí](../gitgraph/generated.md)
+````text
+## Git Graph
+```mermaid
+---
+title: Release Flow
+---
+gitGraph
+    commit id: "init" tag: "v0.1.0"
+    branch develop order: 2
+    checkout develop
+    commit type: HIGHLIGHT
+    checkout main
+    merge develop tag: "v1.0.0"
+```
+````
+
+Salida Mermaid:
+```mermaid
+---
+title: Release Flow
+---
+gitGraph
+    commit id: "init" tag: "v0.1.0"
+    branch develop order: 2
+    checkout develop
+    commit type: HIGHLIGHT
+    checkout main
+    merge develop tag: "v1.0.0"
 ```
 
 ### Sintaxis del diagrama de relación de entidad

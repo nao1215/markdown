@@ -12,7 +12,7 @@
 # markdown パッケージとは
 markdown パッケージは、Golangでのシンプルなマークダウンビルダーです。markdown パッケージは、[html/template](https://pkg.go.dev/html/template) のようなテンプレートエンジンを使用せず、メソッドチェーンを使用してMarkdownを組み立てます。Markdownの構文は**GitHub Markdown**に従います。
 
-markdown パッケージは、[nao1215/spectest](https://github.com/nao1215/spectest) でテスト結果を保存するために最初に開発されました。そのため、markdown パッケージは spectest で必要な機能を実装しています。例えば、markdown パッケージは、spectest で必要な機能である**mermaid 図（実体関係図、シーケンス図、ユーザージャーニー図、フローチャート、パイチャート、四象限図、状態遷移図、クラス図、ガントチャート、アーキテクチャ図）**をサポートしています。
+markdown パッケージは、[nao1215/spectest](https://github.com/nao1215/spectest) でテスト結果を保存するために最初に開発されました。そのため、markdown パッケージは spectest で必要な機能を実装しています。例えば、markdown パッケージは、spectest で必要な機能である**mermaid 図（実体関係図、シーケンス図、ユーザージャーニー図、Git Graph 図、フローチャート、パイチャート、四象限図、状態遷移図、クラス図、ガントチャート、アーキテクチャ図）**をサポートしています。
 
 また、ネストしたリストの生成などのライブラリの複雑性を増加させる複雑なコードは追加されません。このライブラリをできる限りシンプルに保ちたいと考えています。
 
@@ -37,6 +37,7 @@ markdown パッケージは、[nao1215/spectest](https://github.com/nao1215/spec
 - [x] アラート; NOTE、TIP、IMPORTANT、CAUTION、WARNING
 - [x] mermaid シーケンス図
 - [x] mermaid ユーザージャーニー図
+- [x] mermaid Git Graph 図
 - [x] mermaid 実体関係図
 - [x] mermaid フローチャート 
 - [x] mermaid パイチャート
@@ -426,6 +427,74 @@ journey
     section Checkout
         Enter shipping details: 3: Customer
         Complete payment: 4: Customer, Payment Service
+```
+
+### Mermaid Git Graph 構文
+
+```go
+package main
+
+import (
+	"io"
+	"os"
+
+	"github.com/nao1215/markdown"
+	"github.com/nao1215/markdown/mermaid/gitgraph"
+)
+
+//go:generate go run main.go
+
+func main() {
+	diagram := gitgraph.NewDiagram(
+		io.Discard,
+		gitgraph.WithTitle("Release Flow"),
+	).
+		Commit(gitgraph.WithCommitID("init"), gitgraph.WithCommitTag("v0.1.0")).
+		Branch("develop", gitgraph.WithBranchOrder(2)).
+		Checkout("develop").
+		Commit(gitgraph.WithCommitType(gitgraph.CommitTypeHighlight)).
+		Checkout("main").
+		Merge("develop", gitgraph.WithCommitTag("v1.0.0")).
+		String()
+
+	if err := markdown.NewMarkdown(os.Stdout).
+		H2("Git Graph").
+		CodeBlocks(markdown.SyntaxHighlightMermaid, diagram).
+		Build(); err != nil {
+		panic(err)
+	}
+}
+```
+
+プレーンテキスト出力: [markdownはこちら](../gitgraph/generated.md)
+````text
+## Git Graph
+```mermaid
+---
+title: Release Flow
+---
+gitGraph
+    commit id: "init" tag: "v0.1.0"
+    branch develop order: 2
+    checkout develop
+    commit type: HIGHLIGHT
+    checkout main
+    merge develop tag: "v1.0.0"
+```
+````
+
+Mermaid出力:
+```mermaid
+---
+title: Release Flow
+---
+gitGraph
+    commit id: "init" tag: "v0.1.0"
+    branch develop order: 2
+    checkout develop
+    commit type: HIGHLIGHT
+    checkout main
+    merge develop tag: "v1.0.0"
 ```
 
 ### 実体関係図構文
