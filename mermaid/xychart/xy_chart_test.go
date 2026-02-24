@@ -255,3 +255,23 @@ func TestDiagram_BuildStoresError(t *testing.T) {
 		t.Fatalf("expected Error() to wrap returned error, got %v", d.Error())
 	}
 }
+
+func TestDiagram_BuildNilWriter(t *testing.T) {
+	t.Parallel()
+
+	d := NewDiagram(nil)
+	err := d.Build()
+	if err == nil {
+		t.Fatal("expected error, got nil")
+	}
+	if err.Error() != "output writer must not be nil" {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if d.Error() == nil {
+		t.Fatal("expected persisted error, got nil")
+	}
+	if !errors.Is(d.Error(), err) {
+		t.Fatalf("expected Error() to wrap returned error, got %v", d.Error())
+	}
+}

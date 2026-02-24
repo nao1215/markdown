@@ -95,6 +95,10 @@ func (d *Diagram) Build() error {
 	if d.err != nil {
 		return d.err
 	}
+	if d.dest == nil {
+		d.err = errors.New("output writer must not be nil")
+		return d.err
+	}
 
 	if _, err := fmt.Fprint(d.dest, d.String()); err != nil {
 		d.err = fmt.Errorf("failed to write: %w", err)
