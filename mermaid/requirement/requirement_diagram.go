@@ -859,6 +859,9 @@ func isMermaidKeyword(value string) bool {
 
 func quote(value string) string {
 	escaped := strings.ReplaceAll(value, `\`, "&#92;")
+	escaped = strings.ReplaceAll(escaped, "\r", "&#92;r")
+	escaped = strings.ReplaceAll(escaped, "\n", "&#92;n")
+	escaped = strings.ReplaceAll(escaped, "\t", "&#92;t")
 	escaped = strings.ReplaceAll(escaped, `"`, "&quot;")
 	return `"` + escaped + `"`
 }

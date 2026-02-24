@@ -12,7 +12,7 @@
 # Что такое пакет markdown
 Пакет markdown - это простой конструктор markdown на языке Golang. Пакет markdown собирает Markdown используя цепочку методов, не используя шаблонизатор как [html/template](https://pkg.go.dev/html/template). Синтаксис Markdown следует **GitHub Markdown**.
 
-Пакет markdown изначально был разработан для сохранения результатов тестов в [nao1215/spectest](https://github.com/nao1215/spectest). Поэтому пакет markdown реализует функции, необходимые для spectest. Например, пакет markdown поддерживает **диаграммы последовательности mermaid (диаграммы сущностей-связей, диаграммы последовательности, диаграммы пути пользователя, диаграммы git graph, диаграммы mindmap, диаграммы требований, блок-схемы, круговые диаграммы, квадрантные диаграммы, диаграммы состояний, диаграммы классов, диаграммы Ганта, архитектурные диаграммы)**, которые были необходимой функцией в spectest.
+Пакет markdown изначально был разработан для сохранения результатов тестов в [nao1215/spectest](https://github.com/nao1215/spectest). Поэтому пакет markdown реализует функции, необходимые для spectest. Например, пакет markdown поддерживает **диаграммы последовательности mermaid (диаграммы сущностей-связей, диаграммы последовательности, диаграммы пути пользователя, диаграммы git graph, диаграммы mindmap, диаграммы требований, XY-диаграммы, блок-схемы, круговые диаграммы, квадрантные диаграммы, диаграммы состояний, диаграммы классов, диаграммы Ганта, архитектурные диаграммы)**, которые были необходимой функцией в spectest.
 
 Кроме того, сложный код, который увеличивает сложность библиотеки, такой как создание вложенных списков, добавляться не будет. Я хочу сохранить эту библиотеку максимально простой.
 
@@ -40,6 +40,7 @@
 - [x] диаграммы git graph mermaid
 - [x] диаграммы mindmap mermaid
 - [x] диаграммы требований mermaid
+- [x] XY-диаграммы mermaid
 - [x] диаграммы сущностей-связей mermaid
 - [x] блок-схемы mermaid
 - [x] круговые диаграммы mermaid
@@ -691,6 +692,64 @@ requirementDiagram
     RememberSession - verifies -> Login
     classDef critical fill:#f96,stroke:#333,stroke-width:2px
     classDef service fill:#9cf,stroke:#333,stroke-width:1px
+```
+
+### Синтаксис XY-диаграммы Mermaid
+
+```go
+package main
+
+import (
+	"io"
+	"os"
+
+	"github.com/nao1215/markdown"
+	"github.com/nao1215/markdown/mermaid/xychart"
+)
+
+//go:generate go run main.go
+
+func main() {
+	diagram := xychart.NewDiagram(
+		io.Discard,
+		xychart.WithTitle("Sales Revenue"),
+	).
+		XAxisLabels("Jan", "Feb", "Mar", "Apr", "May", "Jun").
+		YAxisRangeWithTitle("Revenue (k$)", 0, 100).
+		Bar(25, 40, 60, 80, 70, 90).
+		Line(30, 50, 70, 85, 75, 95).
+		String()
+
+	if err := markdown.NewMarkdown(os.Stdout).
+		H2("XY Chart").
+		CodeBlocks(markdown.SyntaxHighlightMermaid, diagram).
+		Build(); err != nil {
+		panic(err)
+	}
+}
+```
+
+Вывод простого текста: [markdown здесь](../xychart/generated.md)
+````text
+## XY Chart
+```mermaid
+xychart
+    title "Sales Revenue"
+    x-axis [Jan, Feb, Mar, Apr, May, Jun]
+    y-axis "Revenue (k$)" 0 --> 100
+    bar [25, 40, 60, 80, 70, 90]
+    line [30, 50, 70, 85, 75, 95]
+```
+````
+
+Вывод Mermaid:
+```mermaid
+xychart
+    title "Sales Revenue"
+    x-axis [Jan, Feb, Mar, Apr, May, Jun]
+    y-axis "Revenue (k$)" 0 --> 100
+    bar [25, 40, 60, 80, 70, 90]
+    line [30, 50, 70, 85, 75, 95]
 ```
 
 ### Синтаксис диаграммы сущностей-связей

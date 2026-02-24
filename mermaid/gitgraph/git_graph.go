@@ -383,6 +383,9 @@ func formatRefName(name string) string {
 func quote(v string) string {
 	s := normalizeQuoted(v)
 	escaped := strings.ReplaceAll(s, `\`, "&#92;")
+	escaped = strings.ReplaceAll(escaped, "\r", "&#92;r")
+	escaped = strings.ReplaceAll(escaped, "\n", "&#92;n")
+	escaped = strings.ReplaceAll(escaped, "\t", "&#92;t")
 	escaped = strings.ReplaceAll(escaped, `"`, "&quot;")
 	return `"` + escaped + `"`
 }
