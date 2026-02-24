@@ -12,7 +12,7 @@
 # markdown パッケージとは
 markdown パッケージは、Golangでのシンプルなマークダウンビルダーです。markdown パッケージは、[html/template](https://pkg.go.dev/html/template) のようなテンプレートエンジンを使用せず、メソッドチェーンを使用してMarkdownを組み立てます。Markdownの構文は**GitHub Markdown**に従います。
 
-markdown パッケージは、[nao1215/spectest](https://github.com/nao1215/spectest) でテスト結果を保存するために最初に開発されました。そのため、markdown パッケージは spectest で必要な機能を実装しています。例えば、markdown パッケージは、spectest で必要な機能である**mermaid 図（実体関係図、シーケンス図、ユーザージャーニー図、Git Graph 図、マインドマップ図、要件図、XY チャート、フローチャート、パイチャート、四象限図、状態遷移図、クラス図、ガントチャート、アーキテクチャ図）**をサポートしています。
+markdown パッケージは、[nao1215/spectest](https://github.com/nao1215/spectest) でテスト結果を保存するために最初に開発されました。そのため、markdown パッケージは spectest で必要な機能を実装しています。例えば、markdown パッケージは、spectest で必要な機能である**mermaid 図（実体関係図、シーケンス図、ユーザージャーニー図、Git Graph 図、マインドマップ図、要件図、XY チャート、Packet 図、フローチャート、パイチャート、四象限図、状態遷移図、クラス図、ガントチャート、アーキテクチャ図）**をサポートしています。
 
 また、ネストしたリストの生成などのライブラリの複雑性を増加させる複雑なコードは追加されません。このライブラリをできる限りシンプルに保ちたいと考えています。
 
@@ -41,6 +41,7 @@ markdown パッケージは、[nao1215/spectest](https://github.com/nao1215/spec
 - [x] mermaid マインドマップ図
 - [x] mermaid 要件図
 - [x] mermaid XY チャート
+- [x] mermaid Packet 図
 - [x] mermaid 実体関係図
 - [x] mermaid フローチャート 
 - [x] mermaid パイチャート
@@ -750,6 +751,67 @@ xychart
     y-axis "Revenue (k$)" 0 --> 100
     bar [25, 40, 60, 80, 70, 90]
     line [30, 50, 70, 85, 75, 95]
+```
+
+### Mermaid Packet 構文
+
+```go
+package main
+
+import (
+	"io"
+	"os"
+
+	"github.com/nao1215/markdown"
+	"github.com/nao1215/markdown/mermaid/packet"
+)
+
+//go:generate go run main.go
+
+func main() {
+	diagram := packet.NewDiagram(
+		io.Discard,
+		packet.WithTitle("UDP Packet"),
+	).
+		Next(16, "Source Port").
+		Next(16, "Destination Port").
+		Field(32, 47, "Length").
+		Field(48, 63, "Checksum").
+		Field(64, 95, "Data (variable length)").
+		String()
+
+	if err := markdown.NewMarkdown(os.Stdout).
+		H2("Packet").
+		CodeBlocks(markdown.SyntaxHighlightMermaid, diagram).
+		Build(); err != nil {
+		panic(err)
+	}
+}
+```
+
+プレーンテキスト出力: [markdownはこちら](../packet/generated.md)
+````text
+## Packet
+```mermaid
+packet
+    title UDP Packet
+    +16: "Source Port"
+    +16: "Destination Port"
+    32-47: "Length"
+    48-63: "Checksum"
+    64-95: "Data (variable length)"
+```
+````
+
+Mermaid出力:
+```mermaid
+packet
+    title UDP Packet
+    +16: "Source Port"
+    +16: "Destination Port"
+    32-47: "Length"
+    48-63: "Checksum"
+    64-95: "Data (variable length)"
 ```
 
 ### 実体関係図構文

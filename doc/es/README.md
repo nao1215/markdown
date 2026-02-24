@@ -12,7 +12,7 @@
 # ¿Qué es el paquete markdown?
 El paquete markdown es un constructor de markdown simple en Golang. El paquete markdown ensambla Markdown usando encadenamiento de métodos, no utiliza un motor de plantillas como [html/template](https://pkg.go.dev/html/template). La sintaxis de Markdown sigue **GitHub Markdown**.
 
-El paquete markdown fue inicialmente desarrollado para guardar resultados de pruebas en [nao1215/spectest](https://github.com/nao1215/spectest). Por lo tanto, el paquete markdown implementa las características requeridas por spectest. Por ejemplo, el paquete markdown soporta **diagramas de secuencia mermaid (diagrama de relación de entidad, diagrama de secuencia, diagrama de recorrido del usuario, diagrama git graph, diagrama de mapa mental, diagrama de requisitos, gráfico XY, diagrama de flujo, gráfico circular, gráfico de cuadrantes, diagrama de estado, diagrama de clases, diagrama de Gantt, diagrama de arquitectura)**, que era una característica necesaria en spectest.
+El paquete markdown fue inicialmente desarrollado para guardar resultados de pruebas en [nao1215/spectest](https://github.com/nao1215/spectest). Por lo tanto, el paquete markdown implementa las características requeridas por spectest. Por ejemplo, el paquete markdown soporta **diagramas de secuencia mermaid (diagrama de relación de entidad, diagrama de secuencia, diagrama de recorrido del usuario, diagrama git graph, diagrama de mapa mental, diagrama de requisitos, gráfico XY, diagrama Packet, diagrama de flujo, gráfico circular, gráfico de cuadrantes, diagrama de estado, diagrama de clases, diagrama de Gantt, diagrama de arquitectura)**, que era una característica necesaria en spectest.
 
 Además, no se añadirá código complejo que aumente la complejidad de la biblioteca, como generar listas anidadas. Quiero mantener esta biblioteca lo más simple posible.
 
@@ -41,6 +41,7 @@ Además, no se añadirá código complejo que aumente la complejidad de la bibli
 - [x] diagrama de mapa mental mermaid
 - [x] diagrama de requisitos mermaid
 - [x] gráfico XY mermaid
+- [x] diagrama Packet mermaid
 - [x] diagrama de relación de entidad mermaid
 - [x] diagrama de flujo mermaid 
 - [x] gráfico circular mermaid
@@ -751,6 +752,67 @@ xychart
     y-axis "Revenue (k$)" 0 --> 100
     bar [25, 40, 60, 80, 70, 90]
     line [30, 50, 70, 85, 75, 95]
+```
+
+### Sintaxis del diagrama Packet de Mermaid
+
+```go
+package main
+
+import (
+	"io"
+	"os"
+
+	"github.com/nao1215/markdown"
+	"github.com/nao1215/markdown/mermaid/packet"
+)
+
+//go:generate go run main.go
+
+func main() {
+	diagram := packet.NewDiagram(
+		io.Discard,
+		packet.WithTitle("UDP Packet"),
+	).
+		Next(16, "Source Port").
+		Next(16, "Destination Port").
+		Field(32, 47, "Length").
+		Field(48, 63, "Checksum").
+		Field(64, 95, "Data (variable length)").
+		String()
+
+	if err := markdown.NewMarkdown(os.Stdout).
+		H2("Packet").
+		CodeBlocks(markdown.SyntaxHighlightMermaid, diagram).
+		Build(); err != nil {
+		panic(err)
+	}
+}
+```
+
+Salida de texto plano: [markdown está aquí](../packet/generated.md)
+````text
+## Packet
+```mermaid
+packet
+    title UDP Packet
+    +16: "Source Port"
+    +16: "Destination Port"
+    32-47: "Length"
+    48-63: "Checksum"
+    64-95: "Data (variable length)"
+```
+````
+
+Salida Mermaid:
+```mermaid
+packet
+    title UDP Packet
+    +16: "Source Port"
+    +16: "Destination Port"
+    32-47: "Length"
+    48-63: "Checksum"
+    64-95: "Data (variable length)"
 ```
 
 ### Sintaxis del diagrama de relación de entidad
