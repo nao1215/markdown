@@ -12,7 +12,7 @@
 # Qu'est-ce que le package markdown
 Le package markdown est un constructeur de markdown simple en Golang. Le package markdown assemble le Markdown en utilisant le chaînage de méthodes, n'utilise pas un moteur de modèles comme [html/template](https://pkg.go.dev/html/template). La syntaxe de Markdown suit **GitHub Markdown**.
 
-Le package markdown a été initialement développé pour sauvegarder les résultats de tests dans [nao1215/spectest](https://github.com/nao1215/spectest). Par conséquent, le package markdown implémente les fonctionnalités requises par spectest. Par exemple, le package markdown prend en charge **les diagrammes de séquence mermaid (diagramme de relation d'entité, diagramme de séquence, organigramme, graphique en secteurs, graphique à quadrants, diagramme d'état, diagramme de classes, diagramme de Gantt, diagramme d'architecture)**, ce qui était une fonctionnalité nécessaire dans spectest.
+Le package markdown a été initialement développé pour sauvegarder les résultats de tests dans [nao1215/spectest](https://github.com/nao1215/spectest). Par conséquent, le package markdown implémente les fonctionnalités requises par spectest. Par exemple, le package markdown prend en charge **les diagrammes de séquence mermaid (diagramme de relation d'entité, diagramme de séquence, diagramme de parcours utilisateur, organigramme, graphique en secteurs, graphique à quadrants, diagramme d'état, diagramme de classes, diagramme de Gantt, diagramme d'architecture)**, ce qui était une fonctionnalité nécessaire dans spectest.
 
 De plus, le code complexe qui augmente la complexité de la bibliothèque, tel que la génération de listes imbriquées, ne sera pas ajouté. Je veux garder cette bibliothèque aussi simple que possible.
 
@@ -36,6 +36,7 @@ De plus, le code complexe qui augmente la complexité de la bibliothèque, tel q
 - [x] Détails
 - [x] Alertes ; NOTE, TIP, IMPORTANT, CAUTION, WARNING
 - [x] diagramme de séquence mermaid
+- [x] diagramme de parcours utilisateur mermaid
 - [x] diagramme de relation d'entité mermaid
 - [x] organigramme mermaid
 - [x] graphique en secteurs mermaid
@@ -359,6 +360,73 @@ sequenceDiagram
     end
 
     David-->>Sophia: wake up, wake up
+```
+
+### Syntaxe du diagramme de parcours utilisateur Mermaid
+
+```go
+package main
+
+import (
+	"io"
+	"os"
+
+	"github.com/nao1215/markdown"
+	"github.com/nao1215/markdown/mermaid/userjourney"
+)
+
+//go:generate go run main.go
+
+func main() {
+	diagram := userjourney.NewDiagram(
+		io.Discard,
+		userjourney.WithTitle("Checkout Journey"),
+	).
+		Section("Discover").
+		Task("Browse products", userjourney.ScoreVerySatisfied, "Customer").
+		Task("Add item to cart", userjourney.ScoreSatisfied, "Customer").
+		LF().
+		Section("Checkout").
+		Task("Enter shipping details", userjourney.ScoreNeutral, "Customer").
+		Task("Complete payment", userjourney.ScoreSatisfied, "Customer", "Payment Service").
+		String()
+
+	if err := markdown.NewMarkdown(os.Stdout).
+		H2("User Journey Diagram").
+		CodeBlocks(markdown.SyntaxHighlightMermaid, diagram).
+		Build(); err != nil {
+		panic(err)
+	}
+}
+```
+
+Sortie de texte brut : [markdown est ici](../userjourney/generated.md)
+````text
+## User Journey Diagram
+```mermaid
+journey
+    title Checkout Journey
+    section Discover
+        Browse products: 5: Customer
+        Add item to cart: 4: Customer
+
+    section Checkout
+        Enter shipping details: 3: Customer
+        Complete payment: 4: Customer, Payment Service
+```
+````
+
+Sortie Mermaid :
+```mermaid
+journey
+    title Checkout Journey
+    section Discover
+        Browse products: 5: Customer
+        Add item to cart: 4: Customer
+
+    section Checkout
+        Enter shipping details: 3: Customer
+        Complete payment: 4: Customer, Payment Service
 ```
 
 ### Syntaxe du diagramme de relation d'entité

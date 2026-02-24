@@ -12,7 +12,7 @@
 # ¿Qué es el paquete markdown?
 El paquete markdown es un constructor de markdown simple en Golang. El paquete markdown ensambla Markdown usando encadenamiento de métodos, no utiliza un motor de plantillas como [html/template](https://pkg.go.dev/html/template). La sintaxis de Markdown sigue **GitHub Markdown**.
 
-El paquete markdown fue inicialmente desarrollado para guardar resultados de pruebas en [nao1215/spectest](https://github.com/nao1215/spectest). Por lo tanto, el paquete markdown implementa las características requeridas por spectest. Por ejemplo, el paquete markdown soporta **diagramas de secuencia mermaid (diagrama de relación de entidad, diagrama de secuencia, diagrama de flujo, gráfico circular, gráfico de cuadrantes, diagrama de estado, diagrama de clases, diagrama de Gantt, diagrama de arquitectura)**, que era una característica necesaria en spectest.
+El paquete markdown fue inicialmente desarrollado para guardar resultados de pruebas en [nao1215/spectest](https://github.com/nao1215/spectest). Por lo tanto, el paquete markdown implementa las características requeridas por spectest. Por ejemplo, el paquete markdown soporta **diagramas de secuencia mermaid (diagrama de relación de entidad, diagrama de secuencia, diagrama de recorrido del usuario, diagrama de flujo, gráfico circular, gráfico de cuadrantes, diagrama de estado, diagrama de clases, diagrama de Gantt, diagrama de arquitectura)**, que era una característica necesaria en spectest.
 
 Además, no se añadirá código complejo que aumente la complejidad de la biblioteca, como generar listas anidadas. Quiero mantener esta biblioteca lo más simple posible.
 
@@ -36,6 +36,7 @@ Además, no se añadirá código complejo que aumente la complejidad de la bibli
 - [x] Detalles 
 - [x] Alertas; NOTE, TIP, IMPORTANT, CAUTION, WARNING
 - [x] diagrama de secuencia mermaid
+- [x] diagrama de recorrido del usuario mermaid
 - [x] diagrama de relación de entidad mermaid
 - [x] diagrama de flujo mermaid 
 - [x] gráfico circular mermaid
@@ -359,6 +360,73 @@ sequenceDiagram
     end
 
     David-->>Sophia: wake up, wake up
+```
+
+### Sintaxis del diagrama de recorrido del usuario Mermaid
+
+```go
+package main
+
+import (
+	"io"
+	"os"
+
+	"github.com/nao1215/markdown"
+	"github.com/nao1215/markdown/mermaid/userjourney"
+)
+
+//go:generate go run main.go
+
+func main() {
+	diagram := userjourney.NewDiagram(
+		io.Discard,
+		userjourney.WithTitle("Checkout Journey"),
+	).
+		Section("Discover").
+		Task("Browse products", userjourney.ScoreVerySatisfied, "Customer").
+		Task("Add item to cart", userjourney.ScoreSatisfied, "Customer").
+		LF().
+		Section("Checkout").
+		Task("Enter shipping details", userjourney.ScoreNeutral, "Customer").
+		Task("Complete payment", userjourney.ScoreSatisfied, "Customer", "Payment Service").
+		String()
+
+	if err := markdown.NewMarkdown(os.Stdout).
+		H2("User Journey Diagram").
+		CodeBlocks(markdown.SyntaxHighlightMermaid, diagram).
+		Build(); err != nil {
+		panic(err)
+	}
+}
+```
+
+Salida de texto plano: [markdown está aquí](../userjourney/generated.md)
+````text
+## User Journey Diagram
+```mermaid
+journey
+    title Checkout Journey
+    section Discover
+        Browse products: 5: Customer
+        Add item to cart: 4: Customer
+
+    section Checkout
+        Enter shipping details: 3: Customer
+        Complete payment: 4: Customer, Payment Service
+```
+````
+
+Salida Mermaid:
+```mermaid
+journey
+    title Checkout Journey
+    section Discover
+        Browse products: 5: Customer
+        Add item to cart: 4: Customer
+
+    section Checkout
+        Enter shipping details: 3: Customer
+        Complete payment: 4: Customer, Payment Service
 ```
 
 ### Sintaxis del diagrama de relación de entidad

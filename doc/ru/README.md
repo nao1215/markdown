@@ -12,7 +12,7 @@
 # Что такое пакет markdown
 Пакет markdown - это простой конструктор markdown на языке Golang. Пакет markdown собирает Markdown используя цепочку методов, не используя шаблонизатор как [html/template](https://pkg.go.dev/html/template). Синтаксис Markdown следует **GitHub Markdown**.
 
-Пакет markdown изначально был разработан для сохранения результатов тестов в [nao1215/spectest](https://github.com/nao1215/spectest). Поэтому пакет markdown реализует функции, необходимые для spectest. Например, пакет markdown поддерживает **диаграммы последовательности mermaid (диаграммы сущностей-связей, диаграммы последовательности, блок-схемы, круговые диаграммы, квадрантные диаграммы, диаграммы состояний, диаграммы классов, диаграммы Ганта, архитектурные диаграммы)**, которые были необходимой функцией в spectest.
+Пакет markdown изначально был разработан для сохранения результатов тестов в [nao1215/spectest](https://github.com/nao1215/spectest). Поэтому пакет markdown реализует функции, необходимые для spectest. Например, пакет markdown поддерживает **диаграммы последовательности mermaid (диаграммы сущностей-связей, диаграммы последовательности, диаграммы пути пользователя, блок-схемы, круговые диаграммы, квадрантные диаграммы, диаграммы состояний, диаграммы классов, диаграммы Ганта, архитектурные диаграммы)**, которые были необходимой функцией в spectest.
 
 Кроме того, сложный код, который увеличивает сложность библиотеки, такой как создание вложенных списков, добавляться не будет. Я хочу сохранить эту библиотеку максимально простой.
 
@@ -36,6 +36,7 @@
 - [x] Детали
 - [x] Уведомления; NOTE, TIP, IMPORTANT, CAUTION, WARNING
 - [x] диаграммы последовательности mermaid
+- [x] диаграммы пути пользователя mermaid
 - [x] диаграммы сущностей-связей mermaid
 - [x] блок-схемы mermaid
 - [x] круговые диаграммы mermaid
@@ -358,6 +359,73 @@ sequenceDiagram
     end
 
     David-->>Sophia: wake up, wake up
+```
+
+### Синтаксис диаграммы пути пользователя Mermaid
+
+```go
+package main
+
+import (
+	"io"
+	"os"
+
+	"github.com/nao1215/markdown"
+	"github.com/nao1215/markdown/mermaid/userjourney"
+)
+
+//go:generate go run main.go
+
+func main() {
+	diagram := userjourney.NewDiagram(
+		io.Discard,
+		userjourney.WithTitle("Checkout Journey"),
+	).
+		Section("Discover").
+		Task("Browse products", userjourney.ScoreVerySatisfied, "Customer").
+		Task("Add item to cart", userjourney.ScoreSatisfied, "Customer").
+		LF().
+		Section("Checkout").
+		Task("Enter shipping details", userjourney.ScoreNeutral, "Customer").
+		Task("Complete payment", userjourney.ScoreSatisfied, "Customer", "Payment Service").
+		String()
+
+	if err := markdown.NewMarkdown(os.Stdout).
+		H2("User Journey Diagram").
+		CodeBlocks(markdown.SyntaxHighlightMermaid, diagram).
+		Build(); err != nil {
+		panic(err)
+	}
+}
+```
+
+Вывод простого текста: [markdown здесь](../userjourney/generated.md)
+````text
+## User Journey Diagram
+```mermaid
+journey
+    title Checkout Journey
+    section Discover
+        Browse products: 5: Customer
+        Add item to cart: 4: Customer
+
+    section Checkout
+        Enter shipping details: 3: Customer
+        Complete payment: 4: Customer, Payment Service
+```
+````
+
+Вывод Mermaid:
+```mermaid
+journey
+    title Checkout Journey
+    section Discover
+        Browse products: 5: Customer
+        Add item to cart: 4: Customer
+
+    section Checkout
+        Enter shipping details: 3: Customer
+        Complete payment: 4: Customer, Payment Service
 ```
 
 ### Синтаксис диаграммы сущностей-связей
