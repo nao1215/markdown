@@ -12,7 +12,7 @@
 # What is markdown package
 The Package markdown is a simple markdown builder in golang. The markdown package assembles Markdown using method chaining, not uses a template engine like [html/template](https://pkg.go.dev/html/template). The syntax of Markdown follows **GitHub Markdown**.
   
-The markdown package was initially developed to save test results in [nao1215/spectest](https://github.com/nao1215/spectest). Therefore, the markdown package implements the features required by spectest. For example, the markdown package supports **mermaid diagrams (entity relationship diagram, sequence diagram, user journey diagram, git graph diagram, mindmap diagram, requirement diagram, xy chart, flowchart, pie chart, quadrant chart, state diagram, class diagram, Gantt chart, architecture diagram)**, which was a necessary feature in spectest.
+The markdown package was initially developed to save test results in [nao1215/spectest](https://github.com/nao1215/spectest). Therefore, the markdown package implements the features required by spectest. For example, the markdown package supports **mermaid diagrams (entity relationship diagram, sequence diagram, user journey diagram, git graph diagram, mindmap diagram, requirement diagram, xy chart, packet diagram, flowchart, pie chart, quadrant chart, state diagram, class diagram, Gantt chart, architecture diagram)**, which was a necessary feature in spectest.
   
 Additionally, complex code that increases the complexity of the library, such as generating nested lists, will not be added. I want to keep this library as simple as possible.
   
@@ -44,6 +44,7 @@ Additionally, complex code that increases the complexity of the library, such as
 - [x] mermaid mindmap diagram
 - [x] mermaid requirement diagram
 - [x] mermaid xy chart
+- [x] mermaid packet diagram
 - [x] mermaid entity relationship diagram
 - [x] mermaid flowchart 
 - [x] mermaid pie chart
@@ -754,6 +755,67 @@ xychart
     y-axis "Revenue (k$)" 0 --> 100
     bar [25, 40, 60, 80, 70, 90]
     line [30, 50, 70, 85, 75, 95]
+```
+
+### Mermaid packet syntax
+
+```go
+package main
+
+import (
+	"io"
+	"os"
+
+	"github.com/nao1215/markdown"
+	"github.com/nao1215/markdown/mermaid/packet"
+)
+
+//go:generate go run main.go
+
+func main() {
+	diagram := packet.NewDiagram(
+		io.Discard,
+		packet.WithTitle("UDP Packet"),
+	).
+		Next(16, "Source Port").
+		Next(16, "Destination Port").
+		Field(32, 47, "Length").
+		Field(48, 63, "Checksum").
+		Field(64, 95, "Data (variable length)").
+		String()
+
+	if err := markdown.NewMarkdown(os.Stdout).
+		H2("Packet").
+		CodeBlocks(markdown.SyntaxHighlightMermaid, diagram).
+		Build(); err != nil {
+		panic(err)
+	}
+}
+```
+
+Plain text output: [markdown is here](./doc/packet/generated.md)
+````text
+## Packet
+```mermaid
+packet
+    title UDP Packet
+    +16: "Source Port"
+    +16: "Destination Port"
+    32-47: "Length"
+    48-63: "Checksum"
+    64-95: "Data (variable length)"
+```
+````
+
+Mermaid output:
+```mermaid
+packet
+    title UDP Packet
+    +16: "Source Port"
+    +16: "Destination Port"
+    32-47: "Length"
+    48-63: "Checksum"
+    64-95: "Data (variable length)"
 ```
 
 ### Entity Relationship Diagram syntax

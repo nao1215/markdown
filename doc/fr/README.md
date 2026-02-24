@@ -12,7 +12,7 @@
 # Qu'est-ce que le package markdown
 Le package markdown est un constructeur de markdown simple en Golang. Le package markdown assemble le Markdown en utilisant le chaînage de méthodes, n'utilise pas un moteur de modèles comme [html/template](https://pkg.go.dev/html/template). La syntaxe de Markdown suit **GitHub Markdown**.
 
-Le package markdown a été initialement développé pour sauvegarder les résultats de tests dans [nao1215/spectest](https://github.com/nao1215/spectest). Par conséquent, le package markdown implémente les fonctionnalités requises par spectest. Par exemple, le package markdown prend en charge **les diagrammes de séquence mermaid (diagramme de relation d'entité, diagramme de séquence, diagramme de parcours utilisateur, diagramme git graph, diagramme de carte mentale, diagramme d'exigences, graphique XY, organigramme, graphique en secteurs, graphique à quadrants, diagramme d'état, diagramme de classes, diagramme de Gantt, diagramme d'architecture)**, ce qui était une fonctionnalité nécessaire dans spectest.
+Le package markdown a été initialement développé pour sauvegarder les résultats de tests dans [nao1215/spectest](https://github.com/nao1215/spectest). Par conséquent, le package markdown implémente les fonctionnalités requises par spectest. Par exemple, le package markdown prend en charge **les diagrammes de séquence mermaid (diagramme de relation d'entité, diagramme de séquence, diagramme de parcours utilisateur, diagramme git graph, diagramme de carte mentale, diagramme d'exigences, graphique XY, diagramme Packet, organigramme, graphique en secteurs, graphique à quadrants, diagramme d'état, diagramme de classes, diagramme de Gantt, diagramme d'architecture)**, ce qui était une fonctionnalité nécessaire dans spectest.
 
 De plus, le code complexe qui augmente la complexité de la bibliothèque, tel que la génération de listes imbriquées, ne sera pas ajouté. Je veux garder cette bibliothèque aussi simple que possible.
 
@@ -41,6 +41,7 @@ De plus, le code complexe qui augmente la complexité de la bibliothèque, tel q
 - [x] diagramme de carte mentale mermaid
 - [x] diagramme d'exigences mermaid
 - [x] graphique XY mermaid
+- [x] diagramme Packet mermaid
 - [x] diagramme de relation d'entité mermaid
 - [x] organigramme mermaid
 - [x] graphique en secteurs mermaid
@@ -751,6 +752,67 @@ xychart
     y-axis "Revenue (k$)" 0 --> 100
     bar [25, 40, 60, 80, 70, 90]
     line [30, 50, 70, 85, 75, 95]
+```
+
+### Syntaxe du diagramme Packet Mermaid
+
+```go
+package main
+
+import (
+	"io"
+	"os"
+
+	"github.com/nao1215/markdown"
+	"github.com/nao1215/markdown/mermaid/packet"
+)
+
+//go:generate go run main.go
+
+func main() {
+	diagram := packet.NewDiagram(
+		io.Discard,
+		packet.WithTitle("UDP Packet"),
+	).
+		Next(16, "Source Port").
+		Next(16, "Destination Port").
+		Field(32, 47, "Length").
+		Field(48, 63, "Checksum").
+		Field(64, 95, "Data (variable length)").
+		String()
+
+	if err := markdown.NewMarkdown(os.Stdout).
+		H2("Packet").
+		CodeBlocks(markdown.SyntaxHighlightMermaid, diagram).
+		Build(); err != nil {
+		panic(err)
+	}
+}
+```
+
+Sortie de texte brut : [markdown est ici](../packet/generated.md)
+````text
+## Packet
+```mermaid
+packet
+    title UDP Packet
+    +16: "Source Port"
+    +16: "Destination Port"
+    32-47: "Length"
+    48-63: "Checksum"
+    64-95: "Data (variable length)"
+```
+````
+
+Sortie Mermaid :
+```mermaid
+packet
+    title UDP Packet
+    +16: "Source Port"
+    +16: "Destination Port"
+    32-47: "Length"
+    48-63: "Checksum"
+    64-95: "Data (variable length)"
 ```
 
 ### Syntaxe du diagramme de relation d'entité

@@ -12,7 +12,7 @@
 # Что такое пакет markdown
 Пакет markdown - это простой конструктор markdown на языке Golang. Пакет markdown собирает Markdown используя цепочку методов, не используя шаблонизатор как [html/template](https://pkg.go.dev/html/template). Синтаксис Markdown следует **GitHub Markdown**.
 
-Пакет markdown изначально был разработан для сохранения результатов тестов в [nao1215/spectest](https://github.com/nao1215/spectest). Поэтому пакет markdown реализует функции, необходимые для spectest. Например, пакет markdown поддерживает **диаграммы последовательности mermaid (диаграммы сущностей-связей, диаграммы последовательности, диаграммы пути пользователя, диаграммы git graph, диаграммы mindmap, диаграммы требований, XY-диаграммы, блок-схемы, круговые диаграммы, квадрантные диаграммы, диаграммы состояний, диаграммы классов, диаграммы Ганта, архитектурные диаграммы)**, которые были необходимой функцией в spectest.
+Пакет markdown изначально был разработан для сохранения результатов тестов в [nao1215/spectest](https://github.com/nao1215/spectest). Поэтому пакет markdown реализует функции, необходимые для spectest. Например, пакет markdown поддерживает **диаграммы последовательности mermaid (диаграммы сущностей-связей, диаграммы последовательности, диаграммы пути пользователя, диаграммы git graph, диаграммы mindmap, диаграммы требований, XY-диаграммы, Packet-диаграммы, блок-схемы, круговые диаграммы, квадрантные диаграммы, диаграммы состояний, диаграммы классов, диаграммы Ганта, архитектурные диаграммы)**, которые были необходимой функцией в spectest.
 
 Кроме того, сложный код, который увеличивает сложность библиотеки, такой как создание вложенных списков, добавляться не будет. Я хочу сохранить эту библиотеку максимально простой.
 
@@ -41,6 +41,7 @@
 - [x] диаграммы mindmap mermaid
 - [x] диаграммы требований mermaid
 - [x] XY-диаграммы mermaid
+- [x] Packet-диаграммы mermaid
 - [x] диаграммы сущностей-связей mermaid
 - [x] блок-схемы mermaid
 - [x] круговые диаграммы mermaid
@@ -750,6 +751,67 @@ xychart
     y-axis "Revenue (k$)" 0 --> 100
     bar [25, 40, 60, 80, 70, 90]
     line [30, 50, 70, 85, 75, 95]
+```
+
+### Синтаксис Packet-диаграммы Mermaid
+
+```go
+package main
+
+import (
+	"io"
+	"os"
+
+	"github.com/nao1215/markdown"
+	"github.com/nao1215/markdown/mermaid/packet"
+)
+
+//go:generate go run main.go
+
+func main() {
+	diagram := packet.NewDiagram(
+		io.Discard,
+		packet.WithTitle("UDP Packet"),
+	).
+		Next(16, "Source Port").
+		Next(16, "Destination Port").
+		Field(32, 47, "Length").
+		Field(48, 63, "Checksum").
+		Field(64, 95, "Data (variable length)").
+		String()
+
+	if err := markdown.NewMarkdown(os.Stdout).
+		H2("Packet").
+		CodeBlocks(markdown.SyntaxHighlightMermaid, diagram).
+		Build(); err != nil {
+		panic(err)
+	}
+}
+```
+
+Вывод простого текста: [markdown здесь](../packet/generated.md)
+````text
+## Packet
+```mermaid
+packet
+    title UDP Packet
+    +16: "Source Port"
+    +16: "Destination Port"
+    32-47: "Length"
+    48-63: "Checksum"
+    64-95: "Data (variable length)"
+```
+````
+
+Вывод Mermaid:
+```mermaid
+packet
+    title UDP Packet
+    +16: "Source Port"
+    +16: "Destination Port"
+    32-47: "Length"
+    48-63: "Checksum"
+    64-95: "Data (variable length)"
 ```
 
 ### Синтаксис диаграммы сущностей-связей
