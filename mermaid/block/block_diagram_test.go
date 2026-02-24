@@ -340,3 +340,262 @@ func TestDiagram_BuildNilWriter(t *testing.T) {
 		t.Fatalf("expected Error() to wrap returned error, got %v", d.Error())
 	}
 }
+
+func TestNodeShapeFormatting(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name  string
+		shape Shape
+		want  string
+	}{
+		{name: "rectangle", shape: ShapeRectangle, want: `svc["Service"]`},
+		{name: "round", shape: ShapeRound, want: `svc("Service")`},
+		{name: "stadium", shape: ShapeStadium, want: `svc(["Service"])`},
+		{name: "subroutine", shape: ShapeSubroutine, want: `svc[["Service"]]`},
+		{name: "cylinder", shape: ShapeCylinder, want: `svc[("Service")]`},
+		{name: "circle", shape: ShapeCircle, want: `svc(("Service"))`},
+		{name: "asymmetric", shape: ShapeAsymmetric, want: `svc>"Service"]`},
+		{name: "rhombus", shape: ShapeRhombus, want: `svc{"Service"}`},
+		{name: "hexagon", shape: ShapeHexagon, want: `svc{{"Service"}}`},
+		{name: "parallelogram", shape: ShapeParallelogram, want: `svc[/"Service"/]`},
+		{name: "parallelogram alt", shape: ShapeParallelogramAlt, want: `svc[\"Service"\]`},
+		{name: "trapezoid", shape: ShapeTrapezoid, want: `svc[/"Service"\]`},
+		{name: "trapezoid alt", shape: ShapeTrapezoidAlt, want: `svc[\"Service"/]`},
+		{name: "double circle", shape: ShapeDoubleCircle, want: `svc((("Service")))`},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			token := Node("svc", WithNodeLabel("Service"), WithNodeShape(tt.shape))
+			if token.err != nil {
+				t.Fatalf("unexpected error: %v", token.err)
+			}
+			if diff := cmp.Diff(tt.want, token.value); diff != "" {
+				t.Errorf("value is mismatch (-want +got):\n%s", diff)
+			}
+		})
+	}
+
+	token := Node("svc", WithNodeShape(ShapeCircle))
+	if token.err != nil {
+		t.Fatalf("unexpected error: %v", token.err)
+	}
+	if diff := cmp.Diff(`svc(("svc"))`, token.value); diff != "" {
+		t.Errorf("value is mismatch (-want +got):\n%s", diff)
+	}
+
+	if got := formatNodeToken("svc", "Service", Shape("unsupported")); got != `svc["Service"]` {
+		t.Fatalf("unexpected fallback shape output: %s", got)
+	}
+}
+
+func TestTokenValidation(t *testing.T) {
+	t.Parallel()
+
+	valid := []Token{
+		Literal("  Frontend  "),
+		Space(),
+		Space(1),
+		Space(2),
+		Node("svc", WithNodeSpan(2)),
+		ArrowLeft("toLeft"),
+		ArrowUp("toUp"),
+		ArrowX("toX"),
+		ArrowY("toY"),
+	}
+
+	for _, token := range valid {
+		if token.err != nil {
+			t.Fatalf("unexpected error: %v", token.err)
+		}
+	}
+
+	invalid := []Token{
+		Literal(""),
+		Literal("line1\nline2"),
+		Space(0),
+		Space(1, 2),
+		Node("bad id"),
+		Node("svc", WithNodeSpan(0)),
+		Node("svc", WithNodeLabel("line1\nline2")),
+		Node("svc", WithNodeShape(Shape("unsupported"))),
+		Arrow("to", Direction("invalid")),
+		Arrow("to", DirectionRight, WithArrowLabel("")),
+		Arrow("to", DirectionRight, WithArrowLabel("line1\nline2")),
+		Arrow("to", DirectionRight, WithArrowSecondaryDirection(Direction("invalid"))),
+	}
+
+	for _, token := range invalid {
+		if token.err == nil {
+			t.Fatal("expected token error, got nil")
+		}
+	}
+}
+
+func TestDiagram_RowAndStatement(t *testing.T) {
+	t.Parallel()
+
+	d := NewDiagram(io.Discard).
+		LF().
+		Row(Literal("Frontend"), Space(1), Literal("Backend")).
+		Row(Space(2)).
+		Row(Node("svc", WithNodeSpan(2))).
+		Statement("raw statement")
+
+	if d.Error() != nil {
+		t.Fatalf("unexpected error: %v", d.Error())
+	}
+
+	want := `block
+
+    Frontend space Backend
+    space:2
+    svc:2
+    raw statement`
+
+	got := strings.ReplaceAll(d.String(), "\r\n", "\n")
+	if diff := cmp.Diff(want, got); diff != "" {
+		t.Errorf("value is mismatch (-want +got):\n%s", diff)
+	}
+
+	errCases := []struct {
+		name string
+		run  func() *Diagram
+	}{
+		{
+			name: "row empty trimmed token",
+			run: func() *Diagram {
+				return NewDiagram(io.Discard).Row(Token{value: "   "})
+			},
+		},
+		{
+			name: "row token with newline",
+			run: func() *Diagram {
+				return NewDiagram(io.Discard).Row(Token{value: "a\nb"})
+			},
+		},
+		{
+			name: "statement empty",
+			run: func() *Diagram {
+				return NewDiagram(io.Discard).Statement(" ")
+			},
+		},
+		{
+			name: "statement with newline",
+			run: func() *Diagram {
+				return NewDiagram(io.Discard).Statement("a\nb")
+			},
+		},
+	}
+
+	for _, tt := range errCases {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			diagram := tt.run()
+			if diagram.Error() == nil {
+				t.Fatal("expected error, got nil")
+			}
+		})
+	}
+}
+
+func TestDiagram_LinkStyleAndClass(t *testing.T) {
+	t.Parallel()
+
+	d := NewDiagram(io.Discard).
+		Link("Frontend", "Backend").
+		LinkWithLabel("Frontend", "calls", "Backend").
+		Style("Frontend,Backend", "fill:#9cf").
+		ClassDef("service", "fill:#9cf").
+		Class("Frontend,Backend", "service")
+
+	if d.Error() != nil {
+		t.Fatalf("unexpected error: %v", d.Error())
+	}
+
+	want := `block
+    Frontend --> Backend
+    Frontend -- "calls" --> Backend
+    style Frontend,Backend fill:#9cf
+    classDef service fill:#9cf
+    class Frontend,Backend service`
+
+	got := strings.ReplaceAll(d.String(), "\r\n", "\n")
+	if diff := cmp.Diff(want, got); diff != "" {
+		t.Errorf("value is mismatch (-want +got):\n%s", diff)
+	}
+
+	errCases := []struct {
+		name string
+		run  func() *Diagram
+	}{
+		{
+			name: "link invalid source",
+			run: func() *Diagram {
+				return NewDiagram(io.Discard).Link("bad id", "B")
+			},
+		},
+		{
+			name: "link invalid destination",
+			run: func() *Diagram {
+				return NewDiagram(io.Discard).Link("A", "bad id")
+			},
+		},
+		{
+			name: "link label newline",
+			run: func() *Diagram {
+				return NewDiagram(io.Discard).LinkWithLabel("A", "line1\nline2", "B")
+			},
+		},
+		{
+			name: "style with newline",
+			run: func() *Diagram {
+				return NewDiagram(io.Discard).Style("A", "line1\nline2")
+			},
+		},
+		{
+			name: "classdef with newline class name",
+			run: func() *Diagram {
+				return NewDiagram(io.Discard).ClassDef("ser\nvice", "fill:#9cf")
+			},
+		},
+		{
+			name: "class with newline class name",
+			run: func() *Diagram {
+				return NewDiagram(io.Discard).Class("A", "ser\nvice")
+			},
+		},
+	}
+
+	for _, tt := range errCases {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			diagram := tt.run()
+			if diagram.Error() == nil {
+				t.Fatal("expected error, got nil")
+			}
+		})
+	}
+}
+
+func TestDiagram_BuildWithExistingError(t *testing.T) {
+	t.Parallel()
+
+	d := NewDiagram(io.Discard).Columns(0)
+	if d.Error() == nil {
+		t.Fatal("expected setup error, got nil")
+	}
+
+	err := d.Build()
+	if err == nil {
+		t.Fatal("expected error, got nil")
+	}
+	if !errors.Is(d.Error(), err) {
+		t.Fatalf("expected Error() to wrap returned error, got %v", d.Error())
+	}
+}

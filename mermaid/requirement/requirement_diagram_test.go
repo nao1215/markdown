@@ -548,3 +548,193 @@ func TestDiagram_BuildStoresError(t *testing.T) {
 		t.Fatalf("expected Error() to wrap returned error, got %v", d.Error())
 	}
 }
+
+func TestDiagram_RequirementAndRelationSugars(t *testing.T) {
+	t.Parallel()
+
+	requirementOpts := func(id, text string, risk Risk, method VerifyMethod) []RequirementOption {
+		return []RequirementOption{
+			WithID(id),
+			WithText(text),
+			WithRisk(risk),
+			WithVerifyMethod(method),
+		}
+	}
+
+	d := NewDiagram(io.Discard).
+		InterfaceRequirement(
+			"API",
+			requirementOpts("REQ-I", "Interface requirement", RiskLow, VerifyMethodAnalysis)...,
+		).
+		PerformanceRequirement(
+			"Speed",
+			requirementOpts("REQ-P", "Performance requirement", RiskMedium, VerifyMethodInspection)...,
+		).
+		PhysicalRequirement(
+			"Hardware",
+			requirementOpts("REQ-H", "Physical requirement", RiskHigh, VerifyMethodTest)...,
+		).
+		DesignConstraint(
+			"Policy",
+			requirementOpts("REQ-D", "Design constraint", RiskLow, VerifyMethodDemonstration)...,
+		).
+		Contains("System", "API").
+		Copies("API", "Speed").
+		Derives("Speed", "Hardware").
+		Verifies("Hardware", "Policy").
+		Refines("Policy", "API").
+		Traces("Policy", "Speed")
+
+	d.From("System").
+		Contains("Hardware").
+		Copies("Policy").
+		Derives("API").
+		Verifies("Speed").
+		Refines("Policy").
+		Traces("API")
+
+	d.ClassShorthand("API", "critical", "service")
+
+	if d.Error() != nil {
+		t.Fatalf("unexpected error: %v", d.Error())
+	}
+
+	got := strings.ReplaceAll(d.String(), "\r\n", "\n")
+	wantContains := []string{
+		`interfaceRequirement API {`,
+		`performanceRequirement Speed {`,
+		`physicalRequirement Hardware {`,
+		`designConstraint Policy {`,
+		`System - contains -> API`,
+		`API - copies -> Speed`,
+		`Speed - derives -> Hardware`,
+		`Hardware - verifies -> Policy`,
+		`Policy - refines -> API`,
+		`Policy - traces -> Speed`,
+		`System - contains -> Hardware`,
+		`System - copies -> Policy`,
+		`System - derives -> API`,
+		`System - verifies -> Speed`,
+		`System - refines -> Policy`,
+		`System - traces -> API`,
+		`API:::critical:::service`,
+	}
+	for _, want := range wantContains {
+		if !strings.Contains(got, want) {
+			t.Fatalf("expected output to contain %q, got:\n%s", want, got)
+		}
+	}
+}
+
+func TestNormalizeFunctions(t *testing.T) {
+	t.Parallel()
+
+	requirementCases := []struct {
+		input RequirementType
+		want  string
+	}{
+		{input: RequirementTypeRequirement, want: "requirement"},
+		{input: RequirementTypeFunctional, want: "functionalRequirement"},
+		{input: RequirementTypeInterface, want: "interfaceRequirement"},
+		{input: RequirementTypePerformance, want: "performanceRequirement"},
+		{input: RequirementTypePhysical, want: "physicalRequirement"},
+		{input: RequirementTypeDesignConstraint, want: "designConstraint"},
+		{input: RequirementType("FUNCTIONALREQUIREMENT"), want: "functionalRequirement"},
+	}
+	for _, tt := range requirementCases {
+		got, ok := normalizeRequirementType(tt.input)
+		if !ok {
+			t.Fatalf("expected valid requirement type for %q", tt.input)
+		}
+		if got != tt.want {
+			t.Fatalf("normalizeRequirementType(%q) = %q, want %q", tt.input, got, tt.want)
+		}
+	}
+	if _, ok := normalizeRequirementType(RequirementType("unknown")); ok {
+		t.Fatal("expected unknown requirement type to be invalid")
+	}
+
+	verifyMethodCases := []struct {
+		input VerifyMethod
+		want  string
+	}{
+		{input: VerifyMethodAnalysis, want: "Analysis"},
+		{input: VerifyMethodInspection, want: "Inspection"},
+		{input: VerifyMethodTest, want: "Test"},
+		{input: VerifyMethodDemonstration, want: "Demonstration"},
+		{input: VerifyMethod("analysis"), want: "Analysis"},
+	}
+	for _, tt := range verifyMethodCases {
+		got, ok := normalizeVerifyMethod(tt.input)
+		if !ok {
+			t.Fatalf("expected valid verify method for %q", tt.input)
+		}
+		if got != tt.want {
+			t.Fatalf("normalizeVerifyMethod(%q) = %q, want %q", tt.input, got, tt.want)
+		}
+	}
+	if _, ok := normalizeVerifyMethod(VerifyMethod("proof")); ok {
+		t.Fatal("expected unknown verify method to be invalid")
+	}
+
+	relationshipCases := []struct {
+		input Relationship
+		want  string
+	}{
+		{input: RelationshipContains, want: "contains"},
+		{input: RelationshipCopies, want: "copies"},
+		{input: RelationshipDerives, want: "derives"},
+		{input: RelationshipSatisfies, want: "satisfies"},
+		{input: RelationshipVerifies, want: "verifies"},
+		{input: RelationshipRefines, want: "refines"},
+		{input: RelationshipTraces, want: "traces"},
+		{input: Relationship("SATISFIES"), want: "satisfies"},
+	}
+	for _, tt := range relationshipCases {
+		got, ok := normalizeRelationship(tt.input)
+		if !ok {
+			t.Fatalf("expected valid relationship for %q", tt.input)
+		}
+		if got != tt.want {
+			t.Fatalf("normalizeRelationship(%q) = %q, want %q", tt.input, got, tt.want)
+		}
+	}
+	if _, ok := normalizeRelationship(Relationship("connects")); ok {
+		t.Fatal("expected unknown relationship to be invalid")
+	}
+
+	if !isMermaidKeyword("interfaceRequirement") {
+		t.Fatal("expected interfaceRequirement to be treated as mermaid keyword")
+	}
+	if isMermaidKeyword("custom") {
+		t.Fatal("expected custom to not be treated as mermaid keyword")
+	}
+	if shouldQuote("") {
+		t.Fatal("shouldQuote must return false for empty strings")
+	}
+}
+
+func TestDiagram_BuildWithExistingErrorAndLF(t *testing.T) {
+	t.Parallel()
+
+	d := NewDiagram(io.Discard).Element("")
+	if d.Error() == nil {
+		t.Fatal("expected setup error, got nil")
+	}
+
+	err := d.Build()
+	if err == nil {
+		t.Fatal("expected error, got nil")
+	}
+	if !errors.Is(d.Error(), err) {
+		t.Fatalf("expected Error() to wrap returned error, got %v", d.Error())
+	}
+
+	lf := NewDiagram(io.Discard).LF()
+	if lf.Error() != nil {
+		t.Fatalf("unexpected error: %v", lf.Error())
+	}
+	if diff := cmp.Diff("requirementDiagram\n", strings.ReplaceAll(lf.String(), "\r\n", "\n")); diff != "" {
+		t.Errorf("value is mismatch (-want +got):\n%s", diff)
+	}
+}
