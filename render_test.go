@@ -336,3 +336,63 @@ func TestInsertTableOfContentsWithMissingMarkers(t *testing.T) {
 		})
 	}
 }
+
+// TestWithBlockSpacing covers the opt-in that separates every block, which is
+// what markdownlint and mkdocs want. The default is deliberately tighter, so
+// both shapes are pinned here.
+func TestWithBlockSpacing(t *testing.T) {
+	t.Parallel()
+
+	chain := func(m *Markdown) *Markdown {
+		return m.H1("Title").
+			PlainText("paragraph").
+			BulletList("alpha", "beta").
+			CodeBlocks(SyntaxHighlightGo, "x := 1")
+	}
+
+	compact := chain(NewMarkdown(nil)).String()
+	spaced := chain(NewMarkdown(nil, WithBlockSpacing())).String()
+
+	wantCompact := strings.Join([]string{
+		"# Title",
+		"paragraph",
+		"- alpha",
+		"- beta",
+		"",
+		"```go",
+		"x := 1",
+		"```",
+	}, lf())
+	if diff := cmp.Diff(wantCompact, compact); diff != "" {
+		t.Errorf("default output changed (-want +got):\n%s", diff)
+	}
+
+	wantSpaced := strings.Join([]string{
+		"# Title",
+		"",
+		"paragraph",
+		"",
+		"- alpha",
+		"- beta",
+		"",
+		"```go",
+		"x := 1",
+		"```",
+	}, lf())
+	if diff := cmp.Diff(wantSpaced, spaced); diff != "" {
+		t.Errorf("spaced output mismatch (-want +got):\n%s", diff)
+	}
+}
+
+// TestBlankLine covers the explicit spacer, and that it is not doubled by the
+// automatic separation.
+func TestBlankLine(t *testing.T) {
+	t.Parallel()
+
+	got := NewMarkdown(nil).BulletList("alpha").BlankLine().PlainText("after").String()
+	want := strings.Join([]string{"- alpha", "", "after"}, lf())
+
+	if diff := cmp.Diff(want, got); diff != "" {
+		t.Errorf("blank line mismatch (-want +got):\n%s", diff)
+	}
+}

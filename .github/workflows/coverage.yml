@@ -34,7 +34,11 @@ jobs:
           go-version: "1"
           check-latest: true
 
+      # doc/ holds 22 sample programs whose main() is never called by a test.
+      # Counting them measures the samples, not the library.
       - name: Run tests with coverage report output
-        run: go test -cover -coverpkg=./... -coverprofile=coverage.out ./...
+        run: |
+          pkgs="$(go list ./... | grep -v '/doc/')"
+          go test -cover -coverpkg="$(echo "$pkgs" | paste -sd,)" -coverprofile=coverage.out $pkgs
 
       - uses: k1LoW/octocov-action@a167dc0dee441b7ffc45e1b862ab55ec0d87f278 # v1
