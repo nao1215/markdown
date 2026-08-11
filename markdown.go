@@ -187,6 +187,16 @@ func (m *Markdown) String() string {
 	return joinBlocks(body)
 }
 
+// normalizeLineFeeds rewrites every line ending in text to the platform one.
+// Text that reaches the builder from elsewhere, such as a table rendered by
+// tablewriter, is separated by "\n" regardless of platform.
+func normalizeLineFeeds(text string) string {
+	if internal.LineFeed() == "\n" {
+		return strings.ReplaceAll(text, "\r\n", "\n")
+	}
+	return strings.ReplaceAll(strings.ReplaceAll(text, "\r\n", "\n"), "\n", internal.LineFeed())
+}
+
 // joinBlocks joins the body, adding the blank line that markdown requires
 // between certain blocks.
 //
@@ -839,7 +849,12 @@ func (m *Markdown) CustomTable(t TableSet, options TableOptions) *Markdown {
 		return m
 	}
 
-	m.body = append(m.body, applyAlignmentToDelimiterRow(buf.String(), t.Alignment))
+	// tablewriter always separates rows with "\n", so on Windows its output
+	// would otherwise mix line endings with the rest of the document, and the
+	// delimiter row rewrite below would fail to find any rows to work on.
+	rendered := normalizeLineFeeds(buf.String())
+
+	m.body = append(m.body, applyAlignmentToDelimiterRow(rendered, t.Alignment))
 	return m
 }
 
