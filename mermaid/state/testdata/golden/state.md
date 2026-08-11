@@ -11,7 +11,7 @@ stateDiagram-v2
     Draft --> Placed
     Placed --> Shipped : after payment
     Shipped --> [*]
-    Placed --> [*] : cancelled by the customer
+    Placed --> [*] : canceled by the customer
 
     note left of Draft : editable
     note right of Shipped : immutable

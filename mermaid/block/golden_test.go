@@ -18,7 +18,7 @@ func TestGoldenBlock(t *testing.T) {
 		Columns(3).
 		Row(
 			block.Node("plain"),
-			block.Node("labelled", block.WithNodeLabel("With a label")),
+			block.Node("labeled", block.WithNodeLabel("With a label")),
 			block.Node("wide", block.WithNodeSpan(2)),
 		).
 		Row(
@@ -28,7 +28,7 @@ func TestGoldenBlock(t *testing.T) {
 		).
 		Row(
 			block.Arrow("explicit", block.DirectionRight),
-			block.Arrow("labelled", block.DirectionRight, block.WithArrowLabel("to the right")),
+			block.Arrow("labeled", block.DirectionRight, block.WithArrowLabel("to the right")),
 			block.Arrow("secondary", block.DirectionRight, block.WithArrowSecondaryDirection(block.DirectionDown)),
 		).
 		Row(
@@ -48,8 +48,8 @@ func TestGoldenBlock(t *testing.T) {
 				Statement("style inner1 fill:#f9f")
 		}, block.WithBlockID("grouped"), block.WithBlockSpan(2)).
 		Statement("style plain fill:#eee").
-		Link("plain", "labelled").
-		LinkWithLabel("labelled", "connects to", "wide").
+		Link("plain", "labeled").
+		LinkWithLabel("labeled", "connects to", "wide").
 		Style("plain", "fill:#fff").
 		ClassDef("highlight", "fill:#ff0").
 		Class("plain", "highlight").

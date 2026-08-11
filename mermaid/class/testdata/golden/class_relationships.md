@@ -14,9 +14,9 @@ classDiagram
     Source <|.. Target
     Source .. Target
 
-    Source --> Target : labelled
+    Source --> Target : labeled
     Source "1" --> "many" Target
-    Source "0..1" --> "0..*" Target : labelled
+    Source "0..1" --> "0..*" Target : labeled
 
     Whole *-- Part
     Whole *-- Part : contains

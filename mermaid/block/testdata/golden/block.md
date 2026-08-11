@@ -3,9 +3,9 @@ title: "Every Token"
 ---
 block
     columns 3
-    plain labelled["With a label"] wide:2
+    plain labeled["With a label"] wide:2
     space space:2 raw:3
-    explicit<["&nbsp;"]>(right) labelled<["to the right"]>(right) secondary<["&nbsp;"]>(right, down)
+    explicit<["&nbsp;"]>(right) labeled<["to the right"]>(right) secondary<["&nbsp;"]>(right, down)
     right<["&nbsp;"]>(right) left<["&nbsp;"]>(left) up<["&nbsp;"]>(up)
     down<["&nbsp;"]>(down) x<["&nbsp;"]>(x) y<["&nbsp;"]>(y)
 
@@ -15,8 +15,8 @@ block
         style inner1 fill:#f9f
     end
     style plain fill:#eee
-    plain --> labelled
-    labelled -- "connects to" --> wide
+    plain --> labeled
+    labeled -- "connects to" --> wide
     style plain fill:#fff
     classDef highlight fill:#ff0
     class plain highlight

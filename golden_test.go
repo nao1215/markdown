@@ -25,6 +25,7 @@ func TestGoldenDocument(t *testing.T) {
 		H4("Fourth level").
 		H5("Fifth level").
 		H6("Sixth level").
+		H1f("%s built with H1f", "Heading").
 		H2f("%s built with H2f", "Heading").
 		H3f("%s built with H3f", "Heading").
 		H4f("%s built with H4f", "Heading").

@@ -79,9 +79,9 @@ func TestGoldenClassRelationships(t *testing.T) {
 
 	err := diagram.
 		LF().
-		RelationWithLabel("Source", class.RelationshipAssociation, "Target", "labelled").
+		RelationWithLabel("Source", class.RelationshipAssociation, "Target", "labeled").
 		RelationWithCardinality("Source", string(class.CardinalityOne), class.RelationshipAssociation, "Target", string(class.CardinalityMany)).
-		RelationWithCardinalityAndLabel("Source", string(class.CardinalityZeroOrOne), class.RelationshipAssociation, "Target", string(class.CardinalityZeroOrMore), "labelled").
+		RelationWithCardinalityAndLabel("Source", string(class.CardinalityZeroOrOne), class.RelationshipAssociation, "Target", string(class.CardinalityZeroOrMore), "labeled").
 		LF().
 		Composition("Whole", "Part").
 		CompositionWithLabel("Whole", "Part", "contains").

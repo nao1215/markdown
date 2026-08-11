@@ -50,6 +50,26 @@ func TestGoldenXYChartAxisWithoutTitle(t *testing.T) {
 	}
 }
 
+// TestGoldenXYChartTitledRanges pins the axis forms that carry a title and a
+// numeric range, which is the one combination the tests above leave out.
+func TestGoldenXYChartTitledRanges(t *testing.T) {
+	t.Parallel()
+
+	buf := &bytes.Buffer{}
+	err := xychart.NewDiagram(buf).
+		XAxisRangeWithTitle("Month", 1, 12).
+		YAxisRangeWithTitle("Revenue (in $)", 0, 11000).
+		Bar(5000, 6000).
+		Build()
+	if err != nil {
+		t.Fatalf("Build() = %v, want nil", err)
+	}
+
+	if err := golden.Assert("xychart_titled_ranges.md", buf.String()); err != nil {
+		t.Error(err)
+	}
+}
+
 // TestGoldenXYChartOrientations pins the header each orientation produces.
 func TestGoldenXYChartOrientations(t *testing.T) {
 	t.Parallel()

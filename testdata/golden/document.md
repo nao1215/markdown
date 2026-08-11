@@ -6,6 +6,7 @@ A paragraph written with PlainTextf.
 #### Fourth level
 ##### Fifth level
 ###### Sixth level
+# Heading built with H1f
 ## Heading built with H2f
 ### Heading built with H3f
 #### Heading built with H4f
