@@ -4,6 +4,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/nao1215/markdown/internal"
 	"github.com/nao1215/markdown/mermaid/state"
 )
 
@@ -11,7 +12,7 @@ import (
 func statements(t *testing.T, fn func(*state.Diagram) *state.Diagram) []string {
 	t.Helper()
 
-	lines := strings.Split(fn(state.NewDiagram(nil)).String(), "\n")
+	lines := strings.Split(fn(state.NewDiagram(nil)).String(), internal.LineFeed())
 	if len(lines) == 0 {
 		t.Fatal("diagram produced no output")
 	}

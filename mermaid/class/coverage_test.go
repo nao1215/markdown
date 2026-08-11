@@ -4,6 +4,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/nao1215/markdown/internal"
 	"github.com/nao1215/markdown/mermaid/class"
 )
 
@@ -13,7 +14,7 @@ func build(t *testing.T, fn func(*class.Diagram) *class.Diagram) []string {
 	t.Helper()
 
 	d := fn(class.NewDiagram(nil))
-	lines := strings.Split(d.String(), "\n")
+	lines := strings.Split(d.String(), internal.LineFeed())
 	if len(lines) == 0 {
 		t.Fatal("diagram produced no output")
 	}
