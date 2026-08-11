@@ -1,4 +1,9 @@
 # The index goldens are compared byte for byte, including their line endings.
 # Git must not rewrite them on checkout, or the Windows golden loses its CRLF.
-testdata/expected/index.md -text
-testdata/expected/index.windows -text
+testdata/index/expected/index.md -text
+testdata/index/expected/index.windows -text
+
+# The golden documents are committed with "\n" line endings. The comparison
+# normalizes line endings before it runs, so a CRLF checkout would still pass,
+# but keeping the files canonical means "git diff" stays readable everywhere.
+testdata/golden/** -text

@@ -17,7 +17,7 @@ func TestGenerateIndexErrors(t *testing.T) {
 
 		broken := func(_ *Index) error { return errors.New("bad option") }
 
-		err := GenerateIndex("testdata", broken)
+		err := GenerateIndex(indexFixtureDir, broken)
 		if !errors.Is(err, ErrInitMarkdownIndex) {
 			t.Errorf("got %v, want it to wrap ErrInitMarkdownIndex", err)
 		}
@@ -26,7 +26,7 @@ func TestGenerateIndexErrors(t *testing.T) {
 	t.Run("a missing directory is reported", func(t *testing.T) {
 		t.Parallel()
 
-		err := GenerateIndex(filepath.Join("testdata", "does-not-exist"), WithWriter(os.Stdout))
+		err := GenerateIndex(filepath.Join(indexFixtureDir, "does-not-exist"), WithWriter(os.Stdout))
 		if !errors.Is(err, ErrCreateMarkdownIndex) {
 			t.Errorf("got %v, want it to wrap ErrCreateMarkdownIndex", err)
 		}
@@ -35,7 +35,7 @@ func TestGenerateIndexErrors(t *testing.T) {
 	t.Run("a writer that fails is reported", func(t *testing.T) {
 		t.Parallel()
 
-		err := GenerateIndex("testdata", WithWriter(&failingWriter{}))
+		err := GenerateIndex(indexFixtureDir, WithWriter(&failingWriter{}))
 		if !errors.Is(err, ErrWriteMarkdownIndex) {
 			t.Errorf("got %v, want it to wrap ErrWriteMarkdownIndex", err)
 		}

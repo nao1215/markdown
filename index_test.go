@@ -11,6 +11,14 @@ import (
 	"github.com/google/go-cmp/cmp"
 )
 
+// indexFixtureDir is the fixture tree GenerateIndex walks in these tests.
+//
+// It is a directory of its own rather than the whole of testdata, because the
+// generated index lists every markdown file it finds: sharing the tree with the
+// golden documents of the other tests would make every new golden file change
+// the expected index.
+const indexFixtureDir = "testdata/index"
+
 func TestGenerateIndex(t *testing.T) {
 	t.Parallel()
 
@@ -19,7 +27,7 @@ func TestGenerateIndex(t *testing.T) {
 
 		var buf bytes.Buffer
 		if err := GenerateIndex(
-			"testdata",
+			indexFixtureDir,
 			WithTitle("Test Title"),
 			WithDescription([]string{"Test Description", "Next Description"}),
 			WithWriter(&buf),
@@ -27,9 +35,9 @@ func TestGenerateIndex(t *testing.T) {
 			t.Fatalf("failed to generate index: %v", err)
 		}
 
-		f := filepath.Join("testdata", "expected", "index.md")
+		f := filepath.Join(indexFixtureDir, "expected", "index.md")
 		if runtime.GOOS == "windows" {
-			f = filepath.Join("testdata", "expected", "index.windows")
+			f = filepath.Join(indexFixtureDir, "expected", "index.windows")
 		}
 		want, err := os.ReadFile(filepath.Clean(f))
 		if err != nil {
