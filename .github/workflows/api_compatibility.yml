@@ -1,0 +1,146 @@
+name: APICompatibility
+
+# v1.0.0 promises that no exported identifier is ever removed, renamed, or given
+# a different signature. That promise is only as good as the review that catches
+# a violation, and a signature change is easy to miss in a large diff, so this
+# job checks it mechanically instead.
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+env:
+  # The version of golang.org/x/exp that publishes both tools below. Pinned
+  # rather than @latest so a change in a tool cannot turn a green pull request
+  # red without anything in this repository having changed.
+  #
+  # Named for the module rather than for one of the tools because gitleaks reads
+  # a pseudo-version next to a name containing "API" as a leaked key.
+  EXP_TOOLS_VERSION: v0.0.0-20260810151157-a8b543ca52da
+  MODULE_PATH: github.com/nao1215/markdown
+  # Read through an environment variable rather than interpolated into a shell
+  # script, and defaulted so that a manual run has a baseline too.
+  BASE_REF: ${{ github.base_ref || 'main' }}
+
+jobs:
+  apidiff:
+    name: Reject incompatible API changes
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # The base branch has to be a real ref in this clone, because the API
+          # it exposes is what the pull request is compared against.
+          fetch-depth: 0
+          persist-credentials: false
+
+      # A newer Go than the one go.mod names, because the tools below are
+      # published from a module that requires it. Nothing here builds the
+      # library for release; the versions the library has to support are
+      # covered by the unit test matrix.
+      - name: Set up Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: "1.25"
+
+      - name: Install apidiff
+        run: go install golang.org/x/exp/cmd/apidiff@${EXP_TOOLS_VERSION}
+
+      # The comparison is against the tip of the base branch rather than against
+      # the last release tag. The question this job answers is "does this pull
+      # request break anything", and the base branch is the only baseline that
+      # isolates that: measuring against the last tag reports every incompatible
+      # change merged since that tag on every unrelated pull request, which is
+      # noise that teaches reviewers to ignore the check. Since the check runs on
+      # every pull request, "compatible with the base branch" holds all the way
+      # back to the release by induction.
+      - name: Export the API of the base branch
+        run: |
+          set -euo pipefail
+          # The checkout above fetches the pull request, not necessarily the
+          # branch it targets, so ask for that branch explicitly.
+          git fetch --no-tags origin "+refs/heads/${BASE_REF}:refs/remotes/origin/${BASE_REF}"
+          git worktree add --detach "${RUNNER_TEMP}/base" "origin/${BASE_REF}"
+          cd "${RUNNER_TEMP}/base"
+          apidiff -m -w "${RUNNER_TEMP}/base.api" "${MODULE_PATH}"
+
+      - name: Compare this pull request against it
+        run: |
+          set -euo pipefail
+          # apidiff always exits 0, so the report itself is the signal. Its
+          # "Ignoring internal package" notes go to stderr, so capturing stdout
+          # leaves only findings.
+          incompatible="$(apidiff -m -incompatible "${RUNNER_TEMP}/base.api" "${MODULE_PATH}")"
+
+          if [ -n "${incompatible}" ]; then
+            {
+              echo "### Incompatible API changes"
+              echo
+              echo "This pull request changes the exported API in a way that breaks callers."
+              echo "v1.x never removes, renames, or re-signatures an exported identifier."
+              echo "Add the new form alongside the old one instead, and mark the old one"
+              echo "\`// Deprecated:\` if it should not be used any more."
+              echo
+              echo '```'
+              echo "${incompatible}"
+              echo '```'
+            } >> "${GITHUB_STEP_SUMMARY}"
+
+            echo "Incompatible API changes:"
+            echo "${incompatible}"
+            exit 1
+          fi
+
+          echo "No incompatible API changes."
+
+      - name: Report the additions
+        run: |
+          set -euo pipefail
+          apidiff -m "${RUNNER_TEMP}/base.api" "${MODULE_PATH}"
+
+  gorelease:
+    name: Report the version this release would need
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # Advisory. It answers "what should the next tag be", which is a question
+    # about the release rather than about this pull request, so it must not
+    # decide whether the pull request can merge.
+    continue-on-error: true
+    steps:
+      - name: Check out code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      # A newer Go than the one go.mod names, because the tools below are
+      # published from a module that requires it. Nothing here builds the
+      # library for release; the versions the library has to support are
+      # covered by the unit test matrix.
+      - name: Set up Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: "1.25"
+
+      - name: Install gorelease
+        run: go install golang.org/x/exp/cmd/gorelease@${EXP_TOOLS_VERSION}
+
+      - name: Compare against the latest release
+        run: |
+          set -euo pipefail
+          git fetch --tags origin "+refs/heads/${BASE_REF}:refs/remotes/origin/${BASE_REF}"
+          base="$(git describe --tags --abbrev=0 "origin/${BASE_REF}")"
+          echo "Comparing against ${base}."
+          gorelease -base="${base}" | tee "${RUNNER_TEMP}/gorelease.txt"
+          {
+            echo "### Version report against ${base}"
+            echo
+            echo '```'
+            cat "${RUNNER_TEMP}/gorelease.txt"
+            echo '```'
+          } >> "${GITHUB_STEP_SUMMARY}"
