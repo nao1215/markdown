@@ -892,8 +892,10 @@ Plain text output: [markdown is here](./doc/block/generated.md)
 ````text
 ## Block Diagram
 ```mermaid
+---
+title: Checkout Architecture
+---
 block
-    title Checkout Architecture
     columns 3
     Frontend toBackend<["calls"]>(right) Backend
     space:2 toDB<["&nbsp;"]>(down)
@@ -905,8 +907,10 @@ block
 
 Mermaid output:
 ```mermaid
+---
+title: Checkout Architecture
+---
 block
-    title Checkout Architecture
     columns 3
     Frontend toBackend<["calls"]>(right) Backend
     space:2 toDB<["&nbsp;"]>(down)

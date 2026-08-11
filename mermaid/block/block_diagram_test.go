@@ -33,8 +33,10 @@ func TestNewDiagram(t *testing.T) {
 		{
 			name: "new diagram with title",
 			opts: []Option{WithTitle("Checkout Architecture")},
-			want: `block
-    title Checkout Architecture`,
+			want: `---
+title: Checkout Architecture
+---
+block`,
 		},
 		{
 			name:    "new diagram with title including newline",
@@ -98,8 +100,10 @@ func TestDiagram_Build(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	want := `block
-    title Checkout Architecture
+	want := `---
+title: Checkout Architecture
+---
+block
     columns 3
     Frontend toBackend<["calls"]>(right) Backend
     space:2 toDB<["&nbsp;"]>(down)
