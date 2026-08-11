@@ -131,3 +131,58 @@ func TestGenerateIndexClosesFile(t *testing.T) {
 		t.Fatalf("failed to remove generated index file: %v", err)
 	}
 }
+
+// TestGenerateIndexLinksAreRelativeURLs pins the destinations the generated
+// index links to.
+//
+// Two things have to hold for a link to work. It has to be relative to the
+// index, which sits in the target directory, and it has to use "/", because a
+// markdown link destination is a URL and a backslash in one is an escape
+// character rather than a directory separator.
+//
+// The target directory is given in several shapes because callers write paths
+// the way that reads best in Go source, which is usually with forward slashes
+// even on Windows.
+func TestGenerateIndexLinksAreRelativeURLs(t *testing.T) {
+	t.Parallel()
+
+	root := t.TempDir()
+	docs := filepath.Join(root, "docs")
+	if err := os.MkdirAll(filepath.Join(docs, "sub"), 0750); err != nil {
+		t.Fatalf("failed to create the fixture tree: %v", err)
+	}
+	for path, content := range map[string]string{
+		filepath.Join(docs, "guide.md"):         "# Guide\n",
+		filepath.Join(docs, "sub", "nested.md"): "# Nested\n",
+	} {
+		if err := os.WriteFile(path, []byte(content), 0600); err != nil {
+			t.Fatalf("failed to write the fixture %s: %v", path, err)
+		}
+	}
+
+	tests := map[string]string{
+		"the platform separator": docs,
+		"a trailing separator":   docs + string(filepath.Separator),
+		"forward slashes":        filepath.ToSlash(docs),
+	}
+
+	for name, targetDir := range tests {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			var buf bytes.Buffer
+			if err := GenerateIndex(targetDir, WithWriter(&buf)); err != nil {
+				t.Fatalf("failed to generate index: %v", err)
+			}
+
+			for _, want := range []string{"[Guide](guide.md)", "[Nested](sub/nested.md)"} {
+				if !strings.Contains(buf.String(), want) {
+					t.Errorf("index = %q, want it to contain %q", buf.String(), want)
+				}
+			}
+			if strings.Contains(buf.String(), `\`) {
+				t.Errorf("index = %q, want no backslash: a link destination is a URL", buf.String())
+			}
+		})
+	}
+}
