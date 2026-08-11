@@ -163,15 +163,37 @@ type Markdown struct {
 	tocOptions *TableOfContentsOptions
 	// tocInserted indicates whether a table of contents placeholder has been generated.
 	tocInserted bool
+	// blockSpacing separates every block with a blank line.
+	blockSpacing bool
+}
+
+// Option configures a Markdown at construction time.
+type Option func(*Markdown)
+
+// WithBlockSpacing separates every block with a blank line.
+//
+// The default output only inserts the blank lines markdown cannot do without,
+// which keeps documents compact but leaves markdownlint complaining about
+// headings, fenced blocks, and tables that touch their neighbours. Tools such
+// as mkdocs are stricter than GitHub about this. Turn the option on when the
+// document is going to be linted or rendered by something other than GitHub.
+func WithBlockSpacing() Option {
+	return func(m *Markdown) {
+		m.blockSpacing = true
+	}
 }
 
 // NewMarkdown returns new Markdown.
-func NewMarkdown(w io.Writer) *Markdown {
-	return &Markdown{
+func NewMarkdown(w io.Writer, opts ...Option) *Markdown {
+	m := &Markdown{
 		body:    []string{},
 		dest:    w,
 		headers: []headerInfo{},
 	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
 }
 
 // String returns markdown text.
@@ -184,7 +206,7 @@ func (m *Markdown) String() string {
 		}
 	}
 
-	return joinBlocks(body)
+	return joinBlocks(body, m.blockSpacing)
 }
 
 // normalizeLineFeeds rewrites every line ending in text to the platform one.
@@ -205,14 +227,14 @@ func normalizeLineFeeds(text string) string {
 // produce documents that render wrongly on GitHub while looking fine in the
 // source, which is why callers of this package litter their code with manual
 // spacer calls. Everything else is joined exactly as before.
-func joinBlocks(body []string) string {
+func joinBlocks(body []string, always bool) string {
 	lf := internal.LineFeed()
 
 	var buf strings.Builder
 	for i, block := range body {
 		if i > 0 {
 			buf.WriteString(lf)
-			if needsBlankLine(body[i-1], block) {
+			if needsBlankLine(body[i-1], block, always) {
 				buf.WriteString(lf)
 			}
 		}
@@ -222,7 +244,7 @@ func joinBlocks(body []string) string {
 }
 
 // needsBlankLine reports whether a blank line has to separate two blocks.
-func needsBlankLine(prev, next string) bool {
+func needsBlankLine(prev, next string, always bool) bool {
 	// A whitespace-only entry, which is what LF() writes, already separates the
 	// blocks; adding another blank line would just pile them up.
 	if strings.TrimSpace(prev) == "" || strings.TrimSpace(next) == "" {
@@ -236,15 +258,26 @@ func needsBlankLine(prev, next string) bool {
 	// An HTML comment renders as nothing and cannot absorb the block before it.
 	// The table of contents markers are comments, so this keeps the generated
 	// entries tucked against them.
-	if strings.HasPrefix(next, "<!--") {
+	if strings.HasPrefix(next, "<!--") || strings.HasPrefix(prev, "<!--") {
 		return false
+	}
+
+	prevList, nextList := listKind(prev), listKind(next)
+	sameList := prevList != "" && prevList == nextList
+
+	if always {
+		// Consecutive items of one list still belong together; everything else
+		// gets the blank line markdownlint expects.
+		return !sameList
 	}
 
 	switch {
 	case isQuoteBlock(prev):
 		// Anything on the line after a quote is read as part of it.
 		return true
-	case isListItem(prev) && !isListItem(next):
+	case prevList != "" && !sameList:
+		// A different kind of list starts a new list, so it needs the blank line
+		// as much as a paragraph or a table does.
 		return true
 	default:
 		return false
@@ -256,20 +289,30 @@ func isQuoteBlock(block string) bool {
 	return strings.HasPrefix(block, ">")
 }
 
-// isListItem reports whether the block is one item of a bullet, ordered, or
-// checkbox list. Those are appended one item per entry, so consecutive items
-// must not be separated.
-func isListItem(block string) bool {
+// listKind identifies which kind of list item a block is, or returns an empty
+// string when it is not a list item at all.
+//
+// The kind matters because list items are appended one per entry: consecutive
+// items of the same list must stay tight, while a bullet list followed by an
+// ordered list is two lists and needs the blank line between them.
+func listKind(block string) string {
 	trimmed := strings.TrimLeft(block, " ")
-	if strings.HasPrefix(trimmed, "- ") || strings.HasPrefix(trimmed, "* ") || strings.HasPrefix(trimmed, "+ ") {
-		return true
+
+	switch {
+	case strings.HasPrefix(trimmed, "- [ ] "), strings.HasPrefix(trimmed, "- [x] "):
+		return "checkbox"
+	case strings.HasPrefix(trimmed, "- "), strings.HasPrefix(trimmed, "* "), strings.HasPrefix(trimmed, "+ "):
+		return "bullet"
 	}
 
 	digits := 0
 	for digits < len(trimmed) && trimmed[digits] >= '0' && trimmed[digits] <= '9' {
 		digits++
 	}
-	return digits > 0 && strings.HasPrefix(trimmed[digits:], ". ")
+	if digits > 0 && strings.HasPrefix(trimmed[digits:], ". ") {
+		return "ordered"
+	}
+	return ""
 }
 
 // insertTableOfContents places the generated entries between the two marker
@@ -1027,7 +1070,17 @@ func delimiterCell(width int, align TableAlignment) string {
 }
 
 // LF is line feed.
+//
+// It writes a line holding two spaces, which is a hard line break marker. It
+// also happens to separate blocks, which is how most callers use it. Use
+// BlankLine when a blank line is what you mean.
 func (m *Markdown) LF() *Markdown {
 	m.body = append(m.body, "  ")
+	return m
+}
+
+// BlankLine writes an empty line between two blocks.
+func (m *Markdown) BlankLine() *Markdown {
+	m.body = append(m.body, "")
 	return m
 }

@@ -37,3 +37,21 @@ jobs:
       - name: Parse every mermaid block
         # NUL-delimited so a path containing whitespace stays one argument.
         run: git ls-files -z '*.md' | node scripts/mermaid-check/check.mjs --stdin0
+
+  markdownlint:
+    name: Lint the generated documents
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: "22"
+
+      # Only doc/**/generated*.md is linted; the globs live in
+      # .markdownlint-cli2.jsonc alongside the reason for every disabled rule.
+      - name: markdownlint
+        run: npx --yes markdownlint-cli2@0.23.2

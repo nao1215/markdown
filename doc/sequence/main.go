@@ -44,7 +44,7 @@ func main() {
 		SyncResponse("David", "Sophia", "wake up, wake up").
 		String() //nolint
 
-	err = markdown.NewMarkdown(f).
+	err = markdown.NewMarkdown(f, markdown.WithBlockSpacing()).
 		H2("Sequence Diagram").
 		CodeBlocks(markdown.SyntaxHighlightMermaid, diagram).
 		Build()

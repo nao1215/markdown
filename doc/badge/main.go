@@ -22,7 +22,7 @@ func main() {
 		}
 	}()
 
-	if err := md.NewMarkdown(f).
+	if err := md.NewMarkdown(f, md.WithBlockSpacing()).
 		H1("badge example").
 		RedBadge("red_badge").
 		YellowBadge("yellow_badge").

@@ -22,13 +22,12 @@ func main() {
 		}
 	}()
 
-	if err := md.NewMarkdown(f).
+	if err := md.NewMarkdown(f, md.WithBlockSpacing()).
 		H1("Table of Contents Example").
 		PlainText("This document demonstrates the table of contents functionality.").
 		LF().
 		H2("Table of Contents").
 		TableOfContentsWithRange(md.TableOfContentsDepthH2, md.TableOfContentsDepthH4).
-		LF().
 		H2("Introduction").
 		PlainText("This is the introduction section. It provides an overview of the document.").
 		LF().
@@ -106,7 +105,7 @@ func main() {
 		LF().
 		H2("Conclusion").
 		PlainText("The table of contents feature provides a powerful way to improve document navigation and structure.").
-		H5("Not include Table Of Contents").
+		H3("Not include Table Of Contents").
 		Build(); err != nil {
 		panic(err)
 	}

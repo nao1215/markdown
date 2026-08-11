@@ -1,4 +1,5 @@
 ## Sequence Diagram
+
 ```mermaid
 sequenceDiagram
     participant Sophia

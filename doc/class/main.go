@@ -51,7 +51,7 @@ func main() {
 		NoteFor("Order", "Aggregate Root").
 		String()
 
-	err = markdown.NewMarkdown(f).
+	err = markdown.NewMarkdown(f, markdown.WithBlockSpacing()).
 		H2("Class Diagram").
 		CodeBlocks(markdown.SyntaxHighlightMermaid, diagramString).
 		Build()

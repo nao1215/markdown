@@ -1,4 +1,5 @@
 ## Architecture Diagram
+
 ```mermaid
 architecture-beta
     service left_disk(disk)[Disk]

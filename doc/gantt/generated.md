@@ -1,4 +1,5 @@
 ## Gantt Chart
+
 ```mermaid
 gantt
     title Software Development Schedule

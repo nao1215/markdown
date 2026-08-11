@@ -1,4 +1,5 @@
 # Table of Contents Example
+
 This document demonstrates the table of contents functionality.
   
 ## Table of Contents
@@ -18,25 +19,31 @@ This document demonstrates the table of contents functionality.
   - [Anchor Generation](#anchor-generation)
 - [Best Practices](#best-practices)
 - [Conclusion](#conclusion)
+  - [Not include Table Of Contents](#not-include-table-of-contents)
 <!-- END_TOC -->
 
-  
 ## Introduction
+
 This is the introduction section. It provides an overview of the document.
   
 ### Purpose
+
 The purpose of this document is to showcase the table of contents feature.
   
 ### Scope
+
 This document covers basic usage of table of contents with different depth levels.
   
 ## Features
+
 The table of contents feature offers several capabilities:
   
 ### Basic Table of Contents
+
 Generate a simple table of contents with all headers up to a specified depth.
   
 #### Example Usage
+
 ```go
 md.NewMarkdown(os.Stdout).
     H1("Title").
@@ -46,9 +53,11 @@ md.NewMarkdown(os.Stdout).
 ```
   
 ### Range-based Table of Contents
+
 Generate a table of contents that includes only headers within a specific range.
   
 #### Advanced Usage
+
 ```go
 md.NewMarkdown(os.Stdout).
     H1("Title").  // This H1 will not appear in TOC
@@ -62,15 +71,18 @@ md.NewMarkdown(os.Stdout).
 ```
   
 #### Benefits
+
 - Control which header levels are included
 - Exclude document title from TOC
 - Flexible placement anywhere in document
 - Automatic anchor generation
   
 ## Implementation Details
+
 The table of contents is implemented using placeholder markers that are replaced during the build process.
   
 ### Markers
+
 The implementation uses HTML comment markers to identify where the TOC should be placed:
   
 ```html
@@ -81,6 +93,7 @@ The implementation uses HTML comment markers to identify where the TOC should be
 ```
   
 ### Anchor Generation
+
 Anchors are automatically generated from header text using GitHub-style conventions:
   
 - Convert to lowercase
@@ -89,6 +102,7 @@ Anchors are automatically generated from header text using GitHub-style conventi
 - Keep only alphanumeric characters and hyphens
   
 ## Best Practices
+
 Follow these best practices when using table of contents:
   
 1. Place TOC after the main title and any introductory content
@@ -97,5 +111,7 @@ Follow these best practices when using table of contents:
 4. Ensure header text is descriptive and unique
   
 ## Conclusion
+
 The table of contents feature provides a powerful way to improve document navigation and structure.
-##### Not include Table Of Contents
+
+### Not include Table Of Contents

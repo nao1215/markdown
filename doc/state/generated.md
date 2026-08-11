@@ -1,4 +1,5 @@
 ## State Diagram
+
 ```mermaid
 ---
 title: Order State Machine

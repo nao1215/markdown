@@ -43,7 +43,7 @@ func main() {
 		Task("Review API", kanban.WithTaskPriority(kanban.PriorityVeryHigh)).
 		String()
 
-	err = markdown.NewMarkdown(f).
+	err = markdown.NewMarkdown(f, markdown.WithBlockSpacing()).
 		H2("Kanban Diagram").
 		CodeBlocks(markdown.SyntaxHighlightMermaid, diagram).
 		Build()

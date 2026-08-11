@@ -1,5 +1,5 @@
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-5-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-9-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 [![Go Reference](https://pkg.go.dev/badge/github.com/nao1215/markdown.svg)](https://pkg.go.dev/github.com/nao1215/markdown)
 [![MultiPlatformUnitTest](https://github.com/nao1215/markdown/actions/workflows/unit_test.yml/badge.svg)](https://github.com/nao1215/markdown/actions/workflows/unit_test.yml)
@@ -7,15 +7,14 @@
 [![Gosec](https://github.com/nao1215/markdown/actions/workflows/gosec.yml/badge.svg)](https://github.com/nao1215/markdown/actions/workflows/gosec.yml)
 ![Coverage](https://raw.githubusercontent.com/nao1215/octocovs-central-repo/main/badges/nao1215/markdown/coverage.svg)
 
-[日本語](./doc/ja/README.md) | [Русский](./doc/ru/README.md) | [中文](./doc/zh-cn/README.md) | [한국어](./doc/ko/README.md) | [Español](./doc/es/README.md) | [Français](./doc/fr/README.md)
-
 # What is markdown package
-The Package markdown is a simple markdown builder in golang. The markdown package assembles Markdown using method chaining, not uses a template engine like [html/template](https://pkg.go.dev/html/template). The syntax of Markdown follows **GitHub Markdown**.
-  
-The markdown package was initially developed to save test results in [nao1215/spectest](https://github.com/nao1215/spectest). Therefore, the markdown package implements the features required by spectest. For example, the markdown package supports **mermaid diagrams (entity relationship diagram, sequence diagram, user journey diagram, git graph diagram, mindmap diagram, requirement diagram, xy chart, packet diagram, block diagram, kanban diagram, flowchart, pie chart, quadrant chart, state diagram, class diagram, Gantt chart, architecture diagram)**, which was a necessary feature in spectest.
-  
-Additionally, complex code that increases the complexity of the library, such as generating nested lists, will not be added. I want to keep this library as simple as possible.
-  
+
+The markdown package is a simple markdown builder for Go. It assembles a document by method chaining instead of through a template engine such as [html/template](https://pkg.go.dev/html/template), and the syntax it emits follows GitHub Markdown.
+
+It also builds mermaid diagrams: entity relationship, sequence, user journey, git graph, mindmap, requirement, xy chart, packet, block, kanban, flowchart, pie chart, quadrant, state, class, Gantt, and architecture. That came from the package's origin, which was saving test results for [nao1215/spectest](https://github.com/nao1215/spectest).
+
+Anything that would make the library complicated, such as generating nested lists, is out of scope. Staying simple matters more here.
+
 ## Supported OS and go version
 - OS: Linux, macOS, Windows
 - Go: 1.23 or later
@@ -59,6 +58,17 @@ Additionally, complex code that increases the complexity of the library, such as
 ### Features not in Markdown syntax
 - Generate badges; RedBadge(), YellowBadge(), GreenBadge().
 - Generate an index for a directory full of markdown files; GenerateIndex()
+
+### Spacing between blocks
+By default the builder inserts only the blank lines markdown cannot do without, such as after a list or an alert. That keeps documents compact, but markdownlint and stricter renderers like mkdocs want a blank line around every heading, fenced block, and table.
+
+Pass `WithBlockSpacing()` when the document is going to be linted or rendered by something other than GitHub, and the builder separates every block:
+
+```go
+md.NewMarkdown(os.Stdout, md.WithBlockSpacing())
+```
+
+`BlankLine()` inserts a single blank line where you want one. `LF()` writes a line holding two spaces, which is a hard line break marker; it separates blocks as a side effect, and `BlankLine()` is the clearer way to say it.
   
 ## Example
 ### Basic usage
@@ -72,7 +82,7 @@ import (
 )
 
 func main() {
-	md.NewMarkdown(os.Stdout).
+	md.NewMarkdown(os.Stdout, md.WithBlockSpacing()).
 		H1("This is H1").
 		PlainText("This is plain text").
 		H2f("This is %s with text format", "H2").
@@ -117,48 +127,58 @@ func main() {
 Output:
 ````
 # This is H1
+
 This is plain text
-  
+
 ## This is H2 with text format
+
 Text formatting, such as **bold** and *italic*, `code` styles.
-  
+
 ## Code Block
+
 ```go
 package main
 import "fmt"
 
 func main() {
-        fmt.Println("Hello, World!")
+	fmt.Println("Hello, World!")
 }
 ```
-  
+
 ## List
+
 - Bullet Item 1
 - Bullet Item 2
 - Bullet Item 3
+
 1. Ordered Item 1
 2. Ordered Item 2
 3. Ordered Item 3
-  
+
 ## CheckBox
+
 - [ ] `sample code`
 - [x] [Go](https://golang.org)
 - [ ] ~~strikethrough~~
-  
+
 ## Blockquote
+
 > If you can dream it, you can do it.
-  
+
 ### Horizontal Rule
+
 ---
-  
+
 ## Table
-| NAME  | AGE | COUNTRY |
-|-------|-----|---------|
-| David |  23 | USA     |
-| John  |  30 | UK      |
-| Bob   |  25 | Canada  |
+
+| Name | Age | Country |
+|---------|---------|---------|
+| David | 23 | USA |
+| John | 30 | UK |
+| Bob | 25 | Canada |
 
 ## Image
+
 ![sample_image](./sample.png)
 ````
 
@@ -1870,8 +1890,6 @@ Next Description
 ## Contribution
 First off, thanks for taking the time to contribute! See [CONTRIBUTING.md](./CONTRIBUTING.md) for more information. Contributions are not only related to development. For example, GitHub Star motivates me to develop! Please feel free to contribute to this project.
 
-[![Star History Chart](https://api.star-history.com/svg?repos=nao1215/markdown&type=Date)](https://star-history.com/#nao1215/markdown&Date)
-
 ### Contributors ✨
 
 Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/docs/en/emoji-key)):
@@ -1883,10 +1901,16 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
   <tbody>
     <tr>
       <td align="center" valign="top" width="14.28%"><a href="https://debimate.jp/"><img src="https://avatars.githubusercontent.com/u/22737008?v=4?s=50" width="50px;" alt="CHIKAMATSU Naohiro"/><br /><sub><b>CHIKAMATSU Naohiro</b></sub></a><br /><a href="https://github.com/nao1215/markdown/commits?author=nao1215" title="Code">💻</a></td>
-      <td align="center" valign="top" width="14.28%"><a href="https://github.com/varmakarthik12"><img src="https://avatars.githubusercontent.com/u/17958166?v=4?s=50" width="50px;" alt="Karthik Sundari"/><br /><sub><b>Karthik Sundari</b></sub></a><br /><a href="https://github.com/nao1215/markdown/commits?author=varmakarthik12" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/varmakarthik12"><img src="https://avatars.githubusercontent.com/u/17958166?v=4?s=50" width="50px;" alt="Karthik Sundari"/><br /><sub><b>Karthik Sundari</b></sub></a><br /><a href="https://github.com/nao1215/markdown/commits?author=varmakarthik12" title="Code">💻</a> <a href="https://github.com/nao1215/markdown/issues?q=author%3Avarmakarthik12" title="Ideas, Planning, & Feedback">🤔</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/Avihuc"><img src="https://avatars.githubusercontent.com/u/32455410?v=4?s=50" width="50px;" alt="Avihuc"/><br /><sub><b>Avihuc</b></sub></a><br /><a href="https://github.com/nao1215/markdown/commits?author=Avihuc" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://www.claranceliberi.me/"><img src="https://avatars.githubusercontent.com/u/60586899?v=4?s=50" width="50px;" alt="Clarance Liberiste Ntwari"/><br /><sub><b>Clarance Liberiste Ntwari</b></sub></a><br /><a href="https://github.com/nao1215/markdown/commits?author=claranceliberi" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/amitaifrey"><img src="https://avatars.githubusercontent.com/u/7527632?v=4?s=50" width="50px;" alt="Amitai Frey"/><br /><sub><b>Amitai Frey</b></sub></a><br /><a href="https://github.com/nao1215/markdown/commits?author=amitaifrey" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/wI2L"><img src="https://avatars.githubusercontent.com/u/6519569?v=4?s=50" width="50px;" alt="William Poussier"/><br /><sub><b>William Poussier</b></sub></a><br /><a href="https://github.com/nao1215/markdown/issues?q=author%3AwI2L" title="Ideas, Planning, & Feedback">🤔</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://hibare.in/"><img src="https://avatars.githubusercontent.com/u/20609766?v=4?s=50" width="50px;" alt="Shubham Hibare"/><br /><sub><b>Shubham Hibare</b></sub></a><br /><a href="https://github.com/nao1215/markdown/issues?q=author%3Ahibare" title="Bug reports">🐛</a></td>
+    </tr>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://barrymorrison.com/"><img src="https://avatars.githubusercontent.com/u/689591?v=4?s=50" width="50px;" alt="Barry Morrison"/><br /><sub><b>Barry Morrison</b></sub></a><br /><a href="https://github.com/nao1215/markdown/issues?q=author%3Aesacteksab" title="Ideas, Planning, & Feedback">🤔</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/chaunsin"><img src="https://avatars.githubusercontent.com/u/33649884?v=4?s=50" width="50px;" alt="chaunsin"/><br /><sub><b>chaunsin</b></sub></a><br /><a href="https://github.com/nao1215/markdown/issues?q=author%3Achaunsin" title="Ideas, Planning, & Feedback">🤔</a></td>
     </tr>
   </tbody>
   <tfoot>
@@ -1905,4 +1929,4 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
 
 <!-- ALL-CONTRIBUTORS-LIST:END -->
 
-This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification. Contributions of any kind welcome!
+This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification. Contributions of any kind are welcome, and that includes bug reports and feature requests: several of the features above exist because someone opened an issue asking for them.

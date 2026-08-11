@@ -39,7 +39,7 @@ func main() {
 		DottedLinkWithText("C", "D", "send filtered data").
 		String()
 
-	err = markdown.NewMarkdown(f).
+	err = markdown.NewMarkdown(f, markdown.WithBlockSpacing()).
 		H2("Flowchart").
 		CodeBlocks(markdown.SyntaxHighlightMermaid, fc).
 		Build()

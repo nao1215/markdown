@@ -1,4 +1,5 @@
 ## Mindmap
+
 ```mermaid
 ---
 title: Product Strategy Mindmap

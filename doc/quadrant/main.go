@@ -39,7 +39,7 @@ func main() {
 		Point("Feature D", 0.80, 0.15). //nolint:mnd
 		String()
 
-	err = markdown.NewMarkdown(f).
+	err = markdown.NewMarkdown(f, markdown.WithBlockSpacing()).
 		H2("Quadrant Chart").
 		CodeBlocks(markdown.SyntaxHighlightMermaid, chart).
 		Build()

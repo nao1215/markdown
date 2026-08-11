@@ -34,7 +34,7 @@ func main() {
 		LabelAndIntValue("C", 30).     //nolint:mnd
 		String()
 
-	err = markdown.NewMarkdown(f).
+	err = markdown.NewMarkdown(f, markdown.WithBlockSpacing()).
 		H2("Pie Chart").
 		CodeBlocks(markdown.SyntaxHighlightMermaid, chart).
 		Build()

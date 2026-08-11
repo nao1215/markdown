@@ -100,7 +100,7 @@ func main() {
 				Arrow:     arch.ArrowNone,
 			}).String() //nolint
 
-	err = markdown.NewMarkdown(f).
+	err = markdown.NewMarkdown(f, markdown.WithBlockSpacing()).
 		H2("Architecture Diagram").
 		CodeBlocks(markdown.SyntaxHighlightMermaid, diagram).
 		Build()

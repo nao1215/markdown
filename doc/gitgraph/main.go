@@ -35,7 +35,7 @@ func main() {
 		Merge("develop", gitgraph.WithCommitTag("v1.0.0")).
 		String()
 
-	err = markdown.NewMarkdown(f).
+	err = markdown.NewMarkdown(f, markdown.WithBlockSpacing()).
 		H2("Git Graph").
 		CodeBlocks(markdown.SyntaxHighlightMermaid, diagram).
 		Build()

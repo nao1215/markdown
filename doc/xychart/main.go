@@ -33,7 +33,7 @@ func main() {
 		Line(30, 50, 70, 85, 75, 95).                //nolint:mnd
 		String()
 
-	err = markdown.NewMarkdown(f).
+	err = markdown.NewMarkdown(f, markdown.WithBlockSpacing()).
 		H2("XY Chart").
 		CodeBlocks(markdown.SyntaxHighlightMermaid, diagram).
 		Build()

@@ -122,7 +122,7 @@ func main() {
 		).
 		String()
 
-	err = markdown.NewMarkdown(f).
+	err = markdown.NewMarkdown(f, markdown.WithBlockSpacing()).
 		H2("Entity Relationship Diagram").
 		CodeBlocks(markdown.SyntaxHighlightMermaid, erString).
 		Build()

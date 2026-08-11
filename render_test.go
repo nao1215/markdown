@@ -236,6 +236,10 @@ func TestBlankLineBetweenBlocks(t *testing.T) {
 			build: func(m *Markdown) *Markdown { return m.OrderedList("alpha", "beta") },
 			want:  []string{"1. alpha", "2. beta"},
 		},
+		"a different list kind is separated": {
+			build: func(m *Markdown) *Markdown { return m.BulletList("alpha").OrderedList("one") },
+			want:  []string{"- alpha", "", "1. one"},
+		},
 		"checkbox items stay tight": {
 			build: func(m *Markdown) *Markdown {
 				return m.CheckBox([]CheckBoxSet{{Text: "alpha"}, {Checked: true, Text: "beta"}})
