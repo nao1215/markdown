@@ -139,15 +139,40 @@ func (i *Index) write() (err error) {
 		markdown.H3(subTitle)
 
 		for _, f := range markdownFiles {
+			link := i.linkTo(f)
 			if h1 := firstH1orH2(f); h1 != "" {
-				markdown.BulletList(Link(h1, strings.Replace(f, i.targetDir+string(filepath.Separator), "", 1)))
+				markdown.BulletList(Link(h1, link))
 				continue
 			}
-			markdown.BulletList(Link(filepath.Base(f), strings.Replace(f, i.targetDir+string(filepath.Separator), "", 1)))
+			markdown.BulletList(Link(filepath.Base(f), link))
 		}
 		markdown.LF()
 	}
 	return markdown.Build()
+}
+
+// linkTo returns the destination of the link to the markdown file at path,
+// relative to the generated index.
+//
+// Two things have to hold for the link to work. It has to be relative to the
+// index, which sits in the target directory, and it has to use "/", because a
+// markdown link destination is a URL: a backslash in one is an escape character
+// rather than a directory separator, so a link built from a Windows path points
+// nowhere.
+//
+// Trimming the target directory as a string prefix did neither. It kept the
+// whole path whenever the caller wrote the target with forward slashes on
+// Windows, or with a trailing separator anywhere, because the prefix it built
+// then matched nothing.
+//
+// A path that cannot be made relative to the target directory is used as it is.
+// That is the version the caller passed in, so it is the one they recognize.
+func (i *Index) linkTo(path string) string {
+	rel, err := filepath.Rel(i.targetDir, path)
+	if err != nil {
+		return filepath.ToSlash(path)
+	}
+	return filepath.ToSlash(rel)
 }
 
 // hasDir checks if the index has a directory.
