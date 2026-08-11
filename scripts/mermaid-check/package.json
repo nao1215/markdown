@@ -2,13 +2,16 @@
   "name": "markdown-mermaid-check",
   "version": "0.0.0",
   "private": true,
-  "description": "Parses the mermaid diagrams committed in this repository so a broken one fails CI.",
+  "description": "Renders the mermaid diagrams committed in this repository so a broken one fails CI.",
   "type": "module",
   "scripts": {
-    "check": "node check.mjs"
+    "check": "node check.mjs",
+    "test": "node selftest.mjs"
   },
   "dependencies": {
+    "js-yaml": "^5.2.3",
     "jsdom": "^28.0.0",
-    "mermaid": "^11.16.1"
+    "mermaid": "^11.16.1",
+    "puppeteer": "^25.6.0"
   }
 }

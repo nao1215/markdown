@@ -1,9 +1,9 @@
 name: DocRender
 
 # This package exists to emit markdown, so "does the output render" is part of
-# its contract. The Go tests only compare strings; this job runs the real
-# mermaid parser over every diagram committed here, which is the closest thing
-# to what a reader's browser does with them.
+# its contract. The Go tests only compare strings; this job draws every diagram
+# committed here with the real mermaid renderer in a real browser, which is what
+# a reader's browser does with them.
 on:
   workflow_dispatch:
   push:
@@ -16,7 +16,7 @@ permissions:
 
 jobs:
   mermaid:
-    name: Parse committed mermaid diagrams
+    name: Render committed mermaid diagrams
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -30,11 +30,24 @@ jobs:
           cache: npm
           cache-dependency-path: scripts/mermaid-check/package-lock.json
 
-      - name: Install the mermaid parser
+      # Rendering needs the layout and text measurement only a browser has, so
+      # npm ci pulls the Chrome build puppeteer pins. It lands in ~/.cache and
+      # the download is the slow part, hence the cache.
+      - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        with:
+          path: ~/.cache/puppeteer
+          key: puppeteer-${{ runner.os }}-${{ hashFiles('scripts/mermaid-check/package-lock.json') }}
+
+      - name: Install the mermaid renderer
         run: npm ci
         working-directory: scripts/mermaid-check
 
-      - name: Parse every mermaid block
+      # A checker that catches nothing looks like a checker with nothing to
+      # catch, so the fixtures run first.
+      - name: Check the checker
+        run: node scripts/mermaid-check/selftest.mjs
+
+      - name: Render every mermaid block
         # NUL-delimited so a path containing whitespace stays one argument.
         run: git ls-files -z '*.md' | node scripts/mermaid-check/check.mjs --stdin0
 

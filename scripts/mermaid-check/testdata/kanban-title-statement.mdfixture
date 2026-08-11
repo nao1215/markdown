@@ -1,0 +1,8 @@
+# Fixture: a kanban board with an in-body title
+
+```mermaid
+kanban
+    title Sprint Board
+    [Todo]
+        [Define scope]
+```

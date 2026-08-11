@@ -1,0 +1,8 @@
+# Fixture: a block diagram with an in-body title
+
+```mermaid
+block
+    title Checkout Architecture
+    columns 2
+    Frontend Backend
+```

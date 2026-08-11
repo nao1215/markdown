@@ -34,7 +34,7 @@ func TestNewDiagram(t *testing.T) {
 			name: "new diagram with title",
 			opts: []Option{WithTitle("Checkout Requirements")},
 			want: `---
-title: Checkout Requirements
+title: "Checkout Requirements"
 ---
 requirementDiagram`,
 		},
@@ -111,7 +111,7 @@ func TestDiagram_Build(t *testing.T) {
 	}
 
 	want := `---
-title: Checkout Requirements
+title: "Checkout Requirements"
 ---
 requirementDiagram
     direction TB

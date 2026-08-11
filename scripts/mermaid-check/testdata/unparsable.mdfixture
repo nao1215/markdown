@@ -1,0 +1,6 @@
+# Fixture: a diagram mermaid cannot parse
+
+```mermaid
+flowchart TB
+    A --> 
+```

@@ -1,0 +1,6 @@
+# Fixture: a class diagram with a standalone annotation
+
+```mermaid
+classDiagram
+    <<Interface>> PaymentGateway
+```

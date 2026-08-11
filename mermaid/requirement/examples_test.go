@@ -40,7 +40,7 @@ func ExampleDiagram() {
 	// ## Requirement Diagram
 	// ```mermaid
 	// ---
-	// title: Checkout Requirements
+	// title: "Checkout Requirements"
 	// ---
 	// requirementDiagram
 	//     requirement Login {

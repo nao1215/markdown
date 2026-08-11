@@ -1,0 +1,18 @@
+# Fixture: everything below renders the way it reads
+
+```mermaid
+---
+title: Checkout Domain
+---
+classDiagram
+    class Order
+```
+
+```mermaid
+---
+title: Checkout Architecture
+---
+block
+    columns 2
+    Frontend Backend
+```

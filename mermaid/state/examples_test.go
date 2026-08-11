@@ -33,7 +33,7 @@ func ExampleDiagram() {
 	// ## State Diagram
 	// ```mermaid
 	// ---
-	// title: Simple State Diagram
+	// title: "Simple State Diagram"
 	// ---
 	// stateDiagram-v2
 	//     [*] --> Still

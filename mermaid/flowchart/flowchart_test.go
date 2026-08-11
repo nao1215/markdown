@@ -36,7 +36,7 @@ func TestFlowchart_Build(t *testing.T) {
 		}
 
 		want := `---
-title: mermaid flowchart builder
+title: "mermaid flowchart builder"
 ---
 flowchart TB
     A["Node A"]

@@ -2,7 +2,7 @@
 
 ```mermaid
 ---
-title: Product Strategy Mindmap
+title: "Product Strategy Mindmap"
 ---
 mindmap
     Product Strategy

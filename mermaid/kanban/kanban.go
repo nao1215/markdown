@@ -74,7 +74,7 @@ func NewDiagram(w io.Writer, opts ...Option) *Diagram {
 	if trimmedTitle != noTitle || trimmedTicketBaseURL != noTicketBaseURL {
 		lines = append(lines, "---")
 		if trimmedTitle != noTitle {
-			lines = append(lines, fmt.Sprintf("title: %s", trimmedTitle))
+			lines = append(lines, internal.FrontMatterTitle(trimmedTitle))
 		}
 		if trimmedTicketBaseURL != noTicketBaseURL {
 			lines = append(lines, "config:")

@@ -41,7 +41,7 @@ func ExampleDiagram() {
 	// ## Kanban Diagram
 	// ```mermaid
 	// ---
-	// title: Sprint Board
+	// title: "Sprint Board"
 	// config:
 	//   kanban:
 	//     ticketBaseUrl: 'https://example.com/tickets/'

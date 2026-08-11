@@ -34,7 +34,7 @@ func TestNewDiagram(t *testing.T) {
 			name: "new diagram with title",
 			opts: []Option{WithTitle("Product Strategy Mindmap")},
 			want: `---
-title: Product Strategy Mindmap
+title: "Product Strategy Mindmap"
 ---
 mindmap`,
 		},
@@ -87,7 +87,7 @@ func TestDiagram_Build(t *testing.T) {
 	}
 
 	want := `---
-title: Product Strategy Mindmap
+title: "Product Strategy Mindmap"
 ---
 mindmap
     Product Strategy

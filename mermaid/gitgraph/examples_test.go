@@ -36,7 +36,7 @@ func ExampleDiagram() {
 	// ## Git Graph
 	// ```mermaid
 	// ---
-	// title: Release Flow
+	// title: "Release Flow"
 	// ---
 	// gitGraph
 	//     commit id: "init" tag: "v0.1.0"

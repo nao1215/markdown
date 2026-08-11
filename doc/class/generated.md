@@ -2,7 +2,7 @@
 
 ```mermaid
 ---
-title: Checkout Domain
+title: "Checkout Domain"
 ---
 classDiagram
     direction LR
