@@ -2,6 +2,7 @@
 package flowchart
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"strings"
@@ -51,6 +52,13 @@ func (f *Flowchart) String() string {
 
 // Build writes the flowchart body to the output destination.
 func (f *Flowchart) Build() error {
+	if f.dest == nil {
+		if f.err == nil {
+			f.err = errors.New("output writer must not be nil")
+		}
+		return f.err
+	}
+
 	if _, err := fmt.Fprint(f.dest, f.String()); err != nil {
 		if f.err != nil {
 			return fmt.Errorf("failed to write: %w: %s", err, f.err.Error()) //nolint:wrapcheck

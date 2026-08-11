@@ -4,6 +4,7 @@
 package class
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"strings"
@@ -58,6 +59,13 @@ func (d *Diagram) Error() error {
 
 // Build writes the class diagram body to the output destination.
 func (d *Diagram) Build() error {
+	if d.dest == nil {
+		if d.err == nil {
+			d.err = errors.New("output writer must not be nil")
+		}
+		return d.err
+	}
+
 	if _, err := fmt.Fprint(d.dest, d.String()); err != nil {
 		d.err = fmt.Errorf("failed to write: %w", err)
 		return d.err
