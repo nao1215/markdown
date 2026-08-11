@@ -50,7 +50,7 @@ func NewDiagram(w io.Writer, opts ...Option) *Diagram {
 			}
 		}
 		lines = append(lines, "---")
-		lines = append(lines, fmt.Sprintf("title: %s", title))
+		lines = append(lines, internal.FrontMatterTitle(title))
 		lines = append(lines, "---")
 	}
 	lines = append(lines, "mindmap")

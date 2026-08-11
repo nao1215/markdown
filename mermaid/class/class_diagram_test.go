@@ -33,7 +33,7 @@ func TestNewDiagram(t *testing.T) {
 			name: "new diagram with title",
 			opts: []Option{WithTitle("Checkout Domain")},
 			want: `---
-title: Checkout Domain
+title: "Checkout Domain"
 ---
 classDiagram`,
 		},
@@ -89,7 +89,7 @@ func TestDiagram_Build(t *testing.T) {
 	}
 
 	want := `---
-title: Checkout Domain
+title: "Checkout Domain"
 ---
 classDiagram
     direction LR

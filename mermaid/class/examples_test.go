@@ -51,7 +51,7 @@ func ExampleDiagram() {
 	// ## Class Diagram
 	// ```mermaid
 	// ---
-	// title: Checkout Domain
+	// title: "Checkout Domain"
 	// ---
 	// classDiagram
 	//     direction LR

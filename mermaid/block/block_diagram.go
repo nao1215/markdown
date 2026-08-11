@@ -95,7 +95,7 @@ func NewDiagram(w io.Writer, opts ...Option) *Diagram {
 
 	// The title goes in the front matter, not in the diagram body. "title X" is
 	// not a block diagram statement: mermaid parses it as the row "title X",
-	// which draws two stray blocks labelled "title" and "X" instead of a title.
+	// which draws two stray blocks labeled "title" and "X" instead of a title.
 	trimmedTitle := strings.TrimSpace(c.title)
 	if trimmedTitle != noTitle {
 		if containsNewline(trimmedTitle) {
@@ -106,7 +106,7 @@ func NewDiagram(w io.Writer, opts ...Option) *Diagram {
 				indent: 1,
 			}
 		}
-		lines = append(lines, "---", fmt.Sprintf("title: %s", trimmedTitle), "---")
+		lines = append(lines, "---", internal.FrontMatterTitle(trimmedTitle), "---")
 	}
 	lines = append(lines, "block")
 

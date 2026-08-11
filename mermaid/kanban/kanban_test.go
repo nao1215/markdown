@@ -34,7 +34,7 @@ func TestNewDiagram(t *testing.T) {
 			name: "new diagram with title",
 			opts: []Option{WithTitle("Sprint Board")},
 			want: `---
-title: Sprint Board
+title: "Sprint Board"
 ---
 kanban`,
 		},
@@ -55,7 +55,7 @@ kanban`,
 				WithTicketBaseURL("https://example.com/tickets/"),
 			},
 			want: `---
-title: Sprint Board
+title: "Sprint Board"
 config:
   kanban:
     ticketBaseUrl: 'https://example.com/tickets/'
@@ -136,7 +136,7 @@ func TestDiagram_Build(t *testing.T) {
 	}
 
 	want := `---
-title: Sprint Board
+title: "Sprint Board"
 config:
   kanban:
     ticketBaseUrl: 'https://example.com/tickets/'

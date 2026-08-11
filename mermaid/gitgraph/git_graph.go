@@ -54,7 +54,7 @@ func NewDiagram(w io.Writer, opts ...Option) *Diagram {
 			}
 		}
 		lines = append(lines, "---")
-		lines = append(lines, fmt.Sprintf("title: %s", c.title))
+		lines = append(lines, internal.FrontMatterTitle(c.title))
 		lines = append(lines, "---")
 	}
 	lines = append(lines, "gitGraph")

@@ -34,7 +34,7 @@ func TestNewDiagram(t *testing.T) {
 			name: "new diagram with title",
 			opts: []Option{WithTitle("Release Flow")},
 			want: `---
-title: Release Flow
+title: "Release Flow"
 ---
 gitGraph`,
 		},
@@ -91,7 +91,7 @@ func TestDiagram_Build(t *testing.T) {
 	}
 
 	want := `---
-title: Release Flow
+title: "Release Flow"
 ---
 gitGraph
     commit id: "init" tag: "v0.1.0"

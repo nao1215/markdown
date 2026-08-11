@@ -2,7 +2,7 @@
 
 ```mermaid
 ---
-title: Order State Machine
+title: "Order State Machine"
 ---
 stateDiagram-v2
     [*] --> Pending

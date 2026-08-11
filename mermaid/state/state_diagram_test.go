@@ -53,7 +53,7 @@ func TestDiagram_Build(t *testing.T) {
 		}
 
 		want := `---
-title: Simple State Diagram
+title: "Simple State Diagram"
 ---
 stateDiagram-v2
     [*] --> Still

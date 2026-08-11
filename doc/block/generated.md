@@ -2,7 +2,7 @@
 
 ```mermaid
 ---
-title: Checkout Architecture
+title: "Checkout Architecture"
 ---
 block
     columns 3

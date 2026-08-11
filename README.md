@@ -501,7 +501,7 @@ Plain text output: [markdown is here](./doc/gitgraph/generated.md)
 ## Git Graph
 ```mermaid
 ---
-title: Release Flow
+title: "Release Flow"
 ---
 gitGraph
     commit id: "init" tag: "v0.1.0"
@@ -516,7 +516,7 @@ gitGraph
 Mermaid output:
 ```mermaid
 ---
-title: Release Flow
+title: "Release Flow"
 ---
 gitGraph
     commit id: "init" tag: "v0.1.0"
@@ -571,7 +571,7 @@ Plain text output: [markdown is here](./doc/mindmap/generated.md)
 ## Mindmap
 ```mermaid
 ---
-title: Product Strategy Mindmap
+title: "Product Strategy Mindmap"
 ---
 mindmap
     Product Strategy
@@ -587,7 +587,7 @@ mindmap
 Mermaid output:
 ```mermaid
 ---
-title: Product Strategy Mindmap
+title: "Product Strategy Mindmap"
 ---
 mindmap
     Product Strategy
@@ -665,7 +665,7 @@ Plain text output: [markdown is here](./doc/requirement/generated.md)
 ## Requirement Diagram
 ```mermaid
 ---
-title: Checkout Requirements
+title: "Checkout Requirements"
 ---
 requirementDiagram
     direction TB
@@ -695,7 +695,7 @@ requirementDiagram
 Mermaid output:
 ```mermaid
 ---
-title: Checkout Requirements
+title: "Checkout Requirements"
 ---
 requirementDiagram
     direction TB
@@ -893,7 +893,7 @@ Plain text output: [markdown is here](./doc/block/generated.md)
 ## Block Diagram
 ```mermaid
 ---
-title: Checkout Architecture
+title: "Checkout Architecture"
 ---
 block
     columns 3
@@ -908,7 +908,7 @@ block
 Mermaid output:
 ```mermaid
 ---
-title: Checkout Architecture
+title: "Checkout Architecture"
 ---
 block
     columns 3
@@ -966,7 +966,7 @@ Plain text output: [markdown is here](./doc/kanban/generated.md)
 ## Kanban Diagram
 ```mermaid
 ---
-title: Sprint Board
+title: "Sprint Board"
 config:
   kanban:
     ticketBaseUrl: 'https://example.com/tickets/'
@@ -983,7 +983,7 @@ kanban
 Mermaid output:
 ```mermaid
 ---
-title: Sprint Board
+title: "Sprint Board"
 config:
   kanban:
     ticketBaseUrl: 'https://example.com/tickets/'
@@ -1226,7 +1226,7 @@ Plain text output: [markdown is here](./doc/flowchart/generated.md)
 ## Flowchart
 ```mermaid
 ---
-title: mermaid flowchart builder
+title: "mermaid flowchart builder"
 ---
 flowchart TB
 	A["Node A"]
@@ -1508,7 +1508,7 @@ Plain text output: [markdown is here](./doc/state/generated.md)
 ## State Diagram
 ```mermaid
 ---
-title: Order State Machine
+title: "Order State Machine"
 ---
 stateDiagram-v2
     [*] --> Pending
@@ -1531,7 +1531,7 @@ stateDiagram-v2
 Mermaid output:
 ```mermaid
 ---
-title: Order State Machine
+title: "Order State Machine"
 ---
 stateDiagram-v2
     [*] --> Pending
@@ -1615,7 +1615,7 @@ Plain text output: [markdown is here](./doc/class/generated.md)
 ## Class Diagram
 ```mermaid
 ---
-title: Checkout Domain
+title: "Checkout Domain"
 ---
 classDiagram
     direction LR
@@ -1641,7 +1641,7 @@ classDiagram
 Mermaid output:
 ```mermaid
 ---
-title: Checkout Domain
+title: "Checkout Domain"
 ---
 classDiagram
     direction LR

@@ -2,7 +2,7 @@
 
 ```mermaid
 ---
-title: Checkout Requirements
+title: "Checkout Requirements"
 ---
 requirementDiagram
     direction TB

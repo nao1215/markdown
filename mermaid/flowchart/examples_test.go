@@ -38,7 +38,7 @@ func ExampleFlowchart() {
 	// ## Flowchart
 	// ```mermaid
 	// ---
-	// title: mermaid flowchart builder
+	// title: "mermaid flowchart builder"
 	// ---
 	// flowchart TB
 	//     A["Node A"]
