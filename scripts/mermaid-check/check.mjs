@@ -1,12 +1,26 @@
-// Parse every ```mermaid block in the markdown files given as arguments.
+// Check every ```mermaid block in the markdown files given as arguments.
 //
 // GitHub renders mermaid in the browser, so a diagram this repository generates
-// can be syntactically wrong and still ship: nothing in the Go test suite looks
-// at it, and the failure only appears as an error box on the rendered page.
-// This script runs the real mermaid parser over the committed markdown so a
-// broken diagram fails CI instead.
+// can be wrong and still ship: nothing in the Go test suite looks at it, and the
+// failure only appears on the rendered page. This script puts the committed
+// markdown through the same three failures a reader can hit:
+//
+//  1. parse    - mermaid rejects the source outright.
+//  2. render   - mermaid parses the source but throws while drawing it. GitHub
+//                reports this as "Unable to render rich display"; the parser
+//                alone never sees it, so the render runs in a real browser.
+//  3. meaning  - mermaid renders the source without complaining, but draws
+//                something other than what the builder asked for. A title is the
+//                case this repository has already shipped twice, so a declared
+//                title has to show up in the drawing.
 import { readFileSync } from "node:fs";
+import { createServer } from "node:http";
+import { dirname, join, normalize, resolve, sep } from "node:path";
+import { fileURLToPath } from "node:url";
 import { JSDOM } from "jsdom";
+import puppeteer from "puppeteer";
+
+const here = dirname(fileURLToPath(import.meta.url));
 
 const dom = new JSDOM("<!doctype html><html><body></body></html>", {
   pretendToBeVisual: true,
@@ -92,30 +106,196 @@ const rejectedForms = [
   },
 ];
 
+// header returns the front matter of a diagram and the source below it.
+function header(source) {
+  const lines = source.split("\n");
+  if (lines[0]?.trim() !== "---") {
+    return { frontMatter: [], rest: lines };
+  }
+  const end = lines.indexOf("---", 1);
+  if (end === -1) {
+    return { frontMatter: [], rest: lines };
+  }
+  return { frontMatter: lines.slice(1, end), rest: lines.slice(end + 1) };
+}
+
+// keyword returns the diagram keyword, e.g. "block" or "stateDiagram-v2".
+function keyword(source) {
+  for (const line of header(source).rest) {
+    const trimmed = line.trim();
+    if (trimmed === "" || trimmed.startsWith("%%")) {
+      continue;
+    }
+    return trimmed.split(/[\s{]/, 1)[0];
+  }
+  return "";
+}
+
+// unquote strips the quoting mermaid accepts around a title.
+function unquote(value) {
+  const trimmed = value.trim();
+  if (trimmed.length >= 2 && trimmed.startsWith('"') && trimmed.endsWith('"')) {
+    return trimmed.slice(1, -1);
+  }
+  return trimmed;
+}
+
+// declaredTitle returns the title a diagram asks for: front matter first, then
+// the `title` statement the flat diagram types use.
+function declaredTitle(source) {
+  const { frontMatter, rest } = header(source);
+  for (const line of frontMatter) {
+    const m = line.match(/^title:\s*(.+)$/);
+    if (m) {
+      return { text: unquote(m[1]), frontMatter: true };
+    }
+  }
+  for (const line of rest) {
+    const m = line.match(/^\s*title\s+(\S.*)$/);
+    if (m) {
+      return { text: unquote(m[1]), frontMatter: false };
+    }
+  }
+  return null;
+}
+
+// untitledDiagrams are the diagram types whose renderer draws no title at all,
+// in front matter or anywhere else. A `title` statement in one of these is not a
+// title but content: `block` reads it as a row and draws stray blocks labelled
+// "title" and whatever followed it, and `kanban` reads it as a column. Front
+// matter is still allowed, because that form is inert metadata.
+const untitledDiagrams = new Set([
+  "block",
+  "block-beta",
+  "architecture-beta",
+  "mindmap",
+  "kanban",
+]);
+
+// renderer runs mermaid in a real browser, because rendering needs the layout
+// and text measurement that jsdom does not implement.
+async function renderer() {
+  const root = resolve(here);
+  const server = createServer((req, res) => {
+    const path = normalize(decodeURIComponent(req.url.split("?")[0]));
+    if (path === "/") {
+      res.setHeader("content-type", "text/html");
+      res.end("<!doctype html><html><body></body></html>");
+      return;
+    }
+    const file = join(root, path);
+    if (!file.startsWith(root + sep)) {
+      res.statusCode = 403;
+      res.end("");
+      return;
+    }
+    try {
+      res.setHeader("content-type", "text/javascript");
+      res.end(readFileSync(file));
+    } catch {
+      res.statusCode = 404;
+      res.end("");
+    }
+  });
+  await new Promise((ready) => server.listen(0, "127.0.0.1", ready));
+  const origin = `http://127.0.0.1:${server.address().port}`;
+
+  const browser = await puppeteer.launch({
+    headless: true,
+    executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
+    args: ["--no-sandbox", "--disable-dev-shm-usage"],
+  });
+  const page = await browser.newPage();
+  await page.goto(origin);
+  await page.addScriptTag({
+    type: "module",
+    content: `
+      import mermaid from "${origin}/node_modules/mermaid/dist/mermaid.esm.min.mjs";
+      mermaid.initialize({ startOnLoad: false, securityLevel: "loose" });
+      window.draw = async (id, source) => {
+        try {
+          const { svg } = await mermaid.render(id, source);
+          const host = document.createElement("div");
+          host.innerHTML = svg;
+          document.body.appendChild(host);
+          const text = host.textContent;
+          host.remove();
+          return { text };
+        } catch (e) {
+          return { error: String((e && e.message) || e) };
+        }
+      };
+      window.ready = true;`,
+  });
+  await page.waitForFunction("window.ready === true", { timeout: 60000 });
+
+  let id = 0;
+  return {
+    draw: (source) =>
+      page.evaluate((name, text) => window.draw(name, text), `diagram-${id++}`, source),
+    close: async () => {
+      await browser.close();
+      server.close();
+    },
+  };
+}
+
+const draw = await renderer();
 let checked = 0;
 let failed = 0;
+
+const fail = (where, message) => {
+  failed++;
+  console.error(`${where}: ${message}\n`);
+};
 
 for (const file of await files()) {
   for (const block of mermaidBlocks(readFileSync(file, "utf8"))) {
     checked++;
+    const where = `${file}:${block.line}`;
+
     for (const form of rejectedForms) {
       if (form.pattern.test(block.body)) {
-        failed++;
-        console.error(`${file}:${block.line}: ${form.reason}\n`);
+        fail(where, form.reason);
       }
     }
+
     try {
       await mermaid.parse(block.body);
     } catch (e) {
-      failed++;
       const message = (e && e.message ? e.message : String(e))
         .split("\n")
         .slice(0, 8)
         .join("\n");
-      console.error(`${file}:${block.line}: mermaid parse error\n${message}\n`);
+      fail(where, `mermaid parse error\n${message}`);
+      continue;
+    }
+
+    const title = declaredTitle(block.body);
+    const type = keyword(block.body);
+    if (title && !title.frontMatter && untitledDiagrams.has(type)) {
+      fail(
+        where,
+        `a "${type}" diagram has no title statement; mermaid reads "title ${title.text}" as diagram content. Move it to the front matter.`,
+      );
+      continue;
+    }
+
+    const drawn = await draw.draw(block.body);
+    if (drawn.error) {
+      fail(where, `mermaid render error\n${drawn.error}`);
+      continue;
+    }
+    if (title && !untitledDiagrams.has(type) && !drawn.text.includes(title.text)) {
+      fail(
+        where,
+        `the title "${title.text}" is declared but does not appear in the rendered diagram`,
+      );
     }
   }
 }
+
+await draw.close();
 
 console.log(`checked ${checked} mermaid block(s), ${failed} failed`);
 if (checked === 0) {

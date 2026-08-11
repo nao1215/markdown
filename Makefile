@@ -28,8 +28,9 @@ lint: ## Run linter
 generate: ## Regenerate the sample documents under doc/ (CheckAutoGenerateFiles verifies these)
 	$(GO) generate ./...
 
-render-check: ## Parse every mermaid diagram committed in this repository (requires node)
+render-check: ## Render every mermaid diagram committed in this repository (requires node)
 	cd scripts/mermaid-check && npm ci
+	node scripts/mermaid-check/selftest.mjs
 	git ls-files -z '*.md' | node scripts/mermaid-check/check.mjs --stdin0
 
 .DEFAULT_GOAL := help
