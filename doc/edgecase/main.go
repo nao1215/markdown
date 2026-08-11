@@ -34,6 +34,7 @@ import (
 	"github.com/nao1215/markdown/mermaid/piechart"
 	"github.com/nao1215/markdown/mermaid/quadrant"
 	"github.com/nao1215/markdown/mermaid/requirement"
+	"github.com/nao1215/markdown/mermaid/sankey"
 	"github.com/nao1215/markdown/mermaid/sequence"
 	"github.com/nao1215/markdown/mermaid/state"
 	"github.com/nao1215/markdown/mermaid/userjourney"
@@ -89,6 +90,11 @@ func supported(diagram string) string {
 		// quadrant: axis, quadrant and point labels are all written unquoted.
 		"quadrant":    `'#` + emoji + japanese + `,*-`,
 		"requirement": `"'#;[](){}` + emoji + japanese + `:,*-|%%`,
+		// sankey quotes a node name that needs it, so the punctuation is all
+		// safe. What it cannot take is non-ASCII text: mermaid's sankey parser
+		// refuses an emoji or Japanese in a node name, the same way its xy
+		// chart parser does.
+		"sankey": `"'#;[](){}<br/>:,*-|%%`,
 		// sequence: ";" and "%%" end a statement, ":" and "," end a participant
 		// name, and a parenthesis or a brace in one ends it too once the name
 		// holds anything else.
@@ -205,6 +211,7 @@ func diagrams() []diagram {
 		{name: "Pie chart", file: "piechart", build: pieChart},
 		{name: "Quadrant", file: "quadrant", build: quadrantChart},
 		{name: "Requirement", file: "requirement", build: requirementDiagram},
+		{name: "Sankey", file: "sankey", build: sankeyDiagram},
 		{name: "Sequence", file: "sequence", build: sequenceDiagram},
 		{name: "State", file: "state", build: stateDiagram},
 		{name: "User journey", file: "userjourney", build: userJourney},
@@ -338,6 +345,15 @@ func requirementDiagram(diagram string) string {
 		).
 		Element(shortLabel(diagram)+" element", requirement.WithElementType("simulation"), requirement.WithDocRef("./tests")).
 		Satisfies(shortLabel(diagram)+" element", shortLabel(diagram)).
+		String()
+}
+
+func sankeyDiagram(diagram string) string {
+	// No title: mermaid parses one for a sankey diagram and does not draw it,
+	// which the renderer check reads as a title that went missing.
+	return sankey.NewDiagram(io.Discard).
+		Link(shortLabel(diagram), shortLabel(diagram)+" target", 100). //nolint:mnd
+		Link(shortLabel(diagram)+" target", label(diagram), 42.5).     //nolint:mnd
 		String()
 }
 
