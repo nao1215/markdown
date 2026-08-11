@@ -4,6 +4,12 @@ name: DocRender
 # its contract. The Go tests only compare strings; this job draws every diagram
 # committed here with the real mermaid renderer in a real browser, which is what
 # a reader's browser does with them.
+#
+# That covers two sets of diagrams. The samples under doc/ are documentation and
+# read as such, which makes them weak tests: the labels a reader wants to see are
+# the ones that never break a renderer. doc/edgecase/ holds one document per
+# diagram type whose labels are the opposite, so a quoting defect fails here.
+# Both are picked up by the glob below, and so is any diagram added later.
 on:
   workflow_dispatch:
   push:
