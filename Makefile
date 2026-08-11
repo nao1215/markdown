@@ -6,6 +6,7 @@ GIT_REVISION := $(shell git rev-parse HEAD)
 GO          = go
 GO_BUILD    = $(GO) build
 GO_TEST     = $(GO) test -v
+GO_LIST     = $(GO) list
 GO_TOOL     = $(GO) tool
 GO_INSTALL  = $(GO) install
 GOOS        = ""
@@ -18,7 +19,7 @@ clean: ## Clean project
 	-rm -rf $(APP) coverage.out coverage.html
 
 test: ## Start unit test for server
-	env GOOS=$(GOOS) $(GO_TEST) -cover -coverpkg=$(GO_PKGROOT) -coverprofile=coverage.out $(GO_PKGROOT)
+	env GOOS=$(GOOS) $(GO_TEST) -cover -coverpkg=$(shell $(GO_LIST) ./... | grep -v '/doc/' | paste -sd,) -coverprofile=coverage.out $(shell $(GO_LIST) ./... | grep -v '/doc/')
 	$(GO_TOOL) cover -html=coverage.out -o coverage.html
 
 lint: ## Run linter
