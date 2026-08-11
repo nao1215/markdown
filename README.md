@@ -11,7 +11,7 @@
 
 The markdown package is a simple markdown builder for Go. It assembles a document by method chaining instead of through a template engine such as [html/template](https://pkg.go.dev/html/template), and the syntax it emits follows GitHub Markdown.
 
-It also builds mermaid diagrams: entity relationship, sequence, user journey, git graph, mindmap, requirement, xy chart, packet, block, kanban, flowchart, pie chart, quadrant, state, class, Gantt, architecture, timeline, and sankey. That came from the package's origin, which was saving test results for [nao1215/spectest](https://github.com/nao1215/spectest).
+It also builds mermaid diagrams: entity relationship, sequence, user journey, git graph, mindmap, requirement, xy chart, packet, block, kanban, flowchart, pie chart, quadrant, state, class, Gantt, architecture, timeline, sankey, and radar. That came from the package's origin, which was saving test results for [nao1215/spectest](https://github.com/nao1215/spectest).
 
 Anything that would make the library complicated, such as generating nested lists, is out of scope. Staying simple matters more here.
 
@@ -59,6 +59,7 @@ Anything that would make the library complicated, such as generating nested list
 - [x] mermaid Gantt chart
 - [x] mermaid architecture diagram (beta feature) 
 - [x] mermaid timeline diagram
+- [x] mermaid radar chart
 - [x] mermaid sankey diagram
 
 ### Features not in Markdown syntax
@@ -1978,6 +1979,81 @@ Bio-conversion,Liquid,0.597
 Bio-conversion,"Losses, and more",26.862
 Bio-conversion,Solid,280.322
 Bio-conversion,Gas,81.144
+```
+
+### Radar syntax
+
+```go
+package main
+
+import (
+	"io"
+	"os"
+
+	"github.com/nao1215/markdown"
+	"github.com/nao1215/markdown/mermaid/radar"
+)
+
+//go:generate go run main.go
+
+func main() {
+	f, err := os.Create("generated.md")
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+
+	chart := radar.NewDiagram(io.Discard, radar.WithTitle("Grades")).
+		Axis("Math", "Science", "English").
+		Axis("History", "Art").
+		Curve("Alice", 85, 90, 80, 70, 75).
+		Curve("Bob", 70, 75, 85, 80, 90).
+		Max(100).
+		Min(0).
+		String()
+
+	err = markdown.NewMarkdown(f).
+		H2("Radar").
+		CodeBlocks(markdown.SyntaxHighlightMermaid, chart).
+		Build()
+
+	if err != nil {
+		panic(err)
+	}
+}
+```
+
+Axes are declared once, in order, and every curve gives its values in that same order. mermaid wants an identifier in front of each label; nothing in a radar chart refers to one, so the package numbers them and you pass only the labels.
+
+Plain text output: [markdown is here](./doc/radar/generated.md)
+````
+## Radar
+```mermaid
+---
+title: "Grades"
+---
+radar-beta
+  axis a1["Math"], a2["Science"], a3["English"]
+  axis a4["History"], a5["Art"]
+  curve c1["Alice"]{85, 90, 80, 70, 75}
+  curve c2["Bob"]{70, 75, 85, 80, 90}
+  max 100
+  min 0
+```
+````
+
+Mermaid output:
+```mermaid
+---
+title: "Grades"
+---
+radar-beta
+  axis a1["Math"], a2["Science"], a3["English"]
+  axis a4["History"], a5["Art"]
+  curve c1["Alice"]{85, 90, 80, 70, 75}
+  curve c2["Bob"]{70, 75, 85, 80, 90}
+  max 100
+  min 0
 ```
 
 ## Creating an index for a directory full of markdown files
