@@ -121,7 +121,9 @@ func TestMarkdownDetailsf(t *testing.T) {
 
 		m := NewMarkdown(os.Stdout)
 		m.Detailsf("Hello", "Good %s", "World")
-		want := fmt.Sprintf("<details><summary>Hello</summary>%sGood World%s</details>", internal.LineFeed(), internal.LineFeed())
+		want := fmt.Sprintf("<details>%s<summary>Hello</summary>%s%sGood World%s%s</details>%s",
+			internal.LineFeed(), internal.LineFeed(), internal.LineFeed(),
+			internal.LineFeed(), internal.LineFeed(), internal.LineFeed())
 		got := m.body[0]
 
 		if diff := cmp.Diff(want, got); diff != "" {
@@ -194,10 +196,9 @@ func TestMarkdownBlockquote(t *testing.T) {
 
 		m := NewMarkdown(os.Stdout)
 		m.Blockquote(fmt.Sprintf("%s%s%s%s%s", "Hello", internal.LineFeed(), "Good", internal.LineFeed(), "World"))
+		// One entry per quote, not per line: the quote is a single block.
 		want := []string{
-			"> Hello",
-			"> Good",
-			"> World",
+			"> Hello" + internal.LineFeed() + "> Good" + internal.LineFeed() + "> World",
 		}
 		got := m.body
 
@@ -887,7 +888,8 @@ func TestDetailsMethod(t *testing.T) {
 		m := NewMarkdown(os.Stdout)
 		m.Details("Summary", "Hidden content")
 
-		want := "<details><summary>Summary</summary>" + internal.LineFeed() + "Hidden content" + internal.LineFeed() + "</details>"
+		want := "<details>" + internal.LineFeed() + "<summary>Summary</summary>" + internal.LineFeed() + internal.LineFeed() +
+			"Hidden content" + internal.LineFeed() + internal.LineFeed() + "</details>" + internal.LineFeed()
 		got := m.String()
 
 		if diff := cmp.Diff(want, got); diff != "" {
@@ -901,7 +903,8 @@ func TestDetailsMethod(t *testing.T) {
 		m := NewMarkdown(os.Stdout)
 		m.Detailsf("Summary", "Hidden %s %d", "content", 42)
 
-		want := "<details><summary>Summary</summary>" + internal.LineFeed() + "Hidden content 42" + internal.LineFeed() + "</details>"
+		want := "<details>" + internal.LineFeed() + "<summary>Summary</summary>" + internal.LineFeed() + internal.LineFeed() +
+			"Hidden content 42" + internal.LineFeed() + internal.LineFeed() + "</details>" + internal.LineFeed()
 		got := m.String()
 
 		if diff := cmp.Diff(want, got); diff != "" {
@@ -1043,7 +1046,7 @@ func TestBuildMethodAndErrors(t *testing.T) {
 			t.Errorf("Build() returned error: %v", err)
 		}
 
-		want := "# Test"
+		want := "# Test" + internal.LineFeed()
 		got := buf.String()
 
 		if diff := cmp.Diff(want, got); diff != "" {
@@ -1199,7 +1202,7 @@ func TestEdgeCasesAndErrors(t *testing.T) {
 			t.Errorf("Build should not return error: %v", err)
 		}
 
-		want := "# Test"
+		want := "# Test" + internal.LineFeed()
 		got := buf.String()
 		if got != want {
 			t.Errorf("Expected %q, got %q", want, got)

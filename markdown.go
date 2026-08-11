@@ -176,20 +176,128 @@ func NewMarkdown(w io.Writer) *Markdown {
 
 // String returns markdown text.
 func (m *Markdown) String() string {
-	content := strings.Join(m.body, internal.LineFeed())
+	body := m.body
 
-	// Replace table of contents placeholders with actual table of contents content if present
 	if m.tocInserted && m.tocOptions != nil {
-		tocContent := m.generateTableOfContents()
-		if len(tocContent) > 0 {
-			tocText := strings.Join(tocContent, internal.LineFeed())
-			placeholder := TableOfContentsMarkerBegin + internal.LineFeed() + TableOfContentsMarkerEnd
-			replacement := TableOfContentsMarkerBegin + internal.LineFeed() + tocText + internal.LineFeed() + TableOfContentsMarkerEnd
-			content = strings.ReplaceAll(content, placeholder, replacement)
+		if toc := m.generateTableOfContents(); len(toc) > 0 {
+			body = insertTableOfContents(body, toc)
 		}
 	}
 
-	return content
+	return joinBlocks(body)
+}
+
+// joinBlocks joins the body, adding the blank line that markdown requires
+// between certain blocks.
+//
+// A blockquote or alert swallows whatever follows it by lazy continuation, and
+// a list swallows a table or a paragraph that starts on the next line. Both
+// produce documents that render wrongly on GitHub while looking fine in the
+// source, which is why callers of this package litter their code with manual
+// spacer calls. Everything else is joined exactly as before.
+func joinBlocks(body []string) string {
+	lf := internal.LineFeed()
+
+	var buf strings.Builder
+	for i, block := range body {
+		if i > 0 {
+			buf.WriteString(lf)
+			if needsBlankLine(body[i-1], block) {
+				buf.WriteString(lf)
+			}
+		}
+		buf.WriteString(block)
+	}
+	return buf.String()
+}
+
+// needsBlankLine reports whether a blank line has to separate two blocks.
+func needsBlankLine(prev, next string) bool {
+	// A whitespace-only entry, which is what LF() writes, already separates the
+	// blocks; adding another blank line would just pile them up.
+	if strings.TrimSpace(prev) == "" || strings.TrimSpace(next) == "" {
+		return false
+	}
+	// Table and Details already end with a line feed, so the join produces the
+	// blank line on its own.
+	if strings.HasSuffix(prev, internal.LineFeed()) {
+		return false
+	}
+	// An HTML comment renders as nothing and cannot absorb the block before it.
+	// The table of contents markers are comments, so this keeps the generated
+	// entries tucked against them.
+	if strings.HasPrefix(next, "<!--") {
+		return false
+	}
+
+	switch {
+	case isQuoteBlock(prev):
+		// Anything on the line after a quote is read as part of it.
+		return true
+	case isListItem(prev) && !isListItem(next):
+		return true
+	default:
+		return false
+	}
+}
+
+// isQuoteBlock reports whether the block is a blockquote or an alert.
+func isQuoteBlock(block string) bool {
+	return strings.HasPrefix(block, ">")
+}
+
+// isListItem reports whether the block is one item of a bullet, ordered, or
+// checkbox list. Those are appended one item per entry, so consecutive items
+// must not be separated.
+func isListItem(block string) bool {
+	trimmed := strings.TrimLeft(block, " ")
+	if strings.HasPrefix(trimmed, "- ") || strings.HasPrefix(trimmed, "* ") || strings.HasPrefix(trimmed, "+ ") {
+		return true
+	}
+
+	digits := 0
+	for digits < len(trimmed) && trimmed[digits] >= '0' && trimmed[digits] <= '9' {
+		digits++
+	}
+	return digits > 0 && strings.HasPrefix(trimmed[digits:], ". ")
+}
+
+// insertTableOfContents places the generated entries between the two marker
+// entries in the body.
+//
+// The markers are separate body entries, so this works on the slice rather than
+// on the joined text. Matching the joined text meant matching the exact pair
+// "<!-- BEGIN_TOC -->\n<!-- END_TOC -->", which silently stopped matching as
+// soon as anything was placed between the markers: the replacement quietly did
+// nothing and the document shipped with an empty table of contents.
+func insertTableOfContents(body, toc []string) []string {
+	begin := -1
+	for i, line := range body {
+		if line == TableOfContentsMarkerBegin {
+			begin = i
+			break
+		}
+	}
+	if begin == -1 {
+		return body
+	}
+
+	end := -1
+	for i := begin + 1; i < len(body); i++ {
+		if body[i] == TableOfContentsMarkerEnd {
+			end = i
+			break
+		}
+	}
+	if end == -1 {
+		return body
+	}
+
+	out := make([]string, 0, len(body)+len(toc))
+	out = append(out, body[:begin+1]...)
+	out = append(out, toc...)
+	out = append(out, body[end:]...)
+	return out
 }
 
 // Error returns error.
@@ -217,7 +325,15 @@ func (m *Markdown) Build() error {
 		return errors.New("failed to write markdown text: destination writer is nil")
 	}
 
-	if _, err := fmt.Fprint(m.dest, m.String()); err != nil {
+	// A document written to a file has to end with a newline: markdownlint MD047
+	// requires it, and appending a second document to the same writer would
+	// otherwise splice its first line onto the last line of this one.
+	out := m.String()
+	if !strings.HasSuffix(out, internal.LineFeed()) {
+		out += internal.LineFeed()
+	}
+
+	if _, err := fmt.Fprint(m.dest, out); err != nil {
 		if m.err != nil {
 			return fmt.Errorf("failed to write markdown text: %w: %s", err, m.err.Error()) //nolint:wrapcheck
 		}
@@ -449,11 +565,17 @@ func generateGitHubAnchor(text string) string {
 }
 
 // Details is markdown details.
+//
+// The body is surrounded by blank lines because an HTML block swallows
+// everything up to the next blank line: without them the markdown inside
+// <details> renders as literal text, and the block that follows </details>
+// disappears into the same HTML block.
 func (m *Markdown) Details(summary, text string) *Markdown {
+	lf := internal.LineFeed()
 	m.body = append(
 		m.body,
-		fmt.Sprintf("<details><summary>%s</summary>%s%s%s</details>",
-			summary, internal.LineFeed(), text, internal.LineFeed()))
+		fmt.Sprintf("<details>%s<summary>%s</summary>%s%s%s%s%s</details>%s",
+			lf, summary, lf, lf, text, lf, lf, lf))
 	return m
 }
 
@@ -503,10 +625,17 @@ func (m *Markdown) CheckBox(set []CheckBoxSet) *Markdown {
 // Blockquote is markdown blockquote.
 // If you set text "Hello", it will be converted to "> Hello".
 func (m *Markdown) Blockquote(text string) *Markdown {
-	lines := strings.Split(text, internal.LineFeed())
-	for _, line := range lines {
-		m.body = append(m.body, fmt.Sprintf("> %s", line))
+	// Split on "\n" after dropping "\r": splitting on internal.LineFeed() meant
+	// a plain Go literal containing "\n" was never split on Windows, and the
+	// quote silently covered only its first line.
+	lines := strings.Split(strings.ReplaceAll(text, "\r\n", "\n"), "\n")
+	for i, line := range lines {
+		lines[i] = fmt.Sprintf("> %s", line)
 	}
+	// One entry per quote rather than one per line: the whole quote is a single
+	// block, and the join has to be able to put a blank line after it without
+	// cutting it in half.
+	m.body = append(m.body, strings.Join(lines, internal.LineFeed()))
 	return m
 }
 
