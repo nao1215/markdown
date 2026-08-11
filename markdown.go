@@ -232,10 +232,19 @@ func (m *Markdown) String() string {
 // Text that reaches the builder from elsewhere, such as a table rendered by
 // tablewriter, is separated by "\n" regardless of platform.
 func normalizeLineFeeds(text string) string {
-	if internal.LineFeed() == "\n" {
+	return normalizeLineFeedsTo(text, internal.LineFeed())
+}
+
+// normalizeLineFeedsTo rewrites every line ending in text to lineFeed.
+//
+// The target line ending is a parameter rather than read from the platform so
+// that both answers can be tested wherever the tests run. Reading the platform
+// here left the Windows branch untested on Linux and the other way round.
+func normalizeLineFeedsTo(text, lineFeed string) string {
+	if lineFeed == "\n" {
 		return strings.ReplaceAll(text, "\r\n", "\n")
 	}
-	return strings.ReplaceAll(strings.ReplaceAll(text, "\r\n", "\n"), "\n", internal.LineFeed())
+	return strings.ReplaceAll(strings.ReplaceAll(text, "\r\n", "\n"), "\n", lineFeed)
 }
 
 // joinBlocks joins the body, adding the blank line that markdown requires

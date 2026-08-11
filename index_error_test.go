@@ -66,6 +66,10 @@ func TestFirstH1orH2(t *testing.T) {
 		"no heading":             {write("none.md", "just text\n"), ""},
 		"empty file":             {write("empty.md", ""), ""},
 		"missing file":           {filepath.Join(dir, "absent.md"), ""},
+		"indented heading":       {write("indented.md", "   # Title\n"), "Title"},
+		// A directory opens without error on some platforms and fails to scan,
+		// which is the other way the lookup can come up empty.
+		"a directory": {dir, ""},
 	}
 
 	for name, tt := range tests {

@@ -26,3 +26,27 @@ func TestLineFeed(t *testing.T) {
 		}
 	})
 }
+
+// TestLineFeedPerOperatingSystem covers both answers on whichever platform the
+// tests run on. The branch that is not the current platform's is the half most
+// likely to be wrong, because nothing exercises it by accident.
+func TestLineFeedPerOperatingSystem(t *testing.T) {
+	t.Parallel()
+
+	tests := map[string]string{
+		"windows": "\r\n",
+		"linux":   "\n",
+		"darwin":  "\n",
+		"plan9":   "\n",
+	}
+
+	for goos, want := range tests {
+		t.Run(goos, func(t *testing.T) {
+			t.Parallel()
+
+			if got := lineFeed(goos); got != want {
+				t.Errorf("lineFeed(%q) = %q, want %q", goos, got, want)
+			}
+		})
+	}
+}

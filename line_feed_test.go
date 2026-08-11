@@ -122,3 +122,34 @@ func TestCustomTableAlignmentSurvivesLineFeedConversion(t *testing.T) {
 		t.Errorf("alignment markers missing from the delimiter row: %q", lines[1])
 	}
 }
+
+// TestNormalizeLineFeedsToEitherPlatform covers both targets on whichever
+// platform the tests run on, rather than only the one the platform provides.
+func TestNormalizeLineFeedsToEitherPlatform(t *testing.T) {
+	t.Parallel()
+
+	tests := map[string]struct {
+		in       string
+		lineFeed string
+		want     string
+	}{
+		"unix input to unix":       {in: "a\nb", lineFeed: "\n", want: "a\nb"},
+		"windows input to unix":    {in: "a\r\nb", lineFeed: "\n", want: "a\nb"},
+		"mixed input to unix":      {in: "a\r\nb\nc", lineFeed: "\n", want: "a\nb\nc"},
+		"unix input to windows":    {in: "a\nb", lineFeed: "\r\n", want: "a\r\nb"},
+		"windows input to windows": {in: "a\r\nb", lineFeed: "\r\n", want: "a\r\nb"},
+		"mixed input to windows":   {in: "a\r\nb\nc", lineFeed: "\r\n", want: "a\r\nb\r\nc"},
+		"no line feeds":            {in: "abc", lineFeed: "\r\n", want: "abc"},
+		"empty":                    {in: "", lineFeed: "\r\n", want: ""},
+	}
+
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			if got := normalizeLineFeedsTo(tt.in, tt.lineFeed); got != tt.want {
+				t.Errorf("normalizeLineFeedsTo(%q, %q) = %q, want %q", tt.in, tt.lineFeed, got, tt.want)
+			}
+		})
+	}
+}
