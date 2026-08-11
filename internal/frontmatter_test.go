@@ -81,9 +81,26 @@ func TestFrontMatterTitle(t *testing.T) {
 			want:  `title: "Checkout\\\"API"`,
 		},
 		{
-			name:  "control characters are escaped",
+			name:  "control characters with a shorthand are escaped",
 			title: "Checkout\tAPI\r\nv2",
 			want:  `title: "Checkout\tAPI\r\nv2"`,
+		},
+		{
+			// Left literal, these end the scalar with "expected valid JSON
+			// character" and take the diagram down with them.
+			name:  "control characters without a shorthand are escaped",
+			title: "Checkout\x01API\x1bv2\x7f",
+			want:  `title: "Checkout\x01API\x1bv2\x7f"`,
+		},
+		{
+			name:  "vertical tab and bell keep their shorthand",
+			title: "Checkout\vAPI\av2",
+			want:  `title: "Checkout\vAPI\av2"`,
+		},
+		{
+			name:  "printable non-ASCII is left alone",
+			title: "Café ☕",
+			want:  `title: "Café ☕"`,
 		},
 		{
 			name:  "empty title",

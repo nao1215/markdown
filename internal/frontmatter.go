@@ -3,7 +3,7 @@ package internal
 
 import (
 	"fmt"
-	"strings"
+	"strconv"
 )
 
 // FrontMatterTitle returns the `title:` line of a mermaid front matter block.
@@ -19,16 +19,13 @@ func FrontMatterTitle(title string) string {
 }
 
 // quoteYAML returns value as a double quoted YAML scalar.
+//
+// strconv.Quote does the escaping because Go's double quoted form and YAML's
+// agree on every escape it emits: \\, \", the \a \b \f \n \r \t \v shorthands,
+// and the \xNN, \uNNNN and \UNNNNNNNN forms for everything else. Hand rolling
+// the replacements misses the control characters that have no shorthand, and a
+// literal control character inside a quoted scalar is a parse error, which loses
+// the whole diagram rather than mangling one line of it.
 func quoteYAML(value string) string {
-	// The characters a double quoted YAML scalar cannot carry as themselves. The
-	// backslash comes first, or it would escape the backslashes that the later
-	// replacements introduce.
-	escapes := strings.NewReplacer(
-		`\`, `\\`,
-		`"`, `\"`,
-		"\n", `\n`,
-		"\r", `\r`,
-		"\t", `\t`,
-	)
-	return `"` + escapes.Replace(value) + `"`
+	return strconv.Quote(value)
 }
