@@ -18,12 +18,15 @@ func main() {
 1. Ordered Item 1
 2. Ordered Item 2
 3. Ordered Item 3
+
 ## CheckBox
 - [ ] `sample code`
 - [x] [Go](https://golang.org)
 - [ ] ~~strikethrough~~
+
 ## Blockquote
 > If you can dream it, you can do it.
+
 ### Horizontal Rule
 ---
 ## Table
