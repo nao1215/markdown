@@ -690,6 +690,88 @@ type TableSet struct {
 	// Alignment is column alignment for each column.
 	// If nil or shorter than header length, remaining columns use AlignDefault.
 	Alignment []TableAlignment
+	// EscapeCells runs every header and row cell through EscapeTableCell.
+	//
+	// It is off by default because cells often hold markup the caller built on
+	// purpose, with Link or Bold, and because callers who already escape their
+	// own data would end up escaping it twice. Turn it on when the cells carry
+	// arbitrary text that may contain a pipe or a newline.
+	EscapeCells bool
+}
+
+// EscapeTableCell makes text safe to place in a table cell.
+//
+// A pipe ends the cell, so a pipe in the data silently splits it in two and
+// drops the last column of the row; a newline ends the row outright. Neither
+// produces an error, and ValidateColumns cannot see either, because the row
+// still has the right length before it is serialized.
+//
+// The function is idempotent: a pipe that the caller already escaped is left
+// alone, so passing text through it twice is harmless.
+func EscapeTableCell(s string) string {
+	var b strings.Builder
+	b.Grow(len(s))
+
+	for i := 0; i < len(s); i++ {
+		switch s[i] {
+		case '\\':
+			if i+1 < len(s) {
+				switch s[i+1] {
+				case '|', '\\':
+					// Keep an existing escape intact, including the character it
+					// escapes, so "\|" does not become "\\|".
+					b.WriteByte(s[i])
+					i++
+					b.WriteByte(s[i])
+					continue
+				case '\n', '\r':
+					// A backslash before a line break is a hard break. The break
+					// itself is rewritten below, so drop the backslash rather than
+					// letting it carry the line ending through untouched.
+					continue
+				}
+			}
+			b.WriteByte(s[i])
+		case '|':
+			b.WriteString(`\|`)
+		case '\r':
+			// Swallow the CR of a CRLF pair; a lone CR ends the line too.
+			if i+1 < len(s) && s[i+1] == '\n' {
+				continue
+			}
+			b.WriteString("<br>")
+		case '\n':
+			b.WriteString("<br>")
+		default:
+			b.WriteByte(s[i])
+		}
+	}
+	return b.String()
+}
+
+// escaped returns the table with every cell escaped, leaving the original
+// untouched so the caller's slices are not modified.
+func (t TableSet) escaped() TableSet {
+	header := make([]string, len(t.Header))
+	for i, cell := range t.Header {
+		header[i] = EscapeTableCell(cell)
+	}
+
+	rows := make([][]string, len(t.Rows))
+	for i, row := range t.Rows {
+		escapedRow := make([]string, len(row))
+		for j, cell := range row {
+			escapedRow[j] = EscapeTableCell(cell)
+		}
+		rows[i] = escapedRow
+	}
+
+	return TableSet{
+		Header:      header,
+		Rows:        rows,
+		Alignment:   t.Alignment,
+		EscapeCells: t.EscapeCells,
+	}
 }
 
 // ValidateColumns checks if the number of columns in the header and records match.
@@ -716,6 +798,10 @@ func (m *Markdown) Table(t TableSet) *Markdown {
 
 	if len(t.Header) == 0 {
 		return m
+	}
+
+	if t.EscapeCells {
+		t = t.escaped()
 	}
 
 	var buf strings.Builder
@@ -782,6 +868,10 @@ func (m *Markdown) CustomTable(t TableSet, options TableOptions) *Markdown {
 		} else {
 			m.err = fmt.Errorf("failed to validate columns: %w", err)
 		}
+	}
+
+	if t.EscapeCells {
+		t = t.escaped()
 	}
 
 	buf := &strings.Builder{}
