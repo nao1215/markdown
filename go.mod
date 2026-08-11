@@ -8,6 +8,7 @@ require (
 	github.com/google/go-cmp v0.7.0
 	github.com/karrick/godirwalk v1.17.0
 	github.com/olekukonko/tablewriter v1.1.4
+	github.com/yuin/goldmark v1.8.5
 )
 
 require (
