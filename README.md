@@ -15,6 +15,10 @@ It also builds mermaid diagrams: entity relationship, sequence, user journey, gi
 
 Anything that would make the library complicated, such as generating nested lists, is out of scope. Staying simple matters more here.
 
+## Specification
+
+[SPEC.md](SPEC.md) states which markdown this library generates, what it deliberately leaves out, and what stays unchanged between releases. Read it before opening a feature request, and read it if you depend on the generated documents not changing under you.
+
 ## Supported OS and go version
 - OS: Linux, macOS, Windows
 - Go: 1.23 or later
