@@ -1,0 +1,15 @@
+block
+    rectangle["rectangle"]
+    round("round")
+    stadium(["stadium"])
+    subroutine[["subroutine"]]
+    cylinder[("cylinder")]
+    circle(("circle"))
+    asymmetric>"asymmetric"]
+    rhombus{"rhombus"}
+    hexagon{{"hexagon"}}
+    parallelogram[/"parallelogram"/]
+    parallelogramAlt[\"parallelogramAlt"\]
+    trapezoid[/"trapezoid"\]
+    trapezoidAlt[\"trapezoidAlt"/]
+    doubleCircle((("doubleCircle")))
