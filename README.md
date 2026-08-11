@@ -11,7 +11,7 @@
 
 The markdown package is a simple markdown builder for Go. It assembles a document by method chaining instead of through a template engine such as [html/template](https://pkg.go.dev/html/template), and the syntax it emits follows GitHub Markdown.
 
-It also builds mermaid diagrams: entity relationship, sequence, user journey, git graph, mindmap, requirement, xy chart, packet, block, kanban, flowchart, pie chart, quadrant, state, class, Gantt, and architecture. That came from the package's origin, which was saving test results for [nao1215/spectest](https://github.com/nao1215/spectest).
+It also builds mermaid diagrams: entity relationship, sequence, user journey, git graph, mindmap, requirement, xy chart, packet, block, kanban, flowchart, pie chart, quadrant, state, class, Gantt, architecture, and timeline. That came from the package's origin, which was saving test results for [nao1215/spectest](https://github.com/nao1215/spectest).
 
 Anything that would make the library complicated, such as generating nested lists, is out of scope. Staying simple matters more here.
 
@@ -58,6 +58,7 @@ Anything that would make the library complicated, such as generating nested list
 - [x] mermaid class diagram
 - [x] mermaid Gantt chart
 - [x] mermaid architecture diagram (beta feature) 
+- [x] mermaid timeline diagram
 
 ### Features not in Markdown syntax
 - Generate badges; RedBadge(), YellowBadge(), GreenBadge().
@@ -1833,6 +1834,81 @@ gantt
     Review :review, after code, 2d
     section Release
     Launch :milestone, launch, 2024-01-26, 0d
+```
+
+### Timeline syntax
+
+```go
+package main
+
+import (
+	"io"
+	"os"
+
+	"github.com/nao1215/markdown"
+	"github.com/nao1215/markdown/mermaid/timeline"
+)
+
+//go:generate go run main.go
+
+func main() {
+	f, err := os.Create("generated.md")
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+
+	diagram := timeline.NewDiagram(
+		io.Discard,
+		timeline.WithTitle("History of Social Media"),
+	).
+		Period("2002", "LinkedIn").
+		Section("Second wave").
+		Period("2004", "Facebook", "Google").
+		Period("2005", "YouTube").
+		Section("Third wave").
+		Period("2006", "Twitter").
+		Event("Reddit").
+		String()
+
+	err = markdown.NewMarkdown(f).
+		H2("Timeline").
+		CodeBlocks(markdown.SyntaxHighlightMermaid, diagram).
+		Build()
+
+	if err != nil {
+		panic(err)
+	}
+}
+```
+
+A period holds as many events as you give it, and `Event` adds one more to the period written last. A colon in any text is emitted as `&#58;`, because a colon is what separates a period from its events; it reaches the reader as a colon either way, so `Period("09:00", "Stand up")` says what it looks like.
+
+Plain text output: [markdown is here](./doc/timeline/generated.md)
+````
+## Timeline
+```mermaid
+timeline
+    title History of Social Media
+    2002 : LinkedIn
+    section Second wave
+        2004 : Facebook : Google
+        2005 : YouTube
+    section Third wave
+        2006 : Twitter : Reddit
+```
+````
+
+Mermaid output:
+```mermaid
+timeline
+    title History of Social Media
+    2002 : LinkedIn
+    section Second wave
+        2004 : Facebook : Google
+        2005 : YouTube
+    section Third wave
+        2006 : Twitter : Reddit
 ```
 
 ## Creating an index for a directory full of markdown files
