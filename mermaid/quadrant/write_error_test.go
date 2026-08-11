@@ -7,12 +7,16 @@ import (
 	"github.com/nao1215/markdown/mermaid/quadrant"
 )
 
+// errWrite is the failure the writer below reports, so the test can assert that
+// Build passed it through rather than inventing an error of its own.
+var errWrite = errors.New("write failed")
+
 // errWriter fails every write, which is what a full disk or a closed pipe looks
 // like to Build.
 type errWriter struct{}
 
 func (errWriter) Write([]byte) (int, error) {
-	return 0, errors.New("write failed")
+	return 0, errWrite
 }
 
 // TestBuildReportsWriteFailure covers the branch where the destination accepts
@@ -24,5 +28,8 @@ func TestBuildReportsWriteFailure(t *testing.T) {
 	err := quadrant.NewChart(errWriter{}).Build()
 	if err == nil {
 		t.Fatal("Build must report a failing writer")
+	}
+	if !errors.Is(err, errWrite) {
+		t.Errorf("Build lost the destination error: %v", err)
 	}
 }

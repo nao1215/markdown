@@ -37,5 +37,10 @@ jobs:
         with:
           go-version: ${{ matrix.go }}
 
+      # Same package scope as coverage.yml: doc/ holds sample programs whose
+      # main() no test calls, so counting them measures the samples.
       - name: Run tests with coverage report output
-        run: go test -cover -coverpkg=./... -coverprofile=coverage.out ./...
+        shell: bash
+        run: |
+          pkgs="$(go list ./... | grep -v '/doc/')"
+          go test -cover -coverpkg="$(echo "$pkgs" | paste -sd,)" -coverprofile=coverage.out $pkgs
