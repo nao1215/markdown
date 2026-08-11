@@ -142,9 +142,26 @@ func FuzzTableOfContentsAnchorsMatchHeadings(f *testing.F) {
 			}
 		}
 
+		// Scan only between the markers. A heading is arbitrary text and can
+		// itself contain "](#", so scanning the whole document would pick up the
+		// heading rather than the generated link and report a false failure.
+		// The link is the last "](#" on the line for the same reason.
 		entries := 0
+		inTOC := false
 		for _, line := range strings.Split(m.String(), internal.LineFeed()) {
-			open := strings.Index(line, "](#")
+			switch line {
+			case TableOfContentsMarkerBegin:
+				inTOC = true
+				continue
+			case TableOfContentsMarkerEnd:
+				inTOC = false
+				continue
+			}
+			if !inTOC {
+				continue
+			}
+
+			open := strings.LastIndex(line, "](#")
 			if open == -1 || !strings.HasSuffix(line, ")") {
 				continue
 			}
