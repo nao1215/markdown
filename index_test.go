@@ -17,7 +17,12 @@ import (
 // generated index lists every markdown file it finds: sharing the tree with the
 // golden documents of the other tests would make every new golden file change
 // the expected index.
-const indexFixtureDir = "testdata/index"
+//
+// The path is joined rather than written as "testdata/index" because
+// GenerateIndex strips the target directory from each walked path using the
+// platform separator, so a forward slash here produces the wrong links on
+// Windows. See the issue linked from the pull request that added this.
+var indexFixtureDir = filepath.Join("testdata", "index")
 
 func TestGenerateIndex(t *testing.T) {
 	t.Parallel()
