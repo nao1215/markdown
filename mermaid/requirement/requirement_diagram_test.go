@@ -8,13 +8,9 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/nao1215/markdown/internal/buildertest"
+	"github.com/nao1215/markdown/internal/golden"
 )
-
-type failingWriter struct{}
-
-func (f failingWriter) Write([]byte) (int, error) {
-	return 0, errors.New("write failed")
-}
 
 func TestNewDiagram(t *testing.T) {
 	t.Parallel()
@@ -535,7 +531,7 @@ func TestDiagram_Error(t *testing.T) {
 func TestDiagram_BuildStoresError(t *testing.T) {
 	t.Parallel()
 
-	d := NewDiagram(failingWriter{})
+	d := NewDiagram(errWriter{})
 	err := d.Build()
 	if err == nil {
 		t.Fatal("expected error, got nil")
@@ -736,5 +732,214 @@ func TestDiagram_BuildWithExistingErrorAndLF(t *testing.T) {
 	}
 	if diff := cmp.Diff("requirementDiagram\n", strings.ReplaceAll(lf.String(), "\r\n", "\n")); diff != "" {
 		t.Errorf("value is mismatch (-want +got):\n%s", diff)
+	}
+}
+
+// TestBuildContract asserts the error handling every builder in this module
+// shares. The contract itself lives in internal/buildertest.
+func TestBuildContract(t *testing.T) {
+	t.Parallel()
+
+	buildertest.RunBuildContract(t, func(w io.Writer) buildertest.Builder {
+		return NewDiagram(w).Requirement(
+			"a requirement",
+			WithID("1"),
+			WithText("the system shall do the thing"),
+			WithRisk(RiskLow),
+			WithVerifyMethod(VerifyMethodTest),
+		)
+	})
+}
+
+// TestRecordedErrorContract asserts that a requirement missing the fields the syntax needs surfaces from Build.
+func TestRecordedErrorContract(t *testing.T) {
+	t.Parallel()
+
+	buildertest.RunRecordedErrorContract(t, func(w io.Writer) buildertest.Builder {
+		return NewDiagram(w).Requirement("a requirement with no id")
+	})
+}
+
+// TestGoldenRequirement pins the rendered diagram of every requirement kind,
+// every relationship, and every styling method of this package.
+//
+// Every requirement carries an id and a text because the builder requires both.
+func TestGoldenRequirement(t *testing.T) {
+	t.Parallel()
+
+	buf := &bytes.Buffer{}
+	err := NewDiagram(buf, WithTitle("System Requirements")).
+		SetDirection(DirectionLR).
+		Requirement("plain requirement",
+			WithID("1"),
+			WithText("the system shall do the thing"),
+			WithRisk(RiskLow),
+			WithVerifyMethod(VerifyMethodTest),
+		).
+		Requirement("full requirement",
+			WithID("2"),
+			WithText("the system shall do the other thing"),
+			WithRisk(RiskHigh),
+			WithVerifyMethod(VerifyMethodTest),
+		).
+		RequirementOfType(RequirementTypeRequirement, "typed requirement",
+			WithID("3"),
+			WithText("stated with an explicit type"),
+			WithRisk(RiskMedium),
+			WithVerifyMethod(VerifyMethodTest),
+		).
+		FunctionalRequirement("functional",
+			WithID("4"),
+			WithText("a functional requirement"),
+			WithRisk(RiskLow),
+			WithVerifyMethod(VerifyMethodTest),
+		).
+		InterfaceRequirement("interface",
+			WithID("5"),
+			WithText("an interface requirement"),
+			WithRisk(RiskMedium),
+			WithVerifyMethod(VerifyMethodAnalysis),
+		).
+		PerformanceRequirement("performance",
+			WithID("6"),
+			WithText("a performance requirement"),
+			WithRisk(RiskMedium),
+			WithVerifyMethod(VerifyMethodInspection),
+		).
+		PhysicalRequirement("physical",
+			WithID("7"),
+			WithText("a physical requirement"),
+			WithRisk(RiskMedium),
+			WithVerifyMethod(VerifyMethodDemonstration),
+		).
+		DesignConstraint("design constraint",
+			WithID("8"),
+			WithText("a design constraint"),
+			WithRisk(RiskHigh),
+			WithVerifyMethod(VerifyMethodInspection),
+		).
+		Requirement("classified requirement",
+			WithID("9"),
+			WithText("a requirement carrying classes"),
+			WithRisk(RiskLow),
+			WithVerifyMethod(VerifyMethodAnalysis),
+			WithRequirementClasses("important", "reviewed"),
+		).
+		LF().
+		Element("test suite",
+			WithElementType("simulation"),
+			WithDocRef("./tests"),
+		).
+		Element("classified element", WithElementClasses("important")).
+		LF().
+		Relation("plain requirement", RelationshipContains, "functional").
+		Contains("plain requirement", "interface").
+		Copies("functional", "interface").
+		Derives("functional", "performance").
+		Satisfies("test suite", "functional").
+		Verifies("test suite", "interface").
+		Refines("performance", "physical").
+		Traces("physical", "design constraint").
+		LF().
+		Style("functional", "fill:#f9f").
+		ClassDef("important", "fill:#ffa").
+		ClassDefs(
+			Def("reviewed", "stroke:#0a0"),
+			Def("legacy", "stroke-dasharray: 5 5"),
+		).
+		Class("interface", "important").
+		ClassShorthand("performance", "important", "reviewed").
+		Build()
+	if err != nil {
+		t.Fatalf("Build() = %v, want nil", err)
+	}
+
+	if err := golden.Assert("requirement.md", buf.String()); err != nil {
+		t.Error(err)
+	}
+}
+
+// TestGoldenRequirementSourceRelations pins the fluent relation builder, which
+// states the source once and then chains every relationship from it.
+func TestGoldenRequirementSourceRelations(t *testing.T) {
+	t.Parallel()
+
+	buf := &bytes.Buffer{}
+	err := NewDiagram(buf).
+		Requirement("root",
+			WithID("1"),
+			WithText("the root requirement"),
+			WithRisk(RiskLow),
+			WithVerifyMethod(VerifyMethodTest),
+		).
+		From("root").
+		Contains("child").
+		Copies("copy").
+		Derives("derived").
+		Satisfies("satisfied").
+		Verifies("verified").
+		Refines("refined").
+		Traces("traced").
+		Relation(RelationshipContains, "explicit").
+		Build()
+	if err != nil {
+		t.Fatalf("Build() = %v, want nil", err)
+	}
+
+	if err := golden.Assert("requirement_source_relations.md", buf.String()); err != nil {
+		t.Error(err)
+	}
+}
+
+// TestBuildWithNilWriter covers the case where a diagram is built for String()
+// only and Build() is called by mistake. Build() used to dereference the nil
+// writer and take the process down; it has to return an error instead.
+func TestBuildWithNilWriter(t *testing.T) {
+	t.Parallel()
+
+	defer func() {
+		if r := recover(); r != nil {
+			t.Fatalf("Build() panicked with a nil writer: %v", r)
+		}
+	}()
+
+	d := NewDiagram(nil)
+
+	// String() has always worked without a writer, and callers rely on it.
+	_ = d.String()
+
+	err := d.Build()
+	if err == nil {
+		t.Fatal("Build() with a nil writer must return an error")
+	}
+	if err.Error() != "output writer must not be nil" {
+		t.Errorf("unexpected error message: %v", err)
+	}
+}
+
+// errWrite is the failure the writer below reports, so the test can assert that
+// Build passed it through rather than inventing an error of its own.
+var errWrite = errors.New("write failed")
+
+// errWriter fails every write, which is what a full disk or a closed pipe looks
+// like to Build.
+type errWriter struct{}
+
+func (errWriter) Write([]byte) (int, error) {
+	return 0, errWrite
+}
+
+// TestBuildReportsWriteFailure covers the branch where the destination accepts
+// the diagram and then fails. Silently returning nil there would hand the caller
+// a document that was never written.
+func TestBuildReportsWriteFailure(t *testing.T) {
+	t.Parallel()
+
+	err := NewDiagram(errWriter{}).Build()
+	if err == nil {
+		t.Fatal("Build must report a failing writer")
+	}
+	if !errors.Is(err, errWrite) {
+		t.Errorf("Build lost the destination error: %v", err)
 	}
 }

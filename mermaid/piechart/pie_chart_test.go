@@ -3,11 +3,15 @@ package piechart
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
+	"io"
 	"strings"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/nao1215/markdown/internal/buildertest"
+	"github.com/nao1215/markdown/internal/golden"
 )
 
 func TestPieChart_Build(t *testing.T) {
@@ -131,4 +135,92 @@ func TestPieChart_Build(t *testing.T) {
 			t.Errorf("value is mismatch (-want +got):%s", diff)
 		}
 	})
+}
+
+// TestBuildContract asserts the error handling every builder in this module
+// shares. The contract itself lives in internal/buildertest.
+func TestBuildContract(t *testing.T) {
+	t.Parallel()
+
+	buildertest.RunBuildContract(t, func(w io.Writer) buildertest.Builder {
+		return NewPieChart(w).LabelAndIntValue("Go", 120)
+	})
+}
+
+// TestGoldenPieChart pins the rendered chart of every builder method and every
+// option of this package.
+func TestGoldenPieChart(t *testing.T) {
+	t.Parallel()
+
+	buf := &bytes.Buffer{}
+	err := NewPieChart(
+		buf,
+		WithTitle("Language Share"),
+		WithShowData(true),
+		WithTextPosition(0.75),
+	).
+		LabelAndIntValue("Go", 120).
+		LabelAndFloatValue("Rust", 42.5).
+		LabelAndFloatValue("Zig", 0.5).
+		Build()
+	if err != nil {
+		t.Fatalf("Build() = %v, want nil", err)
+	}
+
+	if err := golden.Assert("piechart.md", buf.String()); err != nil {
+		t.Error(err)
+	}
+}
+
+// TestBuildWithNilWriter covers the case where a pie chart is built for String()
+// only and Build() is called by mistake. Build() used to dereference the nil
+// writer and take the process down; it has to return an error instead.
+func TestBuildWithNilWriter(t *testing.T) {
+	t.Parallel()
+
+	defer func() {
+		if r := recover(); r != nil {
+			t.Fatalf("Build() panicked with a nil writer: %v", r)
+		}
+	}()
+
+	d := NewPieChart(nil)
+
+	// String() has always worked without a writer, and callers rely on it.
+	_ = d.String()
+
+	err := d.Build()
+	if err == nil {
+		t.Fatal("Build() with a nil writer must return an error")
+	}
+	if err.Error() != "output writer must not be nil" {
+		t.Errorf("unexpected error message: %v", err)
+	}
+}
+
+// errWrite is the failure the writer below reports, so the test can assert that
+// Build passed it through rather than inventing an error of its own.
+var errWrite = errors.New("write failed")
+
+// errWriter fails every write, which is what a full disk or a closed pipe looks
+// like to Build.
+type errWriter struct{}
+
+func (errWriter) Write([]byte) (int, error) {
+	return 0, errWrite
+}
+
+// TestBuildReportsWriteFailure covers the branch where the destination accepts
+// the diagram and then fails. Silently returning nil there would hand the caller
+// a document that was never written.
+func TestBuildReportsWriteFailure(t *testing.T) {
+	t.Parallel()
+
+	err := NewPieChart(errWriter{}).Build()
+	if err == nil {
+		t.Fatal("Build must report a failing writer")
+	}
+	if !errors.Is(err, errWrite) {
+		t.Errorf("Build lost the destination error: %v", err)
+	}
 }

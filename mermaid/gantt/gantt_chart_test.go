@@ -2,11 +2,14 @@ package gantt
 
 import (
 	"bytes"
+	"errors"
 	"io"
 	"strings"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/nao1215/markdown/internal/buildertest"
+	"github.com/nao1215/markdown/internal/golden"
 )
 
 func TestNewChart(t *testing.T) {
@@ -367,5 +370,145 @@ func TestChart_ComplexExample(t *testing.T) {
 
 	if diff := cmp.Diff(want, got); diff != "" {
 		t.Errorf("value is mismatch (-want +got):\n%s", diff)
+	}
+}
+
+// TestBuildContract asserts the error handling every builder in this module
+// shares. The contract itself lives in internal/buildertest.
+func TestBuildContract(t *testing.T) {
+	t.Parallel()
+
+	buildertest.RunBuildContract(t, func(w io.Writer) buildertest.Builder {
+		return NewChart(w).Section("Planning").Task("Design", "2024-01-01", "2d")
+	})
+}
+
+// TestChartError covers the accessor callers use to find out why a chart came
+// out wrong, which nothing exercised.
+func TestChartError(t *testing.T) {
+	t.Parallel()
+
+	t.Run("a well formed chart reports no error", func(t *testing.T) {
+		t.Parallel()
+
+		c := NewChart(nil).Section("build").Task("compile", "2024-01-01", "1d")
+		if err := c.Error(); err != nil {
+			t.Errorf("unexpected error: %v", err)
+		}
+	})
+
+	t.Run("a nil writer is reported through Error after Build", func(t *testing.T) {
+		t.Parallel()
+
+		c := NewChart(nil)
+		if err := c.Build(); err == nil {
+			t.Fatal("Build with a nil writer must fail")
+		}
+		if c.Error() == nil {
+			t.Error("Error must report the failure Build returned")
+		}
+		if !strings.Contains(c.Error().Error(), "nil") {
+			t.Errorf("unexpected error: %v", c.Error())
+		}
+	})
+}
+
+// TestGoldenGanttChart pins the rendered chart of every option and every task
+// kind this package can build.
+func TestGoldenGanttChart(t *testing.T) {
+	t.Parallel()
+
+	buf := &bytes.Buffer{}
+	err := NewChart(
+		buf,
+		WithTitle("Every Task Kind"),
+		WithDateFormat("YYYY-MM-DD"),
+		WithAxisFormat("%m-%d"),
+		WithTickInterval("1week"),
+		WithExcludes("weekends", "2024-01-01"),
+		WithTodayMarker("stroke-width:4px"),
+	).
+		Section("Plain tasks").
+		Task("Task", "2024-01-01", "2d").
+		TaskWithID("Task with id", "task-id", "2024-01-03", "2d").
+		TaskAfter("Task after", "task-id", "1d").
+		TaskAfterWithID("Task after with id", "after-id", "task-id", "1d").
+		Section("Marked tasks").
+		CriticalTask("Critical", "2024-01-06", "1d").
+		CriticalTaskWithID("Critical with id", "crit-id", "2024-01-07", "1d").
+		ActiveTask("Active", "2024-01-08", "1d").
+		ActiveTaskWithID("Active with id", "active-id", "2024-01-09", "1d").
+		DoneTask("Done", "2024-01-10", "1d").
+		DoneTaskWithID("Done with id", "done-id", "2024-01-11", "1d").
+		CriticalActiveTask("Critical active", "2024-01-12", "1d").
+		CriticalActiveTaskWithID("Critical active with id", "crit-active-id", "2024-01-13", "1d").
+		CriticalDoneTask("Critical done", "2024-01-14", "1d").
+		CriticalDoneTaskWithID("Critical done with id", "crit-done-id", "2024-01-15", "1d").
+		LF().
+		Section("Milestones").
+		Milestone("Milestone", "2024-01-16").
+		MilestoneWithID("Milestone with id", "milestone-id", "2024-01-17").
+		CriticalMilestone("Critical milestone", "2024-01-18").
+		CriticalMilestoneWithID("Critical milestone with id", "crit-milestone-id", "2024-01-19").
+		Build()
+	if err != nil {
+		t.Fatalf("Build() = %v, want nil", err)
+	}
+
+	if err := golden.Assert("gantt.md", buf.String()); err != nil {
+		t.Error(err)
+	}
+}
+
+// TestBuildWithNilWriter covers the case where a chart is built for String()
+// only and Build() is called by mistake. Build() used to dereference the nil
+// writer and take the process down; it has to return an error instead.
+func TestBuildWithNilWriter(t *testing.T) {
+	t.Parallel()
+
+	defer func() {
+		if r := recover(); r != nil {
+			t.Fatalf("Build() panicked with a nil writer: %v", r)
+		}
+	}()
+
+	d := NewChart(nil)
+
+	// String() has always worked without a writer, and callers rely on it.
+	_ = d.String()
+
+	err := d.Build()
+	if err == nil {
+		t.Fatal("Build() with a nil writer must return an error")
+	}
+	if err.Error() != "output writer must not be nil" {
+		t.Errorf("unexpected error message: %v", err)
+	}
+}
+
+// errWrite is the failure the writer below reports, so the test can assert that
+// Build passed it through rather than inventing an error of its own.
+var errWrite = errors.New("write failed")
+
+// errWriter fails every write, which is what a full disk or a closed pipe looks
+// like to Build.
+type errWriter struct{}
+
+func (errWriter) Write([]byte) (int, error) {
+	return 0, errWrite
+}
+
+// TestBuildReportsWriteFailure covers the branch where the destination accepts
+// the diagram and then fails. Silently returning nil there would hand the caller
+// a document that was never written.
+func TestBuildReportsWriteFailure(t *testing.T) {
+	t.Parallel()
+
+	err := NewChart(errWriter{}).Build()
+	if err == nil {
+		t.Fatal("Build must report a failing writer")
+	}
+	if !errors.Is(err, errWrite) {
+		t.Errorf("Build lost the destination error: %v", err)
 	}
 }

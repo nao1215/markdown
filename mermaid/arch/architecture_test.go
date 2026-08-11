@@ -5,10 +5,14 @@ package arch
 
 import (
 	"bytes"
+	"errors"
+	"io"
 	"strings"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/nao1215/markdown/internal/buildertest"
+	"github.com/nao1215/markdown/internal/golden"
 )
 
 func TestArchitecture_Build(t *testing.T) {
@@ -167,4 +171,153 @@ func TestArchitecture_Build(t *testing.T) {
 			t.Errorf("value is mismatch (-want +got):%s", diff)
 		}
 	})
+}
+
+// TestBuildContract asserts the error handling every builder in this module
+// shares. The contract itself lives in internal/buildertest.
+func TestBuildContract(t *testing.T) {
+	t.Parallel()
+
+	buildertest.RunBuildContract(t, func(w io.Writer) buildertest.Builder {
+		return NewArchitecture(w).Service("api", IconServer, "API")
+	})
+}
+
+// TestGoldenArchitecture pins the rendered diagram of every builder method of
+// this package.
+func TestGoldenArchitecture(t *testing.T) {
+	t.Parallel()
+
+	buf := &bytes.Buffer{}
+	err := NewArchitecture(buf).
+		Group("api", IconCloud, "API").
+		GroupInParentGroup("storage", IconDatabase, "Storage", "api").
+		Service("gateway", IconInternet, "Gateway").
+		ServiceInGroup("db", IconDatabase, "Database", "storage").
+		ServiceInGroup("disk", IconDisk, "Disk", "storage").
+		ServiceInGroup("worker", IconServer, "Worker", "api").
+		Junction("hub").
+		JunctionsInParent("inner", "storage").
+		LF().
+		Edges(
+			Edge{ServiceID: "gateway", Position: PositionRight, Arrow: ArrowRight},
+			Edge{ServiceID: "hub", Position: PositionLeft, Arrow: ArrowNone},
+		).
+		Edges(
+			Edge{ServiceID: "hub", Position: PositionBottom, Arrow: ArrowNone},
+			Edge{ServiceID: "worker", Position: PositionTop, Arrow: ArrowLeft},
+		).
+		EdgesInAnothorGroup(
+			Edge{ServiceID: "worker", Position: PositionRight, Arrow: ArrowNone},
+			Edge{ServiceID: "db", Position: PositionLeft, Arrow: ArrowRight},
+		).
+		Build()
+	if err != nil {
+		t.Fatalf("Build() = %v, want nil", err)
+	}
+
+	if err := golden.Assert("architecture.md", buf.String()); err != nil {
+		t.Error(err)
+	}
+}
+
+func TestArchitecture_GroupInParentGroup(t *testing.T) {
+	t.Parallel()
+
+	t.Run("set group in parent group", func(t *testing.T) {
+		t.Parallel()
+
+		b := new(bytes.Buffer)
+		a := NewArchitecture(b)
+
+		if err := a.GroupInParentGroup("group1", "icon", "title", "parentGroup").Build(); err != nil {
+			t.Errorf("unexpected error: %v", err)
+		}
+
+		want := `architecture-beta
+    group group1(icon)[title] in parentGroup`
+		want = strings.ReplaceAll(want, "\r\n", "\n")
+		got := strings.ReplaceAll(b.String(), "\r\n", "\n")
+
+		if diff := cmp.Diff(want, got); diff != "" {
+			t.Errorf("value is mismatch (-want +got):%s", diff)
+		}
+	})
+}
+
+func TestArchitecture_JunctionsInParent(t *testing.T) {
+	t.Parallel()
+
+	t.Run("set junctions in parent", func(t *testing.T) {
+		t.Parallel()
+
+		b := new(bytes.Buffer)
+		a := NewArchitecture(b)
+
+		if err := a.JunctionsInParent("junction1", "parentGroup").Build(); err != nil {
+			t.Errorf("unexpected error: %v", err)
+		}
+
+		want := `architecture-beta
+    junction junction1 in parentGroup`
+		want = strings.ReplaceAll(want, "\r\n", "\n")
+		got := strings.ReplaceAll(b.String(), "\r\n", "\n")
+
+		if diff := cmp.Diff(want, got); diff != "" {
+			t.Errorf("value is mismatch (-want +got):%s", diff)
+		}
+	})
+}
+
+// TestBuildWithNilWriter covers the case where a architecture is built for String()
+// only and Build() is called by mistake. Build() used to dereference the nil
+// writer and take the process down; it has to return an error instead.
+func TestBuildWithNilWriter(t *testing.T) {
+	t.Parallel()
+
+	defer func() {
+		if r := recover(); r != nil {
+			t.Fatalf("Build() panicked with a nil writer: %v", r)
+		}
+	}()
+
+	d := NewArchitecture(nil)
+
+	// String() has always worked without a writer, and callers rely on it.
+	_ = d.String()
+
+	err := d.Build()
+	if err == nil {
+		t.Fatal("Build() with a nil writer must return an error")
+	}
+	if err.Error() != "output writer must not be nil" {
+		t.Errorf("unexpected error message: %v", err)
+	}
+}
+
+// errWrite is the failure the writer below reports, so the test can assert that
+// Build passed it through rather than inventing an error of its own.
+var errWrite = errors.New("write failed")
+
+// errWriter fails every write, which is what a full disk or a closed pipe looks
+// like to Build.
+type errWriter struct{}
+
+func (errWriter) Write([]byte) (int, error) {
+	return 0, errWrite
+}
+
+// TestBuildReportsWriteFailure covers the branch where the destination accepts
+// the diagram and then fails. Silently returning nil there would hand the caller
+// a document that was never written.
+func TestBuildReportsWriteFailure(t *testing.T) {
+	t.Parallel()
+
+	err := NewArchitecture(errWriter{}).Build()
+	if err == nil {
+		t.Fatal("Build must report a failing writer")
+	}
+	if !errors.Is(err, errWrite) {
+		t.Errorf("Build lost the destination error: %v", err)
+	}
 }
