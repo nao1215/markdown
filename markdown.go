@@ -728,6 +728,12 @@ func (m *Markdown) Blockquote(text string) *Markdown {
 // "```go
 // Hello
 // ```".
+//
+// The block is fenced with three backticks, so content holding a line that
+// starts with three backticks closes it early and everything after that line
+// renders as prose. Markdown's answer is a longer fence, which this method does
+// not write: a caller whose content can hold a fence has to build the block
+// itself with PlainText.
 func (m *Markdown) CodeBlocks(lang SyntaxHighlight, text string) *Markdown {
 	m.body = append(m.body,
 		fmt.Sprintf("```%s%s%s%s```", lang, internal.LineFeed(), text, internal.LineFeed()))
