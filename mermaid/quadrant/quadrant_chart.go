@@ -2,6 +2,7 @@
 package quadrant
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"strings"
@@ -53,6 +54,13 @@ func (ch *Chart) Error() error {
 
 // Build writes the quadrant chart body to the output destination.
 func (ch *Chart) Build() error {
+	if ch.dest == nil {
+		if ch.err == nil {
+			ch.err = errors.New("output writer must not be nil")
+		}
+		return ch.err
+	}
+
 	if _, err := fmt.Fprint(ch.dest, ch.String()); err != nil {
 		if ch.err != nil {
 			return fmt.Errorf("failed to write: %w: %s", err, ch.err.Error()) //nolint:wrapcheck

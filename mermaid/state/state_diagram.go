@@ -2,6 +2,7 @@
 package state
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"strings"
@@ -56,6 +57,13 @@ func (d *Diagram) Error() error {
 
 // Build writes the state diagram body to the output destination.
 func (d *Diagram) Build() error {
+	if d.dest == nil {
+		if d.err == nil {
+			d.err = errors.New("output writer must not be nil")
+		}
+		return d.err
+	}
+
 	if _, err := fmt.Fprint(d.dest, d.String()); err != nil {
 		if d.err != nil {
 			return fmt.Errorf("failed to write: %w: %s", err, d.err.Error()) //nolint:wrapcheck

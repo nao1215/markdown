@@ -74,6 +74,13 @@ func (d *Diagram) Error() error {
 
 // Build writes the mindmap diagram body to the output destination.
 func (d *Diagram) Build() error {
+	if d.dest == nil {
+		if d.err == nil {
+			d.err = errors.New("output writer must not be nil")
+		}
+		return d.err
+	}
+
 	if d.err != nil {
 		return d.err
 	}

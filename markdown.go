@@ -391,7 +391,19 @@ func (m *Markdown) generateTableOfContents() []string {
 	}
 
 	tocLines := make([]string, 0, len(m.headers))
-	minIndent := int(m.tocOptions.MinDepth)
+	// Indent relative to the shallowest heading that actually appears, not to
+	// the requested MinDepth. TableOfContents pins MinDepth at H1, so a document
+	// that starts at H2 would otherwise have every entry indented two spaces,
+	// producing a list nested under nothing.
+	minIndent := int(m.tocOptions.MaxDepth)
+	for _, header := range m.headers {
+		if header.level < m.tocOptions.MinDepth || header.level > m.tocOptions.MaxDepth {
+			continue
+		}
+		if int(header.level) < minIndent {
+			minIndent = int(header.level)
+		}
+	}
 	anchorCounts := make(map[string]int, len(m.headers))
 
 	for _, header := range m.headers {
@@ -698,8 +710,86 @@ func (m *Markdown) CustomTable(t TableSet, options TableOptions) *Markdown {
 		return m
 	}
 
-	m.body = append(m.body, buf.String())
+	m.body = append(m.body, applyAlignmentToDelimiterRow(buf.String(), t.Alignment))
 	return m
+}
+
+// applyAlignmentToDelimiterRow rewrites the delimiter row of a rendered table so
+// it carries the alignment colons markdown uses.
+//
+// tablewriter aligns by padding cells, which says nothing to a markdown reader:
+// alignment lives in the second row, as :--- / :---: / ---:. Without this,
+// TableSet.Alignment is silently dropped by CustomTable while Table honours it.
+// Each column keeps its rendered width so the source stays visually aligned.
+func applyAlignmentToDelimiterRow(rendered string, alignment []TableAlignment) string {
+	if len(alignment) == 0 {
+		return rendered
+	}
+
+	lineFeed := internal.LineFeed()
+	lines := strings.Split(rendered, lineFeed)
+	const delimiterRowIndex = 1
+	if len(lines) <= delimiterRowIndex {
+		return rendered
+	}
+
+	// The delimiter row is "|-----|------|"; splitting on "|" yields an empty
+	// field at each end.
+	// Splitting "|---|---|" on "|" leaves an empty field at each end, so a real
+	// delimiter row always yields at least two fields.
+	const minDelimiterFields = 2
+	columns := strings.Split(lines[delimiterRowIndex], "|")
+	if len(columns) < minDelimiterFields {
+		return rendered
+	}
+
+	for i := 1; i < len(columns)-1; i++ {
+		if strings.TrimLeft(columns[i], "-") != "" {
+			return rendered // not a delimiter row after all; leave it alone
+		}
+		align := AlignDefault
+		if i-1 < len(alignment) {
+			align = alignment[i-1]
+		}
+		columns[i] = delimiterCell(len(columns[i]), align)
+	}
+
+	lines[delimiterRowIndex] = strings.Join(columns, "|")
+	return strings.Join(lines, lineFeed)
+}
+
+const (
+	// oneSidedMarkerWidth is the narrowest cell that fits ":-" or "-:".
+	oneSidedMarkerWidth = 2
+	// twoSidedMarkerWidth is the narrowest cell that fits ":-:".
+	twoSidedMarkerWidth = 3
+)
+
+// delimiterCell renders one delimiter cell of the given width for the alignment.
+// The width is preserved so the rendered table keeps its columns lined up. A
+// column too narrow to hold its marker falls back to a plain rule rather than
+// widening the table.
+func delimiterCell(width int, align TableAlignment) string {
+	switch align {
+	case AlignLeft:
+		if width < oneSidedMarkerWidth {
+			return strings.Repeat("-", width)
+		}
+		return ":" + strings.Repeat("-", width-1)
+	case AlignRight:
+		if width < oneSidedMarkerWidth {
+			return strings.Repeat("-", width)
+		}
+		return strings.Repeat("-", width-1) + ":"
+	case AlignCenter:
+		if width < twoSidedMarkerWidth {
+			return strings.Repeat("-", width)
+		}
+		return ":" + strings.Repeat("-", width-twoSidedMarkerWidth+1) + ":"
+	case AlignDefault:
+		return strings.Repeat("-", width)
+	}
+	return strings.Repeat("-", width)
 }
 
 // LF is line feed.

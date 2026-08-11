@@ -2,6 +2,7 @@
 package piechart
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"strings"
@@ -63,6 +64,13 @@ func (p *PieChart) String() string {
 
 // Build writes the pie chart body to the output destination.
 func (p *PieChart) Build() error {
+	if p.dest == nil {
+		if p.err == nil {
+			p.err = errors.New("output writer must not be nil")
+		}
+		return p.err
+	}
+
 	if _, err := fmt.Fprint(p.dest, p.String()); err != nil {
 		if p.err != nil {
 			return fmt.Errorf("failed to write: %w: %s", err, p.err.Error()) //nolint:wrapcheck

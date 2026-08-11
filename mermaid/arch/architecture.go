@@ -4,6 +4,7 @@
 package arch
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"strings"
@@ -45,6 +46,13 @@ func (a *Architecture) String() string {
 
 // Build writes the architecture diagram body to the output destination.
 func (a *Architecture) Build() error {
+	if a.dest == nil {
+		if a.err == nil {
+			a.err = errors.New("output writer must not be nil")
+		}
+		return a.err
+	}
+
 	if _, err := a.dest.Write([]byte(a.String())); err != nil {
 		if a.err != nil {
 			return fmt.Errorf("failed to write: %w: %s", err, a.err.Error()) //nolint:wrapcheck

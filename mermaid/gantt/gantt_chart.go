@@ -2,6 +2,7 @@
 package gantt
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"strings"
@@ -68,6 +69,13 @@ func (c *Chart) Error() error {
 
 // Build writes the Gantt chart body to the output destination.
 func (c *Chart) Build() error {
+	if c.dest == nil {
+		if c.err == nil {
+			c.err = errors.New("output writer must not be nil")
+		}
+		return c.err
+	}
+
 	if _, err := fmt.Fprint(c.dest, c.String()); err != nil {
 		if c.err != nil {
 			return fmt.Errorf("failed to write: %w: %s", err, c.err.Error()) //nolint:wrapcheck
