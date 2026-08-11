@@ -11,7 +11,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 )
 
-// indexFixtureDir is the fixture tree GenerateIndex walks in these tests.
+// indexFixtureDir returns the fixture tree GenerateIndex walks in these tests.
 //
 // It is a directory of its own rather than the whole of testdata, because the
 // generated index lists every markdown file it finds: sharing the tree with the
@@ -22,7 +22,9 @@ import (
 // GenerateIndex strips the target directory from each walked path using the
 // platform separator, so a forward slash here produces the wrong links on
 // Windows. See the issue linked from the pull request that added this.
-var indexFixtureDir = filepath.Join("testdata", "index")
+func indexFixtureDir() string {
+	return filepath.Join("testdata", "index")
+}
 
 func TestGenerateIndex(t *testing.T) {
 	t.Parallel()
@@ -32,7 +34,7 @@ func TestGenerateIndex(t *testing.T) {
 
 		var buf bytes.Buffer
 		if err := GenerateIndex(
-			indexFixtureDir,
+			indexFixtureDir(),
 			WithTitle("Test Title"),
 			WithDescription([]string{"Test Description", "Next Description"}),
 			WithWriter(&buf),
@@ -40,9 +42,9 @@ func TestGenerateIndex(t *testing.T) {
 			t.Fatalf("failed to generate index: %v", err)
 		}
 
-		f := filepath.Join(indexFixtureDir, "expected", "index.md")
+		f := filepath.Join(indexFixtureDir(), "expected", "index.md")
 		if runtime.GOOS == "windows" {
-			f = filepath.Join(indexFixtureDir, "expected", "index.windows")
+			f = filepath.Join(indexFixtureDir(), "expected", "index.windows")
 		}
 		want, err := os.ReadFile(filepath.Clean(f))
 		if err != nil {
