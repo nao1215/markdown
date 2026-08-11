@@ -1087,13 +1087,6 @@ func FuzzFrontMatterTitle(f *testing.F) {
 			// which is a different property and is covered by the unit tests.
 			return
 		}
-		if !utf8.ValidString(title) {
-			// YAML is defined over Unicode, so a title that is not valid UTF-8
-			// has no faithful representation in it. See the note on this target
-			// in the pull request that added it.
-			return
-		}
-
 		diagram := flowchart.NewFlowchart(io.Discard, flowchart.WithTitle(title)).
 			NodeWithText("A", "Node A").
 			String()
@@ -1109,10 +1102,38 @@ func FuzzFrontMatterTitle(f *testing.F) {
 		if err := yaml.Unmarshal([]byte(block), &parsed); err != nil {
 			t.Fatalf("the front matter of the diagram built with title %q is not valid YAML: %v\n%s", title, err, block)
 		}
-		if parsed.Title != title {
-			t.Errorf("the front matter title parsed as %q, want %q", parsed.Title, title)
+		if want := asYAMLReadsIt(title); parsed.Title != want {
+			t.Errorf("the front matter title parsed as %q, want %q", parsed.Title, want)
 		}
 	})
+}
+
+// asYAMLReadsIt returns the title a YAML parser reads back out of the front
+// matter this library writes for it.
+//
+// It is the identity for every title that is valid UTF-8, which is every title
+// a caller has. Below that the two disagree in one specific way, documented in
+// SPEC.md: strconv.Quote writes a byte no valid UTF-8 sequence covers as \xNN,
+// meaning that byte, and YAML reads \xNN as the code point U+00NN. Spelling the
+// disagreement out here rather than skipping those inputs is what keeps the
+// fuzzer able to find a second one.
+func asYAMLReadsIt(title string) string {
+	if utf8.ValidString(title) {
+		return title
+	}
+
+	var b strings.Builder
+	for i := 0; i < len(title); {
+		r, size := utf8.DecodeRuneInString(title[i:])
+		if r == utf8.RuneError && size == 1 {
+			b.WriteRune(rune(title[i]))
+			i++
+			continue
+		}
+		b.WriteString(title[i : i+size])
+		i += size
+	}
+	return b.String()
 }
 
 // frontMatter returns the body between the first two "---" lines of a diagram.

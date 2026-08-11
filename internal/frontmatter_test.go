@@ -103,6 +103,15 @@ func TestFrontMatterTitle(t *testing.T) {
 			want:  `title: "Café ☕"`,
 		},
 		{
+			// A byte no valid UTF-8 sequence covers is written as \xNN and read
+			// back by a YAML parser as U+00NN, so this title reaches the drawing
+			// as "É". SPEC.md documents that; what is pinned here is that the
+			// front matter stays parseable rather than losing the diagram.
+			name:  "a byte that is not valid UTF-8 is escaped rather than written raw",
+			title: "Caf\xc9",
+			want:  `title: "Caf\xc9"`,
+		},
+		{
 			name:  "empty title",
 			title: "",
 			want:  `title: ""`,

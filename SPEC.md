@@ -63,6 +63,7 @@ Raising the `go` directive is a minor release, not a major one, because it does 
 
 These are contracts rather than accidents, and are covered by tests:
 
+- Text handed to a builder is expected to be valid UTF-8. A mermaid diagram title that is not valid UTF-8 still produces a diagram and still produces parseable YAML front matter, but each byte outside a valid UTF-8 sequence is read back as the code point of that byte: a title holding the single byte `0xC9` is written as `"\xc9"` and reads as `É`. YAML is defined over Unicode, so such a title has no faithful representation in it; the diagram is kept rather than the exact bytes.
 - A builder records the errors it encounters while the chain runs and returns them from `Error` and from `Build`. Nothing in the chain panics on bad input, and no call has to be checked individually.
 - `Build` with a nil writer returns an error rather than panicking.
 - `String` returns the document built so far whether or not an error occurred, so it works on a builder that never had a writer. This is how the `mermaid/*` subpackages hand a diagram to `CodeBlocks`.
