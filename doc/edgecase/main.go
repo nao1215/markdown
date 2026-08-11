@@ -33,6 +33,7 @@ import (
 	"github.com/nao1215/markdown/mermaid/packet"
 	"github.com/nao1215/markdown/mermaid/piechart"
 	"github.com/nao1215/markdown/mermaid/quadrant"
+	"github.com/nao1215/markdown/mermaid/radar"
 	"github.com/nao1215/markdown/mermaid/requirement"
 	"github.com/nao1215/markdown/mermaid/sankey"
 	"github.com/nao1215/markdown/mermaid/sequence"
@@ -87,6 +88,9 @@ func supported(diagram string) string {
 		"packet": `"'#;[](){}<br/>` + emoji + japanese + `:,*-|`,
 		// piechart: a double quote ends the quoted label.
 		"piechart": `'#;[](){}<br/>` + emoji + japanese + `:,*-|`,
+		// radar quotes every label, so the punctuation is all safe. A line
+		// break is the only thing left out, since one label is one line.
+		"radar": `"'#;[](){}` + emoji + japanese + `:,*-|%%`,
 		// quadrant: axis, quadrant and point labels are all written unquoted.
 		"quadrant":    `'#` + emoji + japanese + `,*-`,
 		"requirement": `"'#;[](){}` + emoji + japanese + `:,*-|%%`,
@@ -210,6 +214,7 @@ func diagrams() []diagram {
 		{name: "Packet", file: "packet", build: packetDiagram},
 		{name: "Pie chart", file: "piechart", build: pieChart},
 		{name: "Quadrant", file: "quadrant", build: quadrantChart},
+		{name: "Radar", file: "radar", build: radarChart},
 		{name: "Requirement", file: "requirement", build: requirementDiagram},
 		{name: "Sankey", file: "sankey", build: sankeyDiagram},
 		{name: "Sequence", file: "sequence", build: sequenceDiagram},
@@ -331,6 +336,16 @@ func quadrantChart(diagram string) string {
 		YAxis(shortLabel(diagram), shortLabel(diagram)+" high").
 		Quadrant1(shortLabel(diagram)).
 		Point(shortLabel(diagram), 0.3, 0.6). //nolint:mnd
+		String()
+}
+
+func radarChart(diagram string) string {
+	return radar.NewDiagram(io.Discard, radar.WithTitle(title(diagram))).
+		Axis(shortLabel(diagram), shortLabel(diagram)+" two", label(diagram)).
+		Curve(shortLabel(diagram), 85, 90, 80). //nolint:mnd
+		Curve(label(diagram), 70, 75, 85).      //nolint:mnd
+		Max(100).                               //nolint:mnd
+		Min(0).
 		String()
 }
 
