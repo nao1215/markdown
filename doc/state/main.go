@@ -41,7 +41,7 @@ func main() {
 		EndTransition("Delivered").
 		String()
 
-	err = markdown.NewMarkdown(f).
+	err = markdown.NewMarkdown(f, markdown.WithBlockSpacing()).
 		H2("State Diagram").
 		CodeBlocks(markdown.SyntaxHighlightMermaid, diagram).
 		Build()

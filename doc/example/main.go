@@ -24,7 +24,7 @@ func main() {
 		}
 	}()
 
-	if err := md.NewMarkdown(f).
+	if err := md.NewMarkdown(f, md.WithBlockSpacing()).
 		H1("This is H1").
 		PlainText("This is plain text").
 		H2f("This is %s with text format", "H2").

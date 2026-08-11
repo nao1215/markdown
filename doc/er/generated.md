@@ -1,4 +1,5 @@
 ## Entity Relationship Diagram
+
 ```mermaid
 erDiagram
     teachers ||--o{ students : "Teacher has many students"

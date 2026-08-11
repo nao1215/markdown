@@ -48,7 +48,7 @@ func main() {
 		CriticalMilestone("Production Release", "2024-03-01"). //nolint:mnd
 		String()
 
-	err = markdown.NewMarkdown(f).
+	err = markdown.NewMarkdown(f, markdown.WithBlockSpacing()).
 		H2("Gantt Chart").
 		CodeBlocks(markdown.SyntaxHighlightMermaid, chart).
 		Build()

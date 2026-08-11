@@ -1,0 +1,32 @@
+{
+  // Only the documents this package generates are linted. Findings in the
+  // hand-written README say nothing about whether the library emits correct
+  // markdown, which is what this check exists to prove.
+  "globs": ["doc/**/generated*.md", "doc/generated_example.md"],
+  "config": {
+    // Generated tables and prose are as wide as the data makes them.
+    "MD013": false,
+    // Go samples inside fenced blocks are indented with tabs, as Go requires.
+    "MD010": { "code_blocks": false },
+    // LF() writes a line holding two spaces. That is the documented behavior
+    // of the method, not stray whitespace.
+    "MD009": false,
+    // Each sample demonstrates one feature and starts at the heading level that
+    // suits it. They are fragments, not standalone documents.
+    "MD041": false,
+    // Table() writes a fixed-width delimiter row, "|---------|". Rewriting it as
+    // "| --- |" to satisfy the compact style would move every downstream golden
+    // file for a purely cosmetic gain.
+    "MD060": false,
+    // Two alerts in a row are separated by a blank line, which markdownlint
+    // reads as one blockquote with a hole in it. GitHub renders them as two
+    // separate callouts, which is verified against its renderer.
+    "MD028": false,
+    // Table of contents entries are indented by heading depth, so a document
+    // that jumps from H2 to H4 indents by four. Collapsing that to two would
+    // misrepresent the hierarchy.
+    "MD007": false,
+    // Diagram samples repeat headings such as "Output" across sections.
+    "MD024": { "siblings_only": true }
+  }
+}

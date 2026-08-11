@@ -1,4 +1,5 @@
 ## Class Diagram
+
 ```mermaid
 ---
 title: Checkout Domain

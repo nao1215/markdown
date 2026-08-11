@@ -46,7 +46,7 @@ func main() {
 		LinkWithLabel("Backend", "reads from", "Cache").
 		String()
 
-	err = markdown.NewMarkdown(f).
+	err = markdown.NewMarkdown(f, markdown.WithBlockSpacing()).
 		H2("Block Diagram").
 		CodeBlocks(markdown.SyntaxHighlightMermaid, diagram).
 		Build()

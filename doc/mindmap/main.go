@@ -37,7 +37,7 @@ func main() {
 		Sibling("Q2").
 		String()
 
-	err = markdown.NewMarkdown(f).
+	err = markdown.NewMarkdown(f, markdown.WithBlockSpacing()).
 		H2("Mindmap").
 		CodeBlocks(markdown.SyntaxHighlightMermaid, diagram).
 		Build()

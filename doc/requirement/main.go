@@ -59,7 +59,7 @@ func main() {
 		).
 		String()
 
-	err = markdown.NewMarkdown(f).
+	err = markdown.NewMarkdown(f, markdown.WithBlockSpacing()).
 		H2("Requirement Diagram").
 		CodeBlocks(markdown.SyntaxHighlightMermaid, diagram).
 		Build()

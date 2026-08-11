@@ -36,7 +36,7 @@ func main() {
 		Task("Complete payment", userjourney.ScoreSatisfied, "Customer", "Payment Service").
 		String()
 
-	err = markdown.NewMarkdown(f).
+	err = markdown.NewMarkdown(f, markdown.WithBlockSpacing()).
 		H2("User Journey Diagram").
 		CodeBlocks(markdown.SyntaxHighlightMermaid, diagram).
 		Build()

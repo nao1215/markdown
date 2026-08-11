@@ -34,7 +34,7 @@ func main() {
 		Field(64, 95, "Data (variable length)"). //nolint:mnd
 		String()
 
-	err = markdown.NewMarkdown(f).
+	err = markdown.NewMarkdown(f, markdown.WithBlockSpacing()).
 		H2("Packet").
 		CodeBlocks(markdown.SyntaxHighlightMermaid, diagram).
 		Build()

@@ -1,4 +1,5 @@
 ## Block Diagram
+
 ```mermaid
 block
     title Checkout Architecture

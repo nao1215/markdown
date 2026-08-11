@@ -1,4 +1,5 @@
 ## User Journey Diagram
+
 ```mermaid
 journey
     title Checkout Journey

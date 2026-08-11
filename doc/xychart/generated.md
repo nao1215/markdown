@@ -1,4 +1,5 @@
 ## XY Chart
+
 ```mermaid
 xychart
     title "Sales Revenue"

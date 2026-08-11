@@ -22,13 +22,13 @@ func main() {
 		}
 	}()
 
-	if err := md.NewMarkdown(f).
+	if err := md.NewMarkdown(f, md.WithBlockSpacing()).
 		H1("Alert example").
-		Note("This is note").LF().
-		Tip("This is tip").LF().
-		Important("This is important").LF().
-		Warning("This is warning").LF().
-		Caution("This is caution").LF().
+		Note("This is note").
+		Tip("This is tip").
+		Important("This is important").
+		Warning("This is warning").
+		Caution("This is caution").
 		Build(); err != nil {
 		panic(err)
 	}
