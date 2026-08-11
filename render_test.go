@@ -111,7 +111,10 @@ func TestBlockquoteSplitsOnPlainNewline(t *testing.T) {
 func TestDetailsSurroundsBodyWithBlankLines(t *testing.T) {
 	t.Parallel()
 
-	got := NewMarkdown(nil).Details("summary", "- alpha\n- beta").String()
+	// The body is written by the caller and is passed through untouched, so it
+	// has to be built with the platform line feed for this comparison.
+	body := "- alpha" + lf() + "- beta"
+	got := NewMarkdown(nil).Details("summary", body).String()
 	want := strings.Join([]string{
 		"<details>",
 		"<summary>summary</summary>",
