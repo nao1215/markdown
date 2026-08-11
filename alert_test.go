@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/nao1215/markdown/internal"
 )
 
 func TestMarkdownAlerts(t *testing.T) {
@@ -15,7 +16,7 @@ func TestMarkdownAlerts(t *testing.T) {
 
 		m := NewMarkdown(io.Discard)
 		m.Notef("%s", "Hello")
-		want := []string{"> [!NOTE]  \n> Hello"}
+		want := []string{"> [!NOTE]  " + internal.LineFeed() + "> Hello"}
 		got := m.body
 
 		if diff := cmp.Diff(want, got); diff != "" {
@@ -28,7 +29,7 @@ func TestMarkdownAlerts(t *testing.T) {
 
 		m := NewMarkdown(io.Discard)
 		m.Warningf("%s", "Hello")
-		want := []string{"> [!WARNING]  \n> Hello"}
+		want := []string{"> [!WARNING]  " + internal.LineFeed() + "> Hello"}
 		got := m.body
 
 		if diff := cmp.Diff(want, got); diff != "" {
@@ -41,7 +42,7 @@ func TestMarkdownAlerts(t *testing.T) {
 
 		m := NewMarkdown(io.Discard)
 		m.Tipf("%s", "Hello")
-		want := []string{"> [!TIP]  \n> Hello"}
+		want := []string{"> [!TIP]  " + internal.LineFeed() + "> Hello"}
 		got := m.body
 
 		if diff := cmp.Diff(want, got); diff != "" {
@@ -54,7 +55,7 @@ func TestMarkdownAlerts(t *testing.T) {
 
 		m := NewMarkdown(io.Discard)
 		m.Importantf("%s", "Hello")
-		want := []string{"> [!IMPORTANT]  \n> Hello"}
+		want := []string{"> [!IMPORTANT]  " + internal.LineFeed() + "> Hello"}
 		got := m.body
 
 		if diff := cmp.Diff(want, got); diff != "" {
@@ -67,7 +68,7 @@ func TestMarkdownAlerts(t *testing.T) {
 
 		m := NewMarkdown(io.Discard)
 		m.Cautionf("%s", "Hello")
-		want := []string{"> [!CAUTION]  \n> Hello"}
+		want := []string{"> [!CAUTION]  " + internal.LineFeed() + "> Hello"}
 		got := m.body
 
 		if diff := cmp.Diff(want, got); diff != "" {
