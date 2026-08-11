@@ -16,8 +16,9 @@ classDiagram
         +int quantity
         +Subtotal() int
     }
-    class PaymentGateway
-    <<Interface>> PaymentGateway
+    class PaymentGateway {
+        <<Interface>>
+    }
     Order "1" *-- "many" LineItem : contains
     Order --> PaymentGateway : uses
     note for Order "Aggregate Root"

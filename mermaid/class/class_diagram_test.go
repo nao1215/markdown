@@ -100,9 +100,12 @@ classDiagram
         +int quantity
         +Total() float64
     }
-    class PaymentGateway
-    <<Interface>> PaymentGateway
-    <<Service>> InventoryService
+    class PaymentGateway {
+        <<Interface>>
+    }
+    class InventoryService {
+        <<Service>>
+    }
     Order : +Create() error
     Order "1" *-- "many" LineItem : contains
     Order --> PaymentGateway : uses

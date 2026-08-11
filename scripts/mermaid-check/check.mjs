@@ -72,12 +72,38 @@ async function files() {
     .filter((name) => name !== "");
 }
 
+// rejectedForms are constructs the mermaid npm package parses but GitHub's
+// renderer does not. The parser alone cannot catch these, so they are checked by
+// pattern with the failure they cause spelled out.
+const rejectedForms = [
+  {
+    // "<<Interface>> Name" on its own line. GitHub lexes the leading "<" as a
+    // relationship token and fails the whole diagram with
+    // "Expecting ... ANNOTATION_START ... got DEPENDENCY".
+    // Put the annotation inside the class body instead:
+    //   class Name {
+    //       <<Interface>>
+    //   }
+    // [ \t] rather than \s so the match cannot run past the end of the
+    // line: the body form has "}" on the next line and would otherwise hit.
+    pattern: /^[ \t]*<<[^>]*>>[ \t]+\S/m,
+    reason:
+      "standalone class annotation; GitHub rejects it. Put <<...>> inside the class body.",
+  },
+];
+
 let checked = 0;
 let failed = 0;
 
 for (const file of await files()) {
   for (const block of mermaidBlocks(readFileSync(file, "utf8"))) {
     checked++;
+    for (const form of rejectedForms) {
+      if (form.pattern.test(block.body)) {
+        failed++;
+        console.error(`${file}:${block.line}: ${form.reason}\n`);
+      }
+    }
     try {
       await mermaid.parse(block.body);
     } catch (e) {

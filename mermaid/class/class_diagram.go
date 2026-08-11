@@ -283,10 +283,23 @@ func (d *Diagram) ClassWithLabel(name, label string) *Diagram {
 // ClassWithAnnotation adds a class declaration with an annotation.
 // The annotation can be specified with or without enclosing << >>.
 func (d *Diagram) ClassWithAnnotation(name, annotation string) *Diagram {
-	// Use separate-line annotation form for wider renderer compatibility.
-	d.body = append(d.body, fmt.Sprintf("    class %s", name))
-	d.body = append(d.body, fmt.Sprintf("    <<%s>> %s", normalizeAnnotation(annotation), name))
+	d.body = append(d.body, annotationBlock(name, annotation)...)
 	return d
+}
+
+// annotationBlock renders an annotation inside the class body.
+//
+// The standalone form, "<<Interface>> PaymentGateway" on its own line, is also
+// documented by mermaid, but it starts a statement with "<" and GitHub's
+// renderer lexes that as a relationship token and fails the whole diagram with
+// "Expecting ... ANNOTATION_START ... got DEPENDENCY". The body form carries the
+// same meaning and cannot be mistaken for a relationship.
+func annotationBlock(name, annotation string) []string {
+	return []string{
+		fmt.Sprintf("    class %s {", name),
+		fmt.Sprintf("        <<%s>>", normalizeAnnotation(annotation)),
+		"    }",
+	}
 }
 
 // ClassWithMembers adds a class block with member definitions.
@@ -325,10 +338,10 @@ func (d *Diagram) Member(className, member string) *Diagram {
 // Annotation adds a separate annotation declaration for a class.
 // The annotation can be specified with or without enclosing << >>.
 func (d *Diagram) Annotation(className, annotation string) *Diagram {
-	d.body = append(
-		d.body,
-		fmt.Sprintf("    <<%s>> %s", normalizeAnnotation(annotation), className),
-	)
+	// mermaid merges repeated class blocks, so emitting the body form here is
+	// equivalent to annotating a class declared elsewhere, without the
+	// standalone form that GitHub's renderer rejects.
+	d.body = append(d.body, annotationBlock(className, annotation)...)
 	return d
 }
 
