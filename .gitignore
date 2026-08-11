@@ -24,3 +24,7 @@ naraku
 
 # Dependencies of the mermaid render check under scripts/
 node_modules/
+
+# Local assistant tooling
+.claude/
+.serena/

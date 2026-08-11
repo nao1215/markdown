@@ -174,7 +174,7 @@ type Option func(*Markdown)
 //
 // The default output only inserts the blank lines markdown cannot do without,
 // which keeps documents compact but leaves markdownlint complaining about
-// headings, fenced blocks, and tables that touch their neighbours. Tools such
+// headings, fenced blocks, and tables that touch their neighbors. Tools such
 // as mkdocs are stricter than GitHub about this. Turn the option on when the
 // document is going to be linted or rendered by something other than GitHub.
 func WithBlockSpacing() Option {
@@ -996,7 +996,7 @@ func (m *Markdown) CustomTable(t TableSet, options TableOptions) *Markdown {
 //
 // tablewriter aligns by padding cells, which says nothing to a markdown reader:
 // alignment lives in the second row, as :--- / :---: / ---:. Without this,
-// TableSet.Alignment is silently dropped by CustomTable while Table honours it.
+// TableSet.Alignment is silently dropped by CustomTable while Table honors it.
 // Each column keeps its rendered width so the source stays visually aligned.
 func applyAlignmentToDelimiterRow(rendered string, alignment []TableAlignment) string {
 	if len(alignment) == 0 {

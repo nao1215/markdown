@@ -8,7 +8,7 @@
     "MD013": false,
     // Go samples inside fenced blocks are indented with tabs, as Go requires.
     "MD010": { "code_blocks": false },
-    // LF() writes a line holding two spaces. That is the documented behaviour
+    // LF() writes a line holding two spaces. That is the documented behavior
     // of the method, not stray whitespace.
     "MD009": false,
     // Each sample demonstrates one feature and starts at the heading level that

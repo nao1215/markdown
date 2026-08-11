@@ -21,18 +21,18 @@ func delimiterRow(t *testing.T, rendered string) string {
 	return lines[1]
 }
 
-// TestCustomTableHonoursAlignment pins the behaviour that CustomTable used to
+// TestCustomTableHonorsAlignment pins the behavior that CustomTable used to
 // drop on the floor: TableSet.Alignment is a documented public field, but it
 // never reached the rendered output, so choosing CustomTable silently cost you
 // alignment.
-func TestCustomTableHonoursAlignment(t *testing.T) {
+func TestCustomTableHonorsAlignment(t *testing.T) {
 	t.Parallel()
 
 	tests := map[string]struct {
 		alignment []TableAlignment
 		want      string
 	}{
-		"left, centre, right": {
+		"left, center, right": {
 			alignment: []TableAlignment{AlignLeft, AlignCenter, AlignRight},
 			want:      "|:----|:------:|-----:|",
 		},
@@ -154,8 +154,8 @@ func TestDelimiterCell(t *testing.T) {
 		"left at the minimum":          {width: 2, align: AlignLeft, want: ":-"},
 		"right needs two characters":   {width: 1, align: AlignRight, want: "-"},
 		"right at the minimum":         {width: 2, align: AlignRight, want: "-:"},
-		"centre needs three":           {width: 2, align: AlignCenter, want: "--"},
-		"centre at the minimum":        {width: 3, align: AlignCenter, want: ":-:"},
+		"center needs three":           {width: 2, align: AlignCenter, want: "--"},
+		"center at the minimum":        {width: 3, align: AlignCenter, want: ":-:"},
 		"default is always all dashes": {width: 4, align: AlignDefault, want: "----"},
 		"zero width":                   {width: 0, align: AlignCenter, want: ""},
 	}
