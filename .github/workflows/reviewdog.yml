@@ -1,17 +1,24 @@
 name: reviewdog
+
+# Advisory only. golangci-lint.yml is the gate that fails the build.
 on: [pull_request]
+
+permissions:
+  contents: read
+  pull-requests: write
 
 jobs:
   golangci-lint:
     name: golangci-lint
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Check out code into the Go module directory
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       - name: golangci-lint
-        uses: reviewdog/action-golangci-lint@v2
+        uses: reviewdog/action-golangci-lint@c76cceaaab89abe74e649d2e34c6c9adc26662d2 # v2
         with:
           reporter: github-pr-review
           level: warning
@@ -20,13 +27,14 @@ jobs:
   misspell:
     name: misspell
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Check out code into the Go module directory
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       - name: misspell
-        uses: reviewdog/action-misspell@v1
+        uses: reviewdog/action-misspell@d6429416b12b09b4e2768307d53bef58d172e962 # v1
         with:
           reporter: github-pr-review
           level: warning
@@ -35,9 +43,10 @@ jobs:
 
   actionlint:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v7
-      - uses: reviewdog/action-actionlint@v1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: reviewdog/action-actionlint@d63ba7532e0942965320cd8d73cbae4c7b3c5283 # v1
         with:
           reporter: github-pr-review
           level: warning

@@ -1,0 +1,38 @@
+name: DocRender
+
+# This package exists to emit markdown, so "does the output render" is part of
+# its contract. The Go tests only compare strings; this job runs the real
+# mermaid parser over every diagram committed here, which is the closest thing
+# to what a reader's browser does with them.
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  mermaid:
+    name: Parse committed mermaid diagrams
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: scripts/mermaid-check/package-lock.json
+
+      - name: Install the mermaid parser
+        run: npm ci
+        working-directory: scripts/mermaid-check
+
+      - name: Parse every mermaid block
+        run: node scripts/mermaid-check/check.mjs $(git ls-files '*.md')

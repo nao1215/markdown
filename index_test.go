@@ -36,12 +36,12 @@ func TestGenerateIndex(t *testing.T) {
 			t.Fatalf("failed to read expected index: %v", err)
 		}
 
-		expect := strings.ReplaceAll(string(want), "\r\n", "\n")
-		expect = strings.ReplaceAll(expect, "\n", "")
-		got := strings.ReplaceAll(buf.String(), "\r\n", "\n")
-		got = strings.ReplaceAll(got, "\n", "")
-
-		if diff := cmp.Diff(expect, got); diff != "" {
+		// Compare the raw bytes. Normalizing line endings away here would hide
+		// every change to the document structure, which is exactly what this
+		// golden is meant to guard: index.go is the only in-repository user of
+		// the fluent API. The platform split above already covers the line
+		// ending difference.
+		if diff := cmp.Diff(string(want), buf.String()); diff != "" {
 			t.Errorf("value is mismatch (-want +got):\n%s", diff)
 		}
 	})
@@ -61,7 +61,6 @@ func TestIsMarkdownFile(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.path, func(t *testing.T) {
 			t.Parallel()
 

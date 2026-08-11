@@ -37,6 +37,11 @@ linters:
     - wastedassign
     - whitespace
   settings:
+    goconst:
+      # Diagram keywords ("sequenceDiagram", "xychart", …) appear once in the
+      # builder and then in every test expectation. Counting the test
+      # occurrences would force a constant that production code uses once.
+      ignore-tests: true
     tagliatelle:
       case:
         rules:
@@ -44,6 +49,19 @@ linters:
         use-field-name: true
   exclusions:
     generated: lax
+    rules:
+      # Test tables repeat the diagram keyword ("sequenceDiagram", "xychart", …)
+      # in every expectation. Hoisting those into constants makes the tables
+      # harder to read than the duplication it removes.
+      - linters:
+          - goconst
+        path: _test\.go
+      # doc/ holds runnable samples that are read as documentation. Hoisting
+      # literals like "int" or "name" into constants would make the samples
+      # harder to follow, which defeats their purpose.
+      - linters:
+          - goconst
+        path: ^doc/
     paths:
       - third_party$
       - builtin$

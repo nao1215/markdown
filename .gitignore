@@ -21,3 +21,6 @@
 go.work
 coverage.*
 naraku
+
+# Dependencies of the mermaid render check under scripts/
+node_modules/

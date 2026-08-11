@@ -1,4 +1,4 @@
-.PHONY: build test lint clean help changelog tools
+.PHONY: build test lint clean help changelog tools generate render-check
 
 APP         = markdown
 VERSION     = $(shell git describe --tags --abbrev=0)
@@ -23,7 +23,14 @@ test: ## Start unit test for server
 
 lint: ## Run linter
 	golangci-lint run
-	
+
+generate: ## Regenerate the sample documents under doc/ (CheckAutoGenerateFiles verifies these)
+	$(GO) generate ./...
+
+render-check: ## Parse every mermaid diagram committed in this repository (requires node)
+	cd scripts/mermaid-check && npm ci
+	node scripts/mermaid-check/check.mjs $$(git ls-files '*.md')
+
 .DEFAULT_GOAL := help
 help: ## Show help message  
 	@grep -E '^[0-9a-zA-Z_-]+[[:blank:]]*:.*?## .*$$' $(MAKEFILE_LIST) | sort \

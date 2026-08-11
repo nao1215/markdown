@@ -39,6 +39,9 @@ type Diagram struct {
 	err error
 }
 
+// diagramKeyword is the mermaid keyword that opens an xy chart.
+const diagramKeyword = "xychart"
+
 // NewDiagram returns a new Diagram.
 func NewDiagram(w io.Writer, opts ...Option) *Diagram {
 	c := newConfig()
@@ -49,14 +52,14 @@ func NewDiagram(w io.Writer, opts ...Option) *Diagram {
 
 	if !isValidOrientation(c.orientation) {
 		return &Diagram{
-			body: []string{"xychart"},
+			body: []string{diagramKeyword},
 			dest: w,
 			err:  fmt.Errorf("invalid orientation %q", c.orientation),
 		}
 	}
 
 	lines := make([]string, 0, xychartLinesCap)
-	base := "xychart"
+	base := diagramKeyword
 	if c.orientation == OrientationHorizontal {
 		base += " horizontal"
 	}
@@ -339,7 +342,7 @@ func isIdentifierChar(r rune) bool {
 
 func isKeyword(value string) bool {
 	switch strings.ToLower(value) {
-	case "xychart", "horizontal", "title", "x-axis", "y-axis", "bar", "line":
+	case diagramKeyword, "horizontal", "title", "x-axis", "y-axis", "bar", "line":
 		return true
 	default:
 		return false

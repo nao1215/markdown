@@ -43,6 +43,9 @@ type config struct {
 	messageFontWeight string
 }
 
+// defaultFontFamily is the font stack mermaid uses for notes and messages.
+const defaultFontFamily = "trebuchet ms, verdana, arial"
+
 // newConfig returns a new Config with default values.
 func newConfig() *config {
 	return &config{
@@ -52,12 +55,12 @@ func newConfig() *config {
 		actorFontFamily:         "Open Sans, sans-serif",
 		actorFontWeight:         "Open Sans, sans-serif",
 		noteFontSize:            14, //nolint:mnd
-		noteFontFamily:          "trebuchet ms, verdana, arial",
-		noteFontWeight:          "trebuchet ms, verdana, arial",
+		noteFontFamily:          defaultFontFamily,
+		noteFontWeight:          defaultFontFamily,
 		noteAlign:               "center",
 		messageFontSize:         16, //nolint:mnd
-		messageFontFamily:       "trebuchet ms, verdana, arial",
-		messageFontWeight:       "trebuchet ms, verdana, arial",
+		messageFontFamily:       defaultFontFamily,
+		messageFontWeight:       defaultFontFamily,
 	}
 }
 
