@@ -51,21 +51,27 @@ jobs:
       - name: Install apidiff
         run: go install golang.org/x/exp/cmd/apidiff@${EXP_TOOLS_VERSION}
 
-      # The comparison is against the tip of the base branch rather than against
-      # the last release tag. The question this job answers is "does this pull
-      # request break anything", and the base branch is the only baseline that
-      # isolates that: measuring against the last tag reports every incompatible
-      # change merged since that tag on every unrelated pull request, which is
-      # noise that teaches reviewers to ignore the check. Since the check runs on
-      # every pull request, "compatible with the base branch" holds all the way
-      # back to the release by induction.
-      - name: Export the API of the base branch
+      # The baseline is the merge base, not the tip of the base branch and not
+      # the last release tag.
+      #
+      # The question this job answers is "does this pull request break
+      # anything", and only the merge base isolates that. The last tag reports
+      # every incompatible change merged since it on every unrelated pull
+      # request. The branch tip is worse in a subtler way: a package added to
+      # the base branch after a pull request started reads as a package the
+      # pull request removed, so a branch goes red by standing still.
+      #
+      # Since the check runs on every pull request, "compatible with the merge
+      # base" composes, and the guarantee reaches back to the release.
+      - name: Export the API this pull request started from
         run: |
           set -euo pipefail
           # The checkout above fetches the pull request, not necessarily the
           # branch it targets, so ask for that branch explicitly.
           git fetch --no-tags origin "+refs/heads/${BASE_REF}:refs/remotes/origin/${BASE_REF}"
-          git worktree add --detach "${RUNNER_TEMP}/base" "origin/${BASE_REF}"
+          base="$(git merge-base "origin/${BASE_REF}" HEAD)"
+          echo "Comparing against the merge base ${base}."
+          git worktree add --detach "${RUNNER_TEMP}/base" "${base}"
           cd "${RUNNER_TEMP}/base"
           apidiff -m -w "${RUNNER_TEMP}/base.api" "${MODULE_PATH}"
 
