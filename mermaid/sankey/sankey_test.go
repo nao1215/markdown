@@ -7,6 +7,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/nao1215/markdown/internal/buildertest"
+	"github.com/nao1215/markdown/internal/golden"
 	"github.com/nao1215/markdown/mermaid/sankey"
 )
 
@@ -227,5 +229,49 @@ func TestTheFirstErrorIsKept(t *testing.T) {
 	}
 	if want := "source must not be empty"; !strings.Contains(err.Error(), want) {
 		t.Errorf("Error() = %v, want it to mention %q", err, want)
+	}
+}
+
+// TestBuildContract asserts the error handling every builder in this module
+// shares. The contract itself lives in internal/buildertest.
+func TestBuildContract(t *testing.T) {
+	t.Parallel()
+
+	buildertest.RunBuildContract(t, func(w io.Writer) buildertest.Builder {
+		return sankey.NewDiagram(w).Link("Coal", "Electricity", 100)
+	})
+}
+
+// TestRecordedErrorContract asserts that a flow with no source surfaces from
+// Build.
+func TestRecordedErrorContract(t *testing.T) {
+	t.Parallel()
+
+	buildertest.RunRecordedErrorContract(t, func(w io.Writer) buildertest.Builder {
+		return sankey.NewDiagram(w).Link("", "Electricity", 100)
+	})
+}
+
+// TestGoldenSankey pins the rendered diagram of every builder method and every
+// option of this package, including both CSV quoting cases.
+func TestGoldenSankey(t *testing.T) {
+	t.Parallel()
+
+	buf := &bytes.Buffer{}
+	err := sankey.NewDiagram(buf, sankey.WithTitle("Energy flow")).
+		Link("Agricultural 'waste'", "Bio-conversion", 124.729).
+		Link("Bio-conversion", "Liquid", 0.597).
+		Link("Bio-conversion", "Losses, and more", 26.862).
+		Link(`He said "hi"`, "Gas", 81.144).
+		LF().
+		Link("Electricity", "Homes", 150).
+		Link("Electricity", "Industry", 0).
+		Build()
+	if err != nil {
+		t.Fatalf("Build() = %v, want nil", err)
+	}
+
+	if err := golden.Assert("sankey.md", buf.String()); err != nil {
+		t.Error(err)
 	}
 }

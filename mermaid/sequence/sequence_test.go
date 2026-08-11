@@ -2,6 +2,8 @@
 package sequence
 
 import (
+	"bytes"
+	"errors"
 	"fmt"
 	"io"
 	"reflect"
@@ -9,6 +11,8 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/nao1215/markdown/internal"
+	"github.com/nao1215/markdown/internal/buildertest"
+	"github.com/nao1215/markdown/internal/golden"
 )
 
 func TestString(t *testing.T) {
@@ -197,4 +201,578 @@ func TestNewDiagram(t *testing.T) {
 			t.Errorf("value is mismatch, want %v, got %v", want, got)
 		}
 	})
+}
+
+func TestDiagramActivateDeactivate(t *testing.T) {
+	t.Parallel()
+
+	t.Run("should add activate and deactivate to the sequence diagram", func(t *testing.T) {
+		t.Parallel()
+
+		d := NewDiagram(io.Discard)
+		d.Activate("Alice")
+		d.Deactivate("Alice")
+
+		want := []string{"sequenceDiagram", "    activate Alice", "    deactivate Alice"}
+		got := d.body
+
+		if diff := cmp.Diff(want, got); diff != "" {
+			t.Errorf("value is mismatch (-want +got):%s", diff)
+		}
+	})
+}
+
+func TestDiagramRequestfWithActivation(t *testing.T) {
+	t.Parallel()
+
+	t.Run("should add request to the sequence diagram with activation", func(t *testing.T) {
+		t.Parallel()
+
+		d := NewDiagram(io.Discard)
+		d.SyncRequestfWithActivation("Alice", "Bob", "Hello %s", "Bob")
+
+		want := []string{"sequenceDiagram", "    Alice->>+Bob: Hello Bob"}
+		got := d.body
+
+		if diff := cmp.Diff(want, got); diff != "" {
+			t.Errorf("value is mismatch (-want +got):%s", diff)
+		}
+	})
+}
+
+func TestDiagramResponsefWithActivation(t *testing.T) {
+	t.Parallel()
+
+	t.Run("should add response to the sequence diagram with activation", func(t *testing.T) {
+		t.Parallel()
+
+		d := NewDiagram(io.Discard)
+		d.SyncResponsefWithActivation("Alice", "Bob", "Hello %s", "Alice")
+
+		want := []string{"sequenceDiagram", "    Alice-->>-Bob: Hello Alice"}
+		got := d.body
+
+		if diff := cmp.Diff(want, got); diff != "" {
+			t.Errorf("value is mismatch (-want +got):%s", diff)
+		}
+	})
+}
+
+func TestDiagramAsyncRequestfWithActivation(t *testing.T) {
+	t.Parallel()
+
+	t.Run("should add async request to the sequence diagram with activation", func(t *testing.T) {
+		t.Parallel()
+
+		d := NewDiagram(io.Discard)
+		d.AsyncRequestfWithActivation("Alice", "Bob", "Hello %s", "Bob")
+
+		want := []string{"sequenceDiagram", "    Alice->>+Bob: Hello Bob"}
+		got := d.body
+
+		if diff := cmp.Diff(want, got); diff != "" {
+			t.Errorf("value is mismatch (-want +got):%s", diff)
+		}
+	})
+}
+
+func TestDiagramAsyncResponsefWithActivation(t *testing.T) {
+	t.Parallel()
+
+	t.Run("should add async response to the sequence diagram with activation", func(t *testing.T) {
+		t.Parallel()
+
+		d := NewDiagram(io.Discard)
+		d.AsyncResponsefWithActivation("Alice", "Bob", "Hello %s", "Alice")
+
+		want := []string{"sequenceDiagram", "    Alice-->>-Bob: Hello Alice"}
+		got := d.body
+
+		if diff := cmp.Diff(want, got); diff != "" {
+			t.Errorf("value is mismatch (-want +got):%s", diff)
+		}
+	})
+}
+
+func TestDiagramParticipant(t *testing.T) {
+	t.Parallel()
+
+	t.Run("should add participant to the sequence diagram", func(t *testing.T) {
+		t.Parallel()
+
+		d := NewDiagram(io.Discard)
+		d.Participant("Alice")
+
+		want := []string{"sequenceDiagram", "    participant Alice"}
+		got := d.body
+
+		if diff := cmp.Diff(want, got); diff != "" {
+			t.Errorf("value is mismatch (-want +got):%s", diff)
+		}
+	})
+}
+
+func TestDiagramCreateDeleteParticipant(t *testing.T) {
+	t.Parallel()
+
+	t.Run("should add create and delete participant to the sequence diagram", func(t *testing.T) {
+		t.Parallel()
+
+		d := NewDiagram(io.Discard)
+		d.CreateParticipant("Alice")
+		d.DestroyParticipant("Alice")
+
+		want := []string{"sequenceDiagram", "    create participant Alice", "    destroy Alice"}
+		got := d.body
+
+		if diff := cmp.Diff(want, got); diff != "" {
+			t.Errorf("value is mismatch (-want +got):%s", diff)
+		}
+	})
+}
+
+func TestDiagramCreateDeleteActor(t *testing.T) {
+	t.Parallel()
+
+	t.Run("should add create and delete actor to the sequence diagram", func(t *testing.T) {
+		t.Parallel()
+
+		d := NewDiagram(io.Discard)
+		d.CreateActor("Alice")
+		d.DestroyActor("Alice")
+
+		want := []string{"sequenceDiagram", "    create actor Alice", "    destroy Alice"}
+		got := d.body
+
+		if diff := cmp.Diff(want, got); diff != "" {
+			t.Errorf("value is mismatch (-want +got):%s", diff)
+		}
+	})
+}
+
+func TestDiagramActor(t *testing.T) {
+	t.Parallel()
+
+	t.Run("should add actor to the sequence diagram", func(t *testing.T) {
+		t.Parallel()
+
+		d := NewDiagram(io.Discard)
+		d.Actor("Alice")
+
+		want := []string{"sequenceDiagram", "    actor Alice"}
+		got := d.body
+
+		if diff := cmp.Diff(want, got); diff != "" {
+			t.Errorf("value is mismatch (-want +got):%s", diff)
+		}
+	})
+}
+
+func TestDiagramAutoNumber(t *testing.T) {
+	t.Parallel()
+
+	t.Run("should add autonumber to the sequence diagram", func(t *testing.T) {
+		t.Parallel()
+
+		d := NewDiagram(io.Discard)
+		d.AutoNumber()
+
+		want := []string{"sequenceDiagram", "    autonumber"}
+		got := d.body
+
+		if diff := cmp.Diff(want, got); diff != "" {
+			t.Errorf("value is mismatch (-want +got):%s", diff)
+		}
+	})
+}
+
+func TestDiagramBoxStartEnd(t *testing.T) {
+	t.Parallel()
+
+	t.Run("should add box to the sequence diagram", func(t *testing.T) {
+		t.Parallel()
+
+		d := NewDiagram(io.Discard)
+		d.Participant("Alice").Participant("Bob")
+		d.BoxStart([]string{"Alice", "Bob"})
+		d.BoxEnd()
+
+		want := []string{
+			"sequenceDiagram",
+			"    participant Alice",
+			"    participant Bob",
+			"    box Alice & Bob",
+			"    end"}
+		got := d.body
+
+		if diff := cmp.Diff(want, got); diff != "" {
+			t.Errorf("value is mismatch (-want +got):%s", diff)
+		}
+	})
+}
+
+// TestBuildContract asserts the error handling every builder in this module
+// shares. The contract itself lives in internal/buildertest.
+func TestBuildContract(t *testing.T) {
+	t.Parallel()
+
+	buildertest.RunBuildContract(t, func(w io.Writer) buildertest.Builder {
+		return NewDiagram(w).SyncRequest("Client", "Server", "GET /users")
+	})
+}
+
+// TestGoldenSequence pins the rendered diagram of every message kind, every
+// block construct, and every participant lifecycle method of this package.
+func TestGoldenSequence(t *testing.T) {
+	t.Parallel()
+
+	buf := &bytes.Buffer{}
+	err := NewDiagram(buf).
+		AutoNumber().
+		BoxStart([]string{"Client", "Server"}).
+		Participant("Client").
+		Participant("Server").
+		BoxEnd().
+		Actor("Operator").
+		LF().
+		SyncRequest("Client", "Server", "GET /users").
+		SyncRequestf("Client", "Server", "GET /users/%d", 1).
+		SyncResponse("Server", "Client", "200 OK").
+		SyncResponsef("Server", "Client", "%d OK", 200).
+		AsyncRequest("Client", "Server", "publish event").
+		AsyncRequestf("Client", "Server", "publish %s", "event").
+		AsyncResponse("Server", "Client", "ack").
+		AsyncResponsef("Server", "Client", "%s", "ack").
+		RequestError("Client", "Server", "malformed body").
+		RequestErrorf("Client", "Server", "malformed %s", "body").
+		ResponseError("Server", "Client", "500 Internal Server Error").
+		ResponseErrorf("Server", "Client", "%d Internal Server Error", 500).
+		LF().
+		Activate("Server").
+		SyncRequestWithActivation("Client", "Server", "activate on request").
+		SyncRequestfWithActivation("Client", "Server", "activate on %s", "request").
+		SyncResponseWithActivation("Server", "Client", "deactivate on response").
+		SyncResponsefWithActivation("Server", "Client", "deactivate on %s", "response").
+		AsyncRequestWithActivation("Client", "Server", "async activate").
+		AsyncRequestfWithActivation("Client", "Server", "async %s", "activate").
+		AsyncResponseWithActivation("Server", "Client", "async deactivate").
+		AsyncResponsefWithActivation("Server", "Client", "async %s", "deactivate").
+		Deactivate("Server").
+		LF().
+		NoteOver("Server", "a note over the participant").
+		NoteRightOf("Server", "a note to the right").
+		NoteLeftOf("Client", "a note to the left").
+		Build()
+	if err != nil {
+		t.Fatalf("Build() = %v, want nil", err)
+	}
+
+	if err := golden.Assert("sequence.md", buf.String()); err != nil {
+		t.Error(err)
+	}
+}
+
+// TestGoldenSequenceBlocks pins the block constructs, which have to nest and
+// close in the right order to render at all.
+func TestGoldenSequenceBlocks(t *testing.T) {
+	t.Parallel()
+
+	buf := &bytes.Buffer{}
+	err := NewDiagram(buf).
+		CreateParticipant("Worker").
+		CreateActor("Auditor").
+		LoopStart("every minute").
+		SyncRequest("Client", "Worker", "poll").
+		LoopEnd().
+		AltStart("the queue is empty").
+		SyncResponse("Worker", "Client", "nothing to do").
+		AltElse("the queue has work").
+		SyncResponse("Worker", "Client", "one job").
+		AltEnd().
+		OptStart("the caller asked for details").
+		SyncResponse("Worker", "Client", "job details").
+		OptEnd().
+		ParallelStart("fan out").
+		SyncRequest("Worker", "Auditor", "record start").
+		ParallelAnd("and").
+		SyncRequest("Worker", "Auditor", "record end").
+		ParallelEnd().
+		CriticalStart("acquire the lock").
+		SyncRequest("Worker", "Auditor", "lock").
+		CriticalOption("the lock is taken").
+		SyncRequest("Worker", "Auditor", "wait").
+		CriticalEnd().
+		BreakStart("the job failed").
+		SyncResponse("Worker", "Client", "error").
+		BreakEnd().
+		DestroyActor("Auditor").
+		DestroyParticipant("Worker").
+		Build()
+	if err != nil {
+		t.Fatalf("Build() = %v, want nil", err)
+	}
+
+	if err := golden.Assert("sequence_blocks.md", buf.String()); err != nil {
+		t.Error(err)
+	}
+}
+
+// TestGoldenSequenceOptions pins the configuration block that the construction
+// time options produce.
+func TestGoldenSequenceOptions(t *testing.T) {
+	t.Parallel()
+
+	buf := &bytes.Buffer{}
+	err := NewDiagram(
+		buf,
+		WithMirrorActors(true),
+		WithBottomMariginAdjustment(2),
+		WithActorFontSize(16),
+		WithActorFontFamily("Helvetica"),
+		WithActorFontWeight("bold"),
+		WithNoteFontSize(12),
+		WithNoteFontFamily("Courier"),
+		WithNoteFontWeight("normal"),
+		WithNoteAlign("left"),
+		WithMessageFontSize(14),
+		WithMessageFontFamily("Arial"),
+		WithMessageFontWeight("lighter"),
+	).
+		SyncRequest("Client", "Server", "GET /users").
+		Build()
+	if err != nil {
+		t.Fatalf("Build() = %v, want nil", err)
+	}
+
+	if err := golden.Assert("sequence_options.md", buf.String()); err != nil {
+		t.Error(err)
+	}
+}
+
+// TestBuildWithNilWriter covers the case where a diagram is built for String()
+// only and Build() is called by mistake. Build() used to dereference the nil
+// writer and take the process down; it has to return an error instead.
+func TestBuildWithNilWriter(t *testing.T) {
+	t.Parallel()
+
+	defer func() {
+		if r := recover(); r != nil {
+			t.Fatalf("Build() panicked with a nil writer: %v", r)
+		}
+	}()
+
+	d := NewDiagram(nil)
+
+	// String() has always worked without a writer, and callers rely on it.
+	_ = d.String()
+
+	err := d.Build()
+	if err == nil {
+		t.Fatal("Build() with a nil writer must return an error")
+	}
+	if err.Error() != "output writer must not be nil" {
+		t.Errorf("unexpected error message: %v", err)
+	}
+}
+
+func TestDiagramNoteOver(t *testing.T) {
+	t.Parallel()
+
+	t.Run("should add note over to the sequence diagram", func(t *testing.T) {
+		t.Parallel()
+
+		d := NewDiagram(io.Discard)
+		d.NoteOver("Alice", "Hello Alice")
+
+		want := []string{"sequenceDiagram", "    note over Alice: Hello Alice"}
+		got := d.body
+
+		if !reflect.DeepEqual(want, got) {
+			t.Errorf("value is mismatch want:%v got:%v", want, got)
+		}
+	})
+}
+
+func TestDiagramNoteRightOf(t *testing.T) {
+	t.Parallel()
+
+	t.Run("should add note right of to the sequence diagram", func(t *testing.T) {
+		t.Parallel()
+
+		d := NewDiagram(io.Discard)
+		d.NoteRightOf("Alice", "Hello Alice")
+
+		want := []string{"sequenceDiagram", "    note right of Alice: Hello Alice"}
+		got := d.body
+
+		if !reflect.DeepEqual(want, got) {
+			t.Errorf("value is mismatch want:%v got:%v", want, got)
+		}
+	})
+}
+
+func TestDiagramNoteLeftOf(t *testing.T) {
+	t.Parallel()
+
+	t.Run("should add note left of to the sequence diagram", func(t *testing.T) {
+		t.Parallel()
+
+		d := NewDiagram(io.Discard)
+		d.NoteLeftOf("Alice", "Hello Alice")
+
+		want := []string{"sequenceDiagram", "    note left of Alice: Hello Alice"}
+		got := d.body
+
+		if !reflect.DeepEqual(want, got) {
+			t.Errorf("value is mismatch want:%v got:%v", want, got)
+		}
+	})
+}
+
+func TestDiagramLoopStartEnd(t *testing.T) {
+	t.Parallel()
+
+	t.Run("should add loop to the sequence diagram", func(t *testing.T) {
+		t.Parallel()
+
+		d := NewDiagram(io.Discard)
+		d.LoopStart("description")
+		d.LoopEnd()
+
+		want := []string{"sequenceDiagram", "    loop description", "    end"}
+		got := d.body
+
+		if diff := cmp.Diff(want, got); diff != "" {
+			t.Errorf("value is mismatch (-want +got):%s", diff)
+		}
+	})
+}
+
+func TestDiagramAltStartElseEnd(t *testing.T) {
+	t.Parallel()
+
+	t.Run("should add alt to the sequence diagram", func(t *testing.T) {
+		t.Parallel()
+
+		d := NewDiagram(io.Discard)
+		d.AltStart("description")
+		d.AltElse("description")
+		d.AltEnd()
+
+		want := []string{"sequenceDiagram", "    alt description", "    else description", "    end"}
+		got := d.body
+
+		if diff := cmp.Diff(want, got); diff != "" {
+			t.Errorf("value is mismatch (-want +got):%s", diff)
+		}
+	})
+}
+
+func TestDiagramOptStartEnd(t *testing.T) {
+	t.Parallel()
+
+	t.Run("should add opt to the sequence diagram", func(t *testing.T) {
+		t.Parallel()
+
+		d := NewDiagram(io.Discard)
+		d.OptStart("description")
+		d.OptEnd()
+
+		want := []string{"sequenceDiagram", "    opt description", "    end"}
+		got := d.body
+
+		if diff := cmp.Diff(want, got); diff != "" {
+			t.Errorf("value is mismatch (-want +got):%s", diff)
+		}
+	})
+}
+
+func TestDiagramParallelStartAndEnd(t *testing.T) {
+	t.Parallel()
+
+	t.Run("should add parallel to the sequence diagram", func(t *testing.T) {
+		t.Parallel()
+
+		d := NewDiagram(io.Discard)
+		d.ParallelStart("start")
+		d.ParallelAnd("and-description")
+		d.ParallelEnd()
+
+		want := []string{"sequenceDiagram", "    par start", "    and and-description", "    end"}
+		got := d.body
+
+		if diff := cmp.Diff(want, got); diff != "" {
+			t.Errorf("value is mismatch (-want +got):%s", diff)
+		}
+	})
+}
+
+func TestDiagramCriticalStartAndEnd(t *testing.T) {
+	t.Parallel()
+
+	t.Run("should add critical to the sequence diagram", func(t *testing.T) {
+		t.Parallel()
+
+		d := NewDiagram(io.Discard)
+		d.CriticalStart("start")
+		d.CriticalOption("option-description")
+		d.CriticalEnd()
+
+		want := []string{
+			"sequenceDiagram",
+			"    critical start",
+			"    option option-description",
+			"    end"}
+		got := d.body
+
+		if diff := cmp.Diff(want, got); diff != "" {
+			t.Errorf("value is mismatch (-want +got):%s", diff)
+		}
+	})
+}
+
+func TestDiagramBreakStartEnd(t *testing.T) {
+	t.Parallel()
+
+	t.Run("should add break to the sequence diagram", func(t *testing.T) {
+		t.Parallel()
+
+		d := NewDiagram(io.Discard)
+		d.BreakStart("description")
+		d.BreakEnd()
+
+		want := []string{"sequenceDiagram", "    break description", "    end"}
+		got := d.body
+
+		if diff := cmp.Diff(want, got); diff != "" {
+			t.Errorf("value is mismatch (-want +got):%s", diff)
+		}
+	})
+}
+
+// errWrite is the failure the writer below reports, so the test can assert that
+// Build passed it through rather than inventing an error of its own.
+var errWrite = errors.New("write failed")
+
+// errWriter fails every write, which is what a full disk or a closed pipe looks
+// like to Build.
+type errWriter struct{}
+
+func (errWriter) Write([]byte) (int, error) {
+	return 0, errWrite
+}
+
+// TestBuildReportsWriteFailure covers the branch where the destination accepts
+// the diagram and then fails. Silently returning nil there would hand the caller
+// a document that was never written.
+func TestBuildReportsWriteFailure(t *testing.T) {
+	t.Parallel()
+
+	err := NewDiagram(errWriter{}).Build()
+	if err == nil {
+		t.Fatal("Build must report a failing writer")
+	}
+	if !errors.Is(err, errWrite) {
+		t.Errorf("Build lost the destination error: %v", err)
+	}
 }

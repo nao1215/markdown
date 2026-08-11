@@ -8,13 +8,9 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/nao1215/markdown/internal/buildertest"
+	"github.com/nao1215/markdown/internal/golden"
 )
-
-type failingWriter struct{}
-
-func (f failingWriter) Write([]byte) (int, error) {
-	return 0, errors.New("write failed")
-}
 
 func TestNewDiagram(t *testing.T) {
 	t.Parallel()
@@ -311,7 +307,7 @@ func TestDiagram_Error(t *testing.T) {
 func TestDiagram_BuildStoresError(t *testing.T) {
 	t.Parallel()
 
-	d := NewDiagram(failingWriter{})
+	d := NewDiagram(errWriter{})
 	err := d.Build()
 	if err == nil {
 		t.Fatal("expected error, got nil")
@@ -601,5 +597,146 @@ func TestDiagram_BuildWithExistingError(t *testing.T) {
 	}
 	if !errors.Is(d.Error(), err) {
 		t.Fatalf("expected Error() to wrap returned error, got %v", d.Error())
+	}
+}
+
+// TestBuildContract asserts the error handling every builder in this module
+// shares. The contract itself lives in internal/buildertest.
+func TestBuildContract(t *testing.T) {
+	t.Parallel()
+
+	buildertest.RunBuildContract(t, func(w io.Writer) buildertest.Builder {
+		return NewDiagram(w).Row(Node("a"))
+	})
+}
+
+// TestRecordedErrorContract asserts that a column count the syntax cannot express surfaces from Build.
+func TestRecordedErrorContract(t *testing.T) {
+	t.Parallel()
+
+	buildertest.RunRecordedErrorContract(t, func(w io.Writer) buildertest.Builder {
+		return NewDiagram(w).Columns(0).Row(Node("a"))
+	})
+}
+
+// TestGoldenBlock pins the rendered diagram of every builder method, every
+// token constructor, and every token option of this package.
+func TestGoldenBlock(t *testing.T) {
+	t.Parallel()
+
+	buf := &bytes.Buffer{}
+	err := NewDiagram(buf, WithTitle("Every Token")).
+		Columns(3).
+		Row(
+			Node("plain"),
+			Node("labeled", WithNodeLabel("With a label")),
+			Node("wide", WithNodeSpan(2)),
+		).
+		Row(
+			Space(),
+			Space(2),
+			Literal("raw:3"),
+		).
+		Row(
+			Arrow("explicit", DirectionRight),
+			Arrow("labeled", DirectionRight, WithArrowLabel("to the right")),
+			Arrow("secondary", DirectionRight, WithArrowSecondaryDirection(DirectionDown)),
+		).
+		Row(
+			ArrowRight("right"),
+			ArrowLeft("left"),
+			ArrowUp("up"),
+		).
+		Row(
+			ArrowDown("down"),
+			ArrowX("x"),
+			ArrowY("y"),
+		).
+		LF().
+		Block(func(d *Diagram) {
+			d.Columns(2).
+				Row(Node("inner1"), Node("inner2")).
+				Statement("style inner1 fill:#f9f")
+		}, WithBlockID("grouped"), WithBlockSpan(2)).
+		Statement("style plain fill:#eee").
+		Link("plain", "labeled").
+		LinkWithLabel("labeled", "connects to", "wide").
+		Style("plain", "fill:#fff").
+		ClassDef("highlight", "fill:#ff0").
+		Class("plain", "highlight").
+		Build()
+	if err != nil {
+		t.Fatalf("Build() = %v, want nil", err)
+	}
+
+	if err := golden.Assert("block.md", buf.String()); err != nil {
+		t.Error(err)
+	}
+}
+
+// TestGoldenBlockShapes pins one node per shape, because the shape decides the
+// brackets that surround the label and there is one pair per shape.
+func TestGoldenBlockShapes(t *testing.T) {
+	t.Parallel()
+
+	shapes := []Shape{
+		ShapeRectangle,
+		ShapeRound,
+		ShapeStadium,
+		ShapeSubroutine,
+		ShapeCylinder,
+		ShapeCircle,
+		ShapeAsymmetric,
+		ShapeRhombus,
+		ShapeHexagon,
+		ShapeParallelogram,
+		ShapeParallelogramAlt,
+		ShapeTrapezoid,
+		ShapeTrapezoidAlt,
+		ShapeDoubleCircle,
+	}
+
+	buf := &bytes.Buffer{}
+	diagram := NewDiagram(buf)
+	for _, shape := range shapes {
+		diagram = diagram.Row(Node(
+			string(shape),
+			WithNodeLabel(string(shape)),
+			WithNodeShape(shape),
+		))
+	}
+	if err := diagram.Build(); err != nil {
+		t.Fatalf("Build() = %v, want nil", err)
+	}
+
+	if err := golden.Assert("block_shapes.md", buf.String()); err != nil {
+		t.Error(err)
+	}
+}
+
+// errWrite is the failure the writer below reports, so the test can assert that
+// Build passed it through rather than inventing an error of its own.
+var errWrite = errors.New("write failed")
+
+// errWriter fails every write, which is what a full disk or a closed pipe looks
+// like to Build.
+type errWriter struct{}
+
+func (errWriter) Write([]byte) (int, error) {
+	return 0, errWrite
+}
+
+// TestBuildReportsWriteFailure covers the branch where the destination accepts
+// the diagram and then fails. Silently returning nil there would hand the caller
+// a document that was never written.
+func TestBuildReportsWriteFailure(t *testing.T) {
+	t.Parallel()
+
+	err := NewDiagram(errWriter{}).Build()
+	if err == nil {
+		t.Fatal("Build must report a failing writer")
+	}
+	if !errors.Is(err, errWrite) {
+		t.Errorf("Build lost the destination error: %v", err)
 	}
 }

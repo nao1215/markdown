@@ -8,13 +8,9 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/nao1215/markdown/internal/buildertest"
+	"github.com/nao1215/markdown/internal/golden"
 )
-
-type failingWriter struct{}
-
-func (f failingWriter) Write([]byte) (int, error) {
-	return 0, errors.New("write failed")
-}
 
 func TestNewDiagram(t *testing.T) {
 	t.Parallel()
@@ -242,7 +238,7 @@ func TestDiagram_Error(t *testing.T) {
 func TestDiagram_BuildStoresError(t *testing.T) {
 	t.Parallel()
 
-	d := NewDiagram(failingWriter{})
+	d := NewDiagram(errWriter{})
 	err := d.Build()
 	if err == nil {
 		t.Fatal("expected error, got nil")
@@ -273,5 +269,206 @@ func TestDiagram_BuildNilWriter(t *testing.T) {
 	}
 	if !errors.Is(d.Error(), err) {
 		t.Fatalf("expected Error() to wrap returned error, got %v", d.Error())
+	}
+}
+
+// TestXAxisRange covers the numeric x-axis, including the rejected range. A
+// chart whose axis silently fails to render is worse than one that reports the
+// problem, so the error path matters as much as the happy one.
+func TestXAxisRange(t *testing.T) {
+	t.Parallel()
+
+	t.Run("with a title", func(t *testing.T) {
+		t.Parallel()
+
+		d := NewDiagram(nil).XAxisRangeWithTitle("Month", 1, 12)
+		if err := d.Error(); err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		want := `    x-axis Month 1 --> 12`
+		if !strings.Contains(d.String(), want) {
+			t.Errorf("axis missing from output:\n got: %q\nwant to contain: %q", d.String(), want)
+		}
+	})
+
+	t.Run("min not below max is rejected", func(t *testing.T) {
+		t.Parallel()
+
+		d := NewDiagram(nil).XAxisRangeWithTitle("Month", 12, 12)
+		if d.Error() == nil {
+			t.Fatal("an inverted range must be reported")
+		}
+	})
+
+	t.Run("a later call is a no-op once the diagram holds an error", func(t *testing.T) {
+		t.Parallel()
+
+		d := NewDiagram(nil).
+			XAxisRangeWithTitle("Month", 12, 12).
+			XAxisRangeWithTitle("Month", 1, 12)
+
+		if strings.Contains(d.String(), "1 --> 12") {
+			t.Errorf("statement was appended after an error:\n%s", d.String())
+		}
+	})
+}
+
+// TestLineFeedStopsOnError pins the same rule for LF: once the diagram is in an
+// error state, nothing more is appended.
+func TestLineFeedStopsOnError(t *testing.T) {
+	t.Parallel()
+
+	clean := NewDiagram(nil).LF()
+	if !strings.HasSuffix(clean.String(), "\n") {
+		t.Errorf("LF did not append a blank line: %q", clean.String())
+	}
+
+	broken := NewDiagram(nil).XAxisRangeWithTitle("Month", 12, 12)
+	before := broken.String()
+	if after := broken.LF().String(); after != before {
+		t.Errorf("LF appended after an error:\n before: %q\n  after: %q", before, after)
+	}
+}
+
+// TestBuildContract asserts the error handling every builder in this module
+// shares. The contract itself lives in internal/buildertest.
+func TestBuildContract(t *testing.T) {
+	t.Parallel()
+
+	buildertest.RunBuildContract(t, func(w io.Writer) buildertest.Builder {
+		return NewDiagram(w).Line(5000, 6000)
+	})
+}
+
+// TestRecordedErrorContract asserts that an empty set of x-axis labels surfaces from Build.
+func TestRecordedErrorContract(t *testing.T) {
+	t.Parallel()
+
+	buildertest.RunRecordedErrorContract(t, func(w io.Writer) buildertest.Builder {
+		return NewDiagram(w).XAxisLabels()
+	})
+}
+
+// TestGoldenXYChart pins the rendered chart of every axis form and every series
+// kind this package can build.
+func TestGoldenXYChart(t *testing.T) {
+	t.Parallel()
+
+	buf := &bytes.Buffer{}
+	err := NewDiagram(buf, WithTitle("Sales Revenue")).
+		XAxisLabelsWithTitle("Month", "jan", "feb", "mar").
+		YAxisRangeWithTitle("Revenue (in $)", 4000, 11000).
+		Bar(5000, 6000, 7500).
+		Line(5000, 6000, 7500).
+		LF().
+		Build()
+	if err != nil {
+		t.Fatalf("Build() = %v, want nil", err)
+	}
+
+	if err := golden.Assert("xychart.md", buf.String()); err != nil {
+		t.Error(err)
+	}
+}
+
+// TestGoldenXYChartAxisWithoutTitle pins the axis forms that take no title, and
+// the numeric x axis range.
+func TestGoldenXYChartAxisWithoutTitle(t *testing.T) {
+	t.Parallel()
+
+	buf := &bytes.Buffer{}
+	err := NewDiagram(buf).
+		XAxisRange(1, 12).
+		YAxisRange(0, 100).
+		Line(10, 20, 30).
+		Build()
+	if err != nil {
+		t.Fatalf("Build() = %v, want nil", err)
+	}
+
+	if err := golden.Assert("xychart_ranges.md", buf.String()); err != nil {
+		t.Error(err)
+	}
+}
+
+// TestGoldenXYChartTitledRanges pins the axis forms that carry a title and a
+// numeric range, which is the one combination the tests above leave out.
+func TestGoldenXYChartTitledRanges(t *testing.T) {
+	t.Parallel()
+
+	buf := &bytes.Buffer{}
+	err := NewDiagram(buf).
+		XAxisRangeWithTitle("Month", 1, 12).
+		YAxisRangeWithTitle("Revenue (in $)", 0, 11000).
+		Bar(5000, 6000).
+		Build()
+	if err != nil {
+		t.Fatalf("Build() = %v, want nil", err)
+	}
+
+	if err := golden.Assert("xychart_titled_ranges.md", buf.String()); err != nil {
+		t.Error(err)
+	}
+}
+
+// TestGoldenXYChartOrientations pins the header each orientation produces.
+func TestGoldenXYChartOrientations(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name   string
+		golden string
+		option Option
+	}{
+		{name: "vertical", golden: "xychart_vertical.md", option: WithOrientation(OrientationVertical)},
+		{name: "horizontal", golden: "xychart_horizontal.md", option: WithOrientation(OrientationHorizontal)},
+		{name: "horizontal shorthand", golden: "xychart_horizontal_shorthand.md", option: WithHorizontal()},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			buf := &bytes.Buffer{}
+			err := NewDiagram(buf, tt.option).
+				XAxisLabels("a", "b").
+				Bar(1, 2).
+				Build()
+			if err != nil {
+				t.Fatalf("Build() = %v, want nil", err)
+			}
+
+			if err := golden.Assert(tt.golden, buf.String()); err != nil {
+				t.Error(err)
+			}
+		})
+	}
+}
+
+// errWrite is the failure the writer below reports, so the test can assert that
+// Build passed it through rather than inventing an error of its own.
+var errWrite = errors.New("write failed")
+
+// errWriter fails every write, which is what a full disk or a closed pipe looks
+// like to Build.
+type errWriter struct{}
+
+func (errWriter) Write([]byte) (int, error) {
+	return 0, errWrite
+}
+
+// TestBuildReportsWriteFailure covers the branch where the destination accepts
+// the diagram and then fails. Silently returning nil there would hand the caller
+// a document that was never written.
+func TestBuildReportsWriteFailure(t *testing.T) {
+	t.Parallel()
+
+	err := NewDiagram(errWriter{}).Build()
+	if err == nil {
+		t.Fatal("Build must report a failing writer")
+	}
+	if !errors.Is(err, errWrite) {
+		t.Errorf("Build lost the destination error: %v", err)
 	}
 }

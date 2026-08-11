@@ -3,10 +3,14 @@ package flowchart
 
 import (
 	"bytes"
+	"errors"
+	"io"
 	"strings"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/nao1215/markdown/internal/buildertest"
+	"github.com/nao1215/markdown/internal/golden"
 )
 
 func TestFlowchart_Build(t *testing.T) {
@@ -248,4 +252,153 @@ D`).RoundEdgesNode("E", "Node E").
 			t.Errorf("value is mismatch (-want +got):%s", diff)
 		}
 	})
+}
+
+// TestBuildContract asserts the error handling every builder in this module
+// shares. The contract itself lives in internal/buildertest.
+func TestBuildContract(t *testing.T) {
+	t.Parallel()
+
+	buildertest.RunBuildContract(t, func(w io.Writer) buildertest.Builder {
+		return NewFlowchart(w).NodeWithText("A", "Node A")
+	})
+}
+
+// TestGoldenFlowchart pins the rendered diagram of every node shape and every
+// link style this package can build.
+func TestGoldenFlowchart(t *testing.T) {
+	t.Parallel()
+
+	buf := &bytes.Buffer{}
+	err := NewFlowchart(
+		buf,
+		WithTitle("Every Shape And Link"),
+		WithOrientalTopToBottom(),
+	).
+		Node("plain").
+		NodeWithText("text", "With text").
+		NodeWithMarkdown("markdown", "**bold** text").
+		NodeWithNewLines("newlines", "first\nsecond").
+		RoundEdgesNode("round", "Round edges").
+		StadiumNode("stadium", "Stadium").
+		SubroutineNode("subroutine", "Subroutine").
+		CylindricalNode("cylindrical", "Cylindrical").
+		DatabaseNode("database", "Database").
+		CircleNode("circle", "Circle").
+		AsymmetricNode("asymmetric", "Asymmetric").
+		RhombusNode("rhombus", "Rhombus").
+		HexagonNode("hexagon", "Hexagon").
+		ParallelogramNode("parallelogram", "Parallelogram").
+		ParallelogramAltNode("parallelogramAlt", "Parallelogram alt").
+		TrapezoidNode("trapezoid", "Trapezoid").
+		TrapezoidAltNode("trapezoidAlt", "Trapezoid alt").
+		DoubleCircleNode("doubleCircle", "Double circle").
+		LinkWithArrowHead("plain", "text").
+		LinkWithArrowHeadAndText("text", "markdown", "with text").
+		OpenLink("markdown", "newlines").
+		OpenLinkWithText("newlines", "round", "open with text").
+		DottedLink("round", "stadium").
+		DottedLinkWithText("stadium", "subroutine", "dotted with text").
+		ThickLink("subroutine", "cylindrical").
+		ThickLinkWithText("cylindrical", "database", "thick with text").
+		InvisibleLink("database", "circle").
+		Build()
+	if err != nil {
+		t.Fatalf("Build() = %v, want nil", err)
+	}
+
+	if err := golden.Assert("flowchart.md", buf.String()); err != nil {
+		t.Error(err)
+	}
+}
+
+// TestGoldenFlowchartOrientations pins the header each orientation option
+// produces. The options are mutually exclusive, so each needs its own diagram.
+func TestGoldenFlowchartOrientations(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name   string
+		golden string
+		option Option
+	}{
+		{name: "top to bottom", golden: "orientation_tb.md", option: WithOrientalTopToBottom()},
+		{name: "top down", golden: "orientation_td.md", option: WithOrientalTopDown()},
+		{name: "bottom to top", golden: "orientation_bt.md", option: WithOrientalBottomToTop()},
+		{name: "right to left", golden: "orientation_rl.md", option: WithOrientalRightToLeft()},
+		{name: "left to right", golden: "orientation_lr.md", option: WithOrientalLeftToRight()},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			buf := &bytes.Buffer{}
+			err := NewFlowchart(buf, tt.option).
+				NodeWithText("A", "Start").
+				NodeWithText("B", "End").
+				LinkWithArrowHead("A", "B").
+				Build()
+			if err != nil {
+				t.Fatalf("Build() = %v, want nil", err)
+			}
+
+			if err := golden.Assert(tt.golden, buf.String()); err != nil {
+				t.Error(err)
+			}
+		})
+	}
+}
+
+// TestBuildWithNilWriter covers the case where a flowchart is built for String()
+// only and Build() is called by mistake. Build() used to dereference the nil
+// writer and take the process down; it has to return an error instead.
+func TestBuildWithNilWriter(t *testing.T) {
+	t.Parallel()
+
+	defer func() {
+		if r := recover(); r != nil {
+			t.Fatalf("Build() panicked with a nil writer: %v", r)
+		}
+	}()
+
+	d := NewFlowchart(nil)
+
+	// String() has always worked without a writer, and callers rely on it.
+	_ = d.String()
+
+	err := d.Build()
+	if err == nil {
+		t.Fatal("Build() with a nil writer must return an error")
+	}
+	if err.Error() != "output writer must not be nil" {
+		t.Errorf("unexpected error message: %v", err)
+	}
+}
+
+// errWrite is the failure the writer below reports, so the test can assert that
+// Build passed it through rather than inventing an error of its own.
+var errWrite = errors.New("write failed")
+
+// errWriter fails every write, which is what a full disk or a closed pipe looks
+// like to Build.
+type errWriter struct{}
+
+func (errWriter) Write([]byte) (int, error) {
+	return 0, errWrite
+}
+
+// TestBuildReportsWriteFailure covers the branch where the destination accepts
+// the diagram and then fails. Silently returning nil there would hand the caller
+// a document that was never written.
+func TestBuildReportsWriteFailure(t *testing.T) {
+	t.Parallel()
+
+	err := NewFlowchart(errWriter{}).Build()
+	if err == nil {
+		t.Fatal("Build must report a failing writer")
+	}
+	if !errors.Is(err, errWrite) {
+		t.Errorf("Build lost the destination error: %v", err)
+	}
 }

@@ -2,10 +2,15 @@ package state
 
 import (
 	"bytes"
+	"errors"
+	"io"
 	"strings"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/nao1215/markdown/internal"
+	"github.com/nao1215/markdown/internal/buildertest"
+	"github.com/nao1215/markdown/internal/golden"
 )
 
 func TestDiagram_Build(t *testing.T) {
@@ -357,4 +362,230 @@ func TestDiagram_NoteMultiLine(t *testing.T) {
 			t.Errorf("value is mismatch (-want +got):%s", diff)
 		}
 	})
+}
+
+// statements renders the diagram and returns its lines without the header.
+func statements(t *testing.T, fn func(*Diagram) *Diagram) []string {
+	t.Helper()
+
+	lines := strings.Split(fn(NewDiagram(nil)).String(), internal.LineFeed())
+	if len(lines) == 0 {
+		t.Fatal("diagram produced no output")
+	}
+	return lines[1:]
+}
+
+// TestStateAndTransitions covers the statement builders that had no test: a
+// wrong separator or a missing label here would render a valid-looking but
+// wrong diagram, which is the failure mode nobody notices.
+func TestStateAndTransitions(t *testing.T) {
+	t.Parallel()
+
+	tests := map[string]struct {
+		build func(*Diagram) *Diagram
+		want  string
+	}{
+		"state without a description": {
+			build: func(d *Diagram) *Diagram { return d.State("Idle", "") },
+			want:  "    Idle",
+		},
+		"state with a description": {
+			build: func(d *Diagram) *Diagram { return d.State("Idle", "waiting for work") },
+			want:  "    Idle : waiting for work",
+		},
+		"transition with a note": {
+			build: func(d *Diagram) *Diagram { return d.TransitionWithNote("Idle", "Busy", "job arrives") },
+			want:  "    Idle --> Busy : job arrives",
+		},
+		"start transition with a note": {
+			build: func(d *Diagram) *Diagram { return d.StartTransitionWithNote("Idle", "boot") },
+			want:  "    [*] --> Idle : boot",
+		},
+		"end transition with a note": {
+			build: func(d *Diagram) *Diagram { return d.EndTransitionWithNote("Done", "shutdown") },
+			want:  "    Done --> [*] : shutdown",
+		},
+		"concurrent separator": {
+			build: func(d *Diagram) *Diagram { return d.Concurrent() },
+			want:  "    ---",
+		},
+		"line feed": {
+			build: func(d *Diagram) *Diagram { return d.LF() },
+			want:  "",
+		},
+	}
+
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := statements(t, tt.build)
+			if len(got) == 0 || got[0] != tt.want {
+				t.Errorf("statement mismatch:\n got: %#v\nwant: %q", got, tt.want)
+			}
+		})
+	}
+}
+
+// TestBuildContract asserts the error handling every builder in this module
+// shares. The contract itself lives in internal/buildertest.
+func TestBuildContract(t *testing.T) {
+	t.Parallel()
+
+	buildertest.RunBuildContract(t, func(w io.Writer) buildertest.Builder {
+		return NewDiagram(w).State("Draft", "The order is being written")
+	})
+}
+
+// TestGoldenState pins the rendered diagram of every builder method of this
+// package, including the composite state builder.
+func TestGoldenState(t *testing.T) {
+	t.Parallel()
+
+	buf := &bytes.Buffer{}
+	err := NewDiagram(buf, WithTitle("Order Lifecycle")).
+		SetDirection(DirectionLR).
+		State("Draft", "The order is being written").
+		State("Placed", "The order has been placed").
+		State("Shipped", "The order is on its way").
+		StartTransition("Draft").
+		StartTransitionWithNote("Placed", "restored from a backup").
+		Transition("Draft", "Placed").
+		TransitionWithNote("Placed", "Shipped", "after payment").
+		EndTransition("Shipped").
+		EndTransitionWithNote("Placed", "canceled by the customer").
+		LF().
+		NoteLeft("Draft", "editable").
+		NoteRight("Shipped", "immutable").
+		NoteLeftMultiLine("Placed", "waiting for payment", "then for the warehouse").
+		NoteRightMultiLine("Draft", "no payment yet", "no reservation yet").
+		LF().
+		Fork("split").
+		Join("merge").
+		Choice("decide").
+		Concurrent().
+		Build()
+	if err != nil {
+		t.Fatalf("Build() = %v, want nil", err)
+	}
+
+	if err := golden.Assert("state.md", buf.String()); err != nil {
+		t.Error(err)
+	}
+}
+
+// TestGoldenStateComposite pins the nested block that CompositeState builds,
+// which is the only place in this package where a second builder type appears.
+func TestGoldenStateComposite(t *testing.T) {
+	t.Parallel()
+
+	buf := &bytes.Buffer{}
+	err := NewDiagram(buf).
+		State("Active", "The order is active").
+		CompositeState("Active").
+		State("Reserved", "Stock is reserved").
+		Transition("Reserved", "Packed").
+		TransitionWithNote("Packed", "Handed over", "to the carrier").
+		StartTransition("Reserved").
+		EndTransition("Handed over").
+		End().
+		Transition("Active", "Closed").
+		Build()
+	if err != nil {
+		t.Fatalf("Build() = %v, want nil", err)
+	}
+
+	if err := golden.Assert("state_composite.md", buf.String()); err != nil {
+		t.Error(err)
+	}
+}
+
+// TestGoldenStateDirections pins the header each direction produces. Only one
+// direction applies to a diagram, so each needs its own.
+func TestGoldenStateDirections(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name      string
+		golden    string
+		direction Direction
+	}{
+		{name: "left to right", golden: "direction_lr.md", direction: DirectionLR},
+		{name: "right to left", golden: "direction_rl.md", direction: DirectionRL},
+		{name: "top to bottom", golden: "direction_tb.md", direction: DirectionTB},
+		{name: "bottom to top", golden: "direction_bt.md", direction: DirectionBT},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			buf := &bytes.Buffer{}
+			err := NewDiagram(buf).
+				SetDirection(tt.direction).
+				State("Draft", "The order is being written").
+				Transition("Draft", "Placed").
+				Build()
+			if err != nil {
+				t.Fatalf("Build() = %v, want nil", err)
+			}
+
+			if err := golden.Assert(tt.golden, buf.String()); err != nil {
+				t.Error(err)
+			}
+		})
+	}
+}
+
+// TestBuildWithNilWriter covers the case where a diagram is built for String()
+// only and Build() is called by mistake. Build() used to dereference the nil
+// writer and take the process down; it has to return an error instead.
+func TestBuildWithNilWriter(t *testing.T) {
+	t.Parallel()
+
+	defer func() {
+		if r := recover(); r != nil {
+			t.Fatalf("Build() panicked with a nil writer: %v", r)
+		}
+	}()
+
+	d := NewDiagram(nil)
+
+	// String() has always worked without a writer, and callers rely on it.
+	_ = d.String()
+
+	err := d.Build()
+	if err == nil {
+		t.Fatal("Build() with a nil writer must return an error")
+	}
+	if err.Error() != "output writer must not be nil" {
+		t.Errorf("unexpected error message: %v", err)
+	}
+}
+
+// errWrite is the failure the writer below reports, so the test can assert that
+// Build passed it through rather than inventing an error of its own.
+var errWrite = errors.New("write failed")
+
+// errWriter fails every write, which is what a full disk or a closed pipe looks
+// like to Build.
+type errWriter struct{}
+
+func (errWriter) Write([]byte) (int, error) {
+	return 0, errWrite
+}
+
+// TestBuildReportsWriteFailure covers the branch where the destination accepts
+// the diagram and then fails. Silently returning nil there would hand the caller
+// a document that was never written.
+func TestBuildReportsWriteFailure(t *testing.T) {
+	t.Parallel()
+
+	err := NewDiagram(errWriter{}).Build()
+	if err == nil {
+		t.Fatal("Build must report a failing writer")
+	}
+	if !errors.Is(err, errWrite) {
+		t.Errorf("Build lost the destination error: %v", err)
+	}
 }

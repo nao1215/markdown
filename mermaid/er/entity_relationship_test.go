@@ -3,10 +3,14 @@ package er
 
 import (
 	"bytes"
+	"errors"
+	"io"
 	"strings"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/nao1215/markdown/internal/buildertest"
+	"github.com/nao1215/markdown/internal/golden"
 )
 
 func TestDiagram_Build(t *testing.T) {
@@ -160,4 +164,184 @@ func TestDiagram_Build(t *testing.T) {
 			t.Errorf("value is mismatch (-want +got):%s", diff)
 		}
 	})
+}
+
+// TestBuildContract asserts the error handling every builder in this module
+// shares. The contract itself lives in internal/buildertest.
+func TestBuildContract(t *testing.T) {
+	t.Parallel()
+
+	buildertest.RunBuildContract(t, func(w io.Writer) buildertest.Builder {
+		return NewDiagram(w).NoRelationship(NewEntity("teachers", nil))
+	})
+}
+
+// TestGoldenEntityRelationship pins the rendered diagram of every builder
+// method of this package, including every relationship cardinality and both
+// identification kinds.
+func TestGoldenEntityRelationship(t *testing.T) {
+	t.Parallel()
+
+	teachers := NewEntity("teachers", []*Attribute{
+		{Type: "int", Name: "id", IsPrimaryKey: true, IsUniqueKey: true, Comment: "Teacher ID"},
+		{Type: "string", Name: "name", Comment: "Teacher name"},
+	})
+	students := NewEntity("students", []*Attribute{
+		{Type: "int", Name: "id", IsPrimaryKey: true, IsUniqueKey: true, Comment: "Student ID"},
+		{Type: "int", Name: "teacher_id", IsForeignKey: true, Comment: "Teacher ID"},
+	})
+	schools := NewEntity("schools", []*Attribute{
+		{Type: "int", Name: "id", IsPrimaryKey: true, Comment: "School ID"},
+	})
+	clubs := NewEntity("clubs", []*Attribute{
+		{Type: "int", Name: "id", IsPrimaryKey: true, Comment: "Club ID"},
+	})
+	// An entity with no attributes at all still has to render its name.
+	rooms := NewEntity("rooms", nil)
+
+	buf := &bytes.Buffer{}
+	err := NewDiagram(buf).
+		Relationship(teachers, students, ExactlyOneRelationship, ZeroToMoreRelationship, Identifying, "teaches").
+		Relationship(schools, teachers, OneToMoreRelationship, ExactlyOneRelationship, NonIdentifying, "employs").
+		Relationship(students, clubs, ZeroToOneRelationship, OneToMoreRelationship, Identifying, "joins").
+		NoRelationship(rooms).
+		Build()
+	if err != nil {
+		t.Fatalf("Build() = %v, want nil", err)
+	}
+
+	if err := golden.Assert("entity_relationship.md", buf.String()); err != nil {
+		t.Error(err)
+	}
+}
+
+// TestBuildWithNilWriter covers the case where a diagram is built for String()
+// only and Build() is called by mistake. Build() used to dereference the nil
+// writer and take the process down; it has to return an error instead.
+func TestBuildWithNilWriter(t *testing.T) {
+	t.Parallel()
+
+	defer func() {
+		if r := recover(); r != nil {
+			t.Fatalf("Build() panicked with a nil writer: %v", r)
+		}
+	}()
+
+	d := NewDiagram(nil)
+
+	// String() has always worked without a writer, and callers rely on it.
+	_ = d.String()
+
+	err := d.Build()
+	if err == nil {
+		t.Fatal("Build() with a nil writer must return an error")
+	}
+	if err.Error() != "output writer must not be nil" {
+		t.Errorf("unexpected error message: %v", err)
+	}
+}
+
+func TestRelationship_string(t *testing.T) {
+	t.Parallel()
+
+	type args struct {
+		lr bool
+	}
+	tests := []struct {
+		name string
+		r    Relationship
+		args args
+		want string
+	}{
+		{
+			name: "ZeroToOneRelationship, left",
+			r:    ZeroToOneRelationship,
+			args: args{lr: left},
+			want: "|o",
+		},
+		{
+			name: "ZeroToOneRelationship, right",
+			r:    ZeroToOneRelationship,
+			args: args{lr: right},
+			want: "o|",
+		},
+		{
+			name: "ExactlyOneRelationship, left",
+			r:    ExactlyOneRelationship,
+			args: args{lr: left},
+			want: "||",
+		},
+		{
+			name: "ExactlyOneRelationship, right",
+			r:    ExactlyOneRelationship,
+			args: args{lr: right},
+			want: "||",
+		},
+		{
+			name: "ZeroToMoreRelationship, left",
+			r:    ZeroToMoreRelationship,
+			args: args{lr: left},
+			want: "}o",
+		},
+		{
+			name: "ZeroToMoreRelationship, right",
+			r:    ZeroToMoreRelationship,
+			args: args{lr: right},
+			want: "o{",
+		},
+		{
+			name: "OneToMoreRelationship, left",
+			r:    OneToMoreRelationship,
+			args: args{lr: left},
+			want: "}|",
+		},
+		{
+			name: "OneToMoreRelationship, right",
+			r:    OneToMoreRelationship,
+			args: args{lr: right},
+			want: "|{",
+		},
+		{
+			name: "default",
+			r:    "default",
+			args: args{lr: left},
+			want: "",
+		},
+	}
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			if got := tt.r.string(tt.args.lr); got != tt.want {
+				t.Errorf("Relationship.string() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+// errWrite is the failure the writer below reports, so the test can assert that
+// Build passed it through rather than inventing an error of its own.
+var errWrite = errors.New("write failed")
+
+// errWriter fails every write, which is what a full disk or a closed pipe looks
+// like to Build.
+type errWriter struct{}
+
+func (errWriter) Write([]byte) (int, error) {
+	return 0, errWrite
+}
+
+// TestBuildReportsWriteFailure covers the branch where the destination accepts
+// the diagram and then fails. Silently returning nil there would hand the caller
+// a document that was never written.
+func TestBuildReportsWriteFailure(t *testing.T) {
+	t.Parallel()
+
+	err := NewDiagram(errWriter{}).Build()
+	if err == nil {
+		t.Fatal("Build must report a failing writer")
+	}
+	if !errors.Is(err, errWrite) {
+		t.Errorf("Build lost the destination error: %v", err)
+	}
 }

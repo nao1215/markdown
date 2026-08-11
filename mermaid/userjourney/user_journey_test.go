@@ -8,13 +8,9 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/nao1215/markdown/internal/buildertest"
+	"github.com/nao1215/markdown/internal/golden"
 )
-
-type failingWriter struct{}
-
-func (f failingWriter) Write([]byte) (int, error) {
-	return 0, errors.New("write failed")
-}
 
 func TestNewDiagram(t *testing.T) {
 	t.Parallel()
@@ -292,7 +288,7 @@ func TestDiagram_NewlineValidation(t *testing.T) {
 func TestDiagram_BuildStoresError(t *testing.T) {
 	t.Parallel()
 
-	d := NewDiagram(failingWriter{})
+	d := NewDiagram(errWriter{})
 	err := d.Build()
 	if err == nil {
 		t.Fatal("expected error, got nil")
@@ -303,5 +299,104 @@ func TestDiagram_BuildStoresError(t *testing.T) {
 	}
 	if !errors.Is(d.Error(), err) {
 		t.Fatalf("expected Error() to wrap returned error, got %v", d.Error())
+	}
+}
+
+// TestBuildContract asserts the error handling every builder in this module
+// shares. The contract itself lives in internal/buildertest.
+func TestBuildContract(t *testing.T) {
+	t.Parallel()
+
+	buildertest.RunBuildContract(t, func(w io.Writer) buildertest.Builder {
+		return NewDiagram(w).Section("Discovery").Task("Find the site", ScoreSatisfied)
+	})
+}
+
+// TestRecordedErrorContract asserts that an empty section name surfaces from Build.
+func TestRecordedErrorContract(t *testing.T) {
+	t.Parallel()
+
+	buildertest.RunRecordedErrorContract(t, func(w io.Writer) buildertest.Builder {
+		return NewDiagram(w).Section("")
+	})
+}
+
+// TestGoldenUserJourney pins the rendered diagram of every builder method of
+// this package, including every score.
+func TestGoldenUserJourney(t *testing.T) {
+	t.Parallel()
+
+	buf := &bytes.Buffer{}
+	err := NewDiagram(buf, WithTitle("Sign Up")).
+		Section("Discovery").
+		Task("Find the site", ScoreVerySatisfied, "Visitor").
+		Task("Read the docs", ScoreSatisfied, "Visitor", "Support").
+		Section("Registration").
+		Task("Fill the form", ScoreNeutral, "Visitor").
+		Task("Confirm the mail", ScoreDissatisfied, "Visitor").
+		Task("Wait for approval", ScoreVeryDissatisfied).
+		LF().
+		Section("Onboarding").
+		TaskIn("Onboarding", "First login", ScoreSatisfied, "User").
+		Build()
+	if err != nil {
+		t.Fatalf("Build() = %v, want nil", err)
+	}
+
+	if err := golden.Assert("userjourney.md", buf.String()); err != nil {
+		t.Error(err)
+	}
+}
+
+// TestBuildWithNilWriter covers the case where a diagram is built for String()
+// only and Build() is called by mistake. Build() used to dereference the nil
+// writer and take the process down; it has to return an error instead.
+func TestBuildWithNilWriter(t *testing.T) {
+	t.Parallel()
+
+	defer func() {
+		if r := recover(); r != nil {
+			t.Fatalf("Build() panicked with a nil writer: %v", r)
+		}
+	}()
+
+	d := NewDiagram(nil)
+
+	// String() has always worked without a writer, and callers rely on it.
+	_ = d.String()
+
+	err := d.Build()
+	if err == nil {
+		t.Fatal("Build() with a nil writer must return an error")
+	}
+	if err.Error() != "output writer must not be nil" {
+		t.Errorf("unexpected error message: %v", err)
+	}
+}
+
+// errWrite is the failure the writer below reports, so the test can assert that
+// Build passed it through rather than inventing an error of its own.
+var errWrite = errors.New("write failed")
+
+// errWriter fails every write, which is what a full disk or a closed pipe looks
+// like to Build.
+type errWriter struct{}
+
+func (errWriter) Write([]byte) (int, error) {
+	return 0, errWrite
+}
+
+// TestBuildReportsWriteFailure covers the branch where the destination accepts
+// the diagram and then fails. Silently returning nil there would hand the caller
+// a document that was never written.
+func TestBuildReportsWriteFailure(t *testing.T) {
+	t.Parallel()
+
+	err := NewDiagram(errWriter{}).Build()
+	if err == nil {
+		t.Fatal("Build must report a failing writer")
+	}
+	if !errors.Is(err, errWrite) {
+		t.Errorf("Build lost the destination error: %v", err)
 	}
 }
