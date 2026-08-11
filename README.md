@@ -11,7 +11,7 @@
 
 The markdown package is a simple markdown builder for Go. It assembles a document by method chaining instead of through a template engine such as [html/template](https://pkg.go.dev/html/template), and the syntax it emits follows GitHub Markdown.
 
-It also builds mermaid diagrams: entity relationship, sequence, user journey, git graph, mindmap, requirement, xy chart, packet, block, kanban, flowchart, pie chart, quadrant, state, class, Gantt, architecture, timeline, sankey, and radar. That came from the package's origin, which was saving test results for [nao1215/spectest](https://github.com/nao1215/spectest).
+It also builds mermaid diagrams: entity relationship, sequence, user journey, git graph, mindmap, requirement, xy chart, packet, block, kanban, flowchart, pie chart, quadrant, state, class, Gantt, architecture, timeline, sankey, radar, and treemap. That came from the package's origin, which was saving test results for [nao1215/spectest](https://github.com/nao1215/spectest).
 
 Anything that would make the library complicated, such as generating nested lists, is out of scope. Staying simple matters more here.
 
@@ -59,6 +59,7 @@ Anything that would make the library complicated, such as generating nested list
 - [x] mermaid Gantt chart
 - [x] mermaid architecture diagram (beta feature) 
 - [x] mermaid timeline diagram
+- [x] mermaid treemap diagram
 - [x] mermaid radar chart
 - [x] mermaid sankey diagram
 
@@ -2054,6 +2055,86 @@ radar-beta
   curve c2["Bob"]{70, 75, 85, 80, 90}
   max 100
   min 0
+```
+
+### Treemap syntax
+
+```go
+package main
+
+import (
+	"io"
+	"os"
+
+	"github.com/nao1215/markdown"
+	"github.com/nao1215/markdown/mermaid/treemap"
+)
+
+//go:generate go run main.go
+
+func main() {
+	f, err := os.Create("generated.md")
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+
+	diagram := treemap.NewDiagram(io.Discard, treemap.WithTitle("Budget")).
+		Section("Ops").
+		Leaf("Salaries", 1200).
+		Section("Cloud").
+		Leaf("Compute", 400).
+		Parent().
+		Leaf("Travel", 300).
+		Parent().
+		Section("Marketing").
+		Leaf("Ads", 800).
+		String()
+
+	err = markdown.NewMarkdown(f).
+		H2("Treemap").
+		CodeBlocks(markdown.SyntaxHighlightMermaid, diagram).
+		Build()
+
+	if err != nil {
+		panic(err)
+	}
+}
+```
+
+mermaid expresses the hierarchy with indentation, and the builder walks it rather than asking for a tree of objects: `Section` opens a level, `Leaf` puts a value in the current one, and `Parent` goes back up. A section carries no value of its own; mermaid gives it the sum of what it holds.
+
+Plain text output: [markdown is here](./doc/treemap/generated.md)
+````
+## Treemap
+```mermaid
+---
+title: "Budget"
+---
+treemap-beta
+"Ops"
+    "Salaries": 1200
+    "Cloud"
+        "Compute": 400
+    "Travel": 300
+"Marketing"
+    "Ads": 800
+```
+````
+
+Mermaid output:
+```mermaid
+---
+title: "Budget"
+---
+treemap-beta
+"Ops"
+    "Salaries": 1200
+    "Cloud"
+        "Compute": 400
+    "Travel": 300
+"Marketing"
+    "Ads": 800
 ```
 
 ## Creating an index for a directory full of markdown files

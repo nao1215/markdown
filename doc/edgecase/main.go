@@ -38,6 +38,7 @@ import (
 	"github.com/nao1215/markdown/mermaid/sankey"
 	"github.com/nao1215/markdown/mermaid/sequence"
 	"github.com/nao1215/markdown/mermaid/state"
+	"github.com/nao1215/markdown/mermaid/treemap"
 	"github.com/nao1215/markdown/mermaid/userjourney"
 	"github.com/nao1215/markdown/mermaid/xychart"
 )
@@ -108,6 +109,10 @@ func supported(diagram string) string {
 		// description once it holds anything else, so a description is down to
 		// text and the punctuation below.
 		"state": emoji + japanese + `,*-|%%`,
+		// treemap doubles a quote in a name and everything else is text inside
+		// the quotes, so only a line break is left out: the hierarchy is
+		// indentation, and a name spanning lines would read as another node.
+		"treemap": `"'#;[](){}<br/>` + emoji + japanese + `:,*-|%%`,
 		// userjourney: "#" and ";" end a statement, and ":" separates the
 		// fields of a task.
 		"userjourney": `"'[](){}<br/>` + emoji + japanese + `,*-|%%`,
@@ -219,6 +224,7 @@ func diagrams() []diagram {
 		{name: "Sankey", file: "sankey", build: sankeyDiagram},
 		{name: "Sequence", file: "sequence", build: sequenceDiagram},
 		{name: "State", file: "state", build: stateDiagram},
+		{name: "Treemap", file: "treemap", build: treemapDiagram},
 		{name: "User journey", file: "userjourney", build: userJourney},
 		{name: "XY chart", file: "xychart", build: xyChart},
 	}
@@ -389,6 +395,18 @@ func stateDiagram(diagram string) string {
 		Transition("Draft", "Placed").
 		TransitionWithNote("Placed", "Draft", shortLabel(diagram)).
 		NoteRight("Draft", label(diagram)).
+		String()
+}
+
+func treemapDiagram(diagram string) string {
+	return treemap.NewDiagram(io.Discard, treemap.WithTitle(title(diagram))).
+		Section(shortLabel(diagram)).
+		Leaf(label(diagram), 1200). //nolint:mnd
+		Section(shortLabel(diagram)+" nested").
+		Leaf(shortLabel(diagram), 400). //nolint:mnd
+		Parent().
+		Parent().
+		Leaf(shortLabel(diagram)+" top", 300). //nolint:mnd
 		String()
 }
 
