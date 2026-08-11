@@ -1,6 +1,11 @@
 // Package block is mermaid block diagram builder.
 //
 // Ref. https://mermaid.js.org/syntax/block.html
+//
+// Errors are recorded rather than returned from every call: the chain runs to
+// the end and the error surfaces from Build. A nil writer and a writer that
+// refuses the diagram are both reported rather than causing a panic, and
+// String returns the diagram without needing a writer at all.
 package block
 
 import (

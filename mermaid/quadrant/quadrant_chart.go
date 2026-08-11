@@ -1,4 +1,9 @@
 // Package quadrant is mermaid quadrant chart builder.
+//
+// Errors are recorded rather than returned from every call: the chain runs to
+// the end and the error surfaces from Build. A nil writer and a writer that
+// refuses the diagram are both reported rather than causing a panic, and
+// String returns the diagram without needing a writer at all.
 package quadrant
 
 import (

@@ -1,4 +1,20 @@
 // Package markdown is markdown builder that includes to convert Markdown to HTML.
+//
+// # Error handling
+//
+// A document is one method chain, so the builder records errors instead of
+// returning them from every call. Nothing in a chain panics on bad input, and
+// nothing has to be checked individually: the chain runs to the end and the
+// error surfaces from [Markdown.Error] or from [Markdown.Build], which agree.
+//
+// A rejected call does not stop the document. The blocks after it are still
+// added, so a table with a mismatched row costs that table and nothing else.
+// When a chain records more than one error, the first is kept, because it is
+// the one that explains the rest; later failures are appended to its message.
+//
+// [Markdown.String] returns the document whether or not an error occurred, and
+// it needs no writer, which is how the mermaid subpackages hand a diagram to
+// [Markdown.CodeBlocks].
 package markdown
 
 import (
@@ -197,6 +213,9 @@ func NewMarkdown(w io.Writer, opts ...Option) *Markdown {
 }
 
 // String returns markdown text.
+//
+// It returns the document built so far whether or not an error was recorded,
+// and it does not need a writer, so it works on a builder constructed with nil.
 func (m *Markdown) String() string {
 	body := m.body
 
@@ -353,7 +372,10 @@ func insertTableOfContents(body, toc []string) []string {
 	return out
 }
 
-// Error returns error.
+// Error returns the error the chain recorded, or nil.
+//
+// It is the same error [Markdown.Build] returns, for callers who would rather
+// check before writing than after.
 func (m *Markdown) Error() error {
 	return m.err
 }
@@ -370,6 +392,15 @@ func (m *Markdown) PlainTextf(format string, args ...interface{}) *Markdown {
 }
 
 // Build writes markdown text to output destination.
+//
+// It returns the error the chain recorded, or nil. A nil destination and a
+// destination that refuses the document are both reported rather than causing a
+// panic, and either message carries the earlier error too when there is one.
+//
+// The document is written with a trailing line ending, so appending a second
+// document to the same writer starts it on its own line.
+//
+// Build may be called more than once; each call writes the document again.
 func (m *Markdown) Build() error {
 	if m.dest == nil {
 		if m.err != nil {
