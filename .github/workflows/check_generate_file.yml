@@ -31,10 +31,10 @@ jobs:
           go-version-file: "go.mod"
           cache-dependency-path: "go.sum"
 
-      - name: go mod tidy leaves no diff
+      - name: go mod tidy leaves the tree clean
         run: |
           go mod tidy
-          git diff --exit-code
+          ./scripts/assert-clean-tree.sh "go mod tidy"
 
       - name: gofmt leaves no diff
         run: |
@@ -48,4 +48,4 @@ jobs:
       - name: generated documents are up to date
         run: |
           go generate ./...
-          git diff --exit-code
+          ./scripts/assert-clean-tree.sh "go generate ./..."

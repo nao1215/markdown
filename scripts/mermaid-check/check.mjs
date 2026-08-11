@@ -54,10 +54,28 @@ function mermaidBlocks(text) {
   return blocks;
 }
 
+// files returns the paths to check. With --stdin0 the list is read as a
+// NUL-delimited stream, which is the only form that survives a path containing
+// whitespace; `git ls-files -z` produces exactly that.
+async function files() {
+  const args = process.argv.slice(2);
+  if (!args.includes("--stdin0")) {
+    return args;
+  }
+  const chunks = [];
+  for await (const chunk of process.stdin) {
+    chunks.push(chunk);
+  }
+  return Buffer.concat(chunks)
+    .toString("utf8")
+    .split("\0")
+    .filter((name) => name !== "");
+}
+
 let checked = 0;
 let failed = 0;
 
-for (const file of process.argv.slice(2)) {
+for (const file of await files()) {
   for (const block of mermaidBlocks(readFileSync(file, "utf8"))) {
     checked++;
     try {

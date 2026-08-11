@@ -35,4 +35,5 @@ jobs:
         working-directory: scripts/mermaid-check
 
       - name: Parse every mermaid block
-        run: node scripts/mermaid-check/check.mjs $(git ls-files '*.md')
+        # NUL-delimited so a path containing whitespace stays one argument.
+        run: git ls-files -z '*.md' | node scripts/mermaid-check/check.mjs --stdin0

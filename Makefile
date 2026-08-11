@@ -29,7 +29,7 @@ generate: ## Regenerate the sample documents under doc/ (CheckAutoGenerateFiles 
 
 render-check: ## Parse every mermaid diagram committed in this repository (requires node)
 	cd scripts/mermaid-check && npm ci
-	node scripts/mermaid-check/check.mjs $$(git ls-files '*.md')
+	git ls-files -z '*.md' | node scripts/mermaid-check/check.mjs --stdin0
 
 .DEFAULT_GOAL := help
 help: ## Show help message  
