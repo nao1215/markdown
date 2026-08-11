@@ -29,6 +29,14 @@ const cases = [
     expect: "mermaid parse error",
   },
   {
+    file: "frontmatter-unquoted-colon.mdfixture",
+    expect: "mermaid parse error",
+  },
+  {
+    file: "frontmatter-comment-title.mdfixture",
+    expect: "YAML reads its value as nothing",
+  },
+  {
     file: "valid.mdfixture",
     expect: null,
   },

@@ -1,0 +1,9 @@
+# Fixture: a title YAML swallows as a comment
+
+```mermaid
+---
+title: # Checkout
+---
+flowchart TB
+    A-->B
+```

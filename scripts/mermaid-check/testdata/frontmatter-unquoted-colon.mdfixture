@@ -1,0 +1,9 @@
+# Fixture: a title YAML cannot read as a plain scalar
+
+```mermaid
+---
+title: Checkout: API
+---
+flowchart TB
+    A-->B
+```

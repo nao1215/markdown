@@ -18,6 +18,7 @@ import { createServer } from "node:http";
 import { dirname, join, normalize, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { JSDOM } from "jsdom";
+import { load as parseYAML } from "js-yaml";
 import puppeteer from "puppeteer";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -33,7 +34,9 @@ Object.defineProperty(global, "navigator", {
 });
 
 const mermaid = (await import("mermaid")).default;
-mermaid.initialize({ startOnLoad: false, securityLevel: "loose" });
+// No securityLevel override: the default is "strict", which is what GitHub
+// renders these diagrams with, and the point of this script is to agree with it.
+mermaid.initialize({ startOnLoad: false });
 
 // mermaidBlocks returns every fenced block tagged `mermaid`, with the line
 // number of its first content line. Fences longer than three backticks are
@@ -110,13 +113,16 @@ const rejectedForms = [
 function header(source) {
   const lines = source.split("\n");
   if (lines[0]?.trim() !== "---") {
-    return { frontMatter: [], rest: lines };
+    return { frontMatter: "", rest: lines };
   }
   const end = lines.indexOf("---", 1);
   if (end === -1) {
-    return { frontMatter: [], rest: lines };
+    return { frontMatter: "", rest: lines };
   }
-  return { frontMatter: lines.slice(1, end), rest: lines.slice(end + 1) };
+  return {
+    frontMatter: lines.slice(1, end).join("\n"),
+    rest: lines.slice(end + 1),
+  };
 }
 
 // keyword returns the diagram keyword, e.g. "block" or "stateDiagram-v2".
@@ -142,12 +148,29 @@ function unquote(value) {
 
 // declaredTitle returns the title a diagram asks for: front matter first, then
 // the `title` statement the flat diagram types use.
+//
+// The front matter goes through a YAML parser rather than a regex, because that
+// is what mermaid does with it and the two disagree on exactly the inputs worth
+// catching: `title: Checkout # API` carries a comment, `title: 'Sprint Board'`
+// is quoted, and `title: ~` is not a string at all.
 function declaredTitle(source) {
   const { frontMatter, rest } = header(source);
-  for (const line of frontMatter) {
-    const m = line.match(/^title:\s*(.+)$/);
-    if (m) {
-      return { text: unquote(m[1]), frontMatter: true };
+  if (frontMatter !== "") {
+    let parsed;
+    try {
+      parsed = parseYAML(frontMatter);
+    } catch {
+      // Unparsable front matter is mermaid's error to report, and the render
+      // below reports it.
+      parsed = null;
+    }
+    if (parsed && typeof parsed === "object" && "title" in parsed) {
+      // A null title means YAML read the value as something that is not there:
+      // "~", or a "#" that started a comment instead of the title.
+      if (parsed.title === null || parsed.title === undefined) {
+        return { text: null, frontMatter: true };
+      }
+      return { text: String(parsed.title), frontMatter: true };
     }
   }
   for (const line of rest) {
@@ -161,7 +184,7 @@ function declaredTitle(source) {
 
 // untitledDiagrams are the diagram types whose renderer draws no title at all,
 // in front matter or anywhere else. A `title` statement in one of these is not a
-// title but content: `block` reads it as a row and draws stray blocks labelled
+// title but content: `block` reads it as a row and draws stray blocks labeled
 // "title" and whatever followed it, and `kanban` reads it as a column. Front
 // matter is still allowed, because that form is inert metadata.
 const untitledDiagrams = new Set([
@@ -200,6 +223,12 @@ async function renderer() {
   await new Promise((ready) => server.listen(0, "127.0.0.1", ready));
   const origin = `http://127.0.0.1:${server.address().port}`;
 
+  // --no-sandbox is not a preference: Ubuntu 23.10 and later, which is what the
+  // CI runner and most contributors are on, block the unprivileged user
+  // namespaces Chrome's sandbox needs, and it refuses to start without it. The
+  // exposure is bounded instead: nothing here is fetched from the network, the
+  // browser only ever sees markdown already committed to this repository, and it
+  // renders it at mermaid's default "strict" security level.
   const browser = await puppeteer.launch({
     headless: true,
     executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
@@ -211,7 +240,7 @@ async function renderer() {
     type: "module",
     content: `
       import mermaid from "${origin}/node_modules/mermaid/dist/mermaid.esm.min.mjs";
-      mermaid.initialize({ startOnLoad: false, securityLevel: "loose" });
+      mermaid.initialize({ startOnLoad: false });
       window.draw = async (id, source) => {
         try {
           const { svg } = await mermaid.render(id, source);
@@ -273,6 +302,13 @@ for (const file of await files()) {
 
     const title = declaredTitle(block.body);
     const type = keyword(block.body);
+    if (title && title.text === null) {
+      fail(
+        where,
+        "the front matter declares a title, but YAML reads its value as nothing. Quote it.",
+      );
+      continue;
+    }
     if (title && !title.frontMatter && untitledDiagrams.has(type)) {
       fail(
         where,
