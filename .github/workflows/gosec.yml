@@ -1,4 +1,7 @@
 name: Gosec
+permissions:
+  contents: read
+
 on:
   workflow_dispatch:
   push:
@@ -8,12 +11,15 @@ on:
 jobs:
   tests:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     env:
       GO111MODULE: on
     steps:
       - name: Checkout Source
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - name: Run Gosec Security Scanner
-        uses: securego/gosec@master
+        uses: securego/gosec@2eb4727ebc7504944ddbcdd2f7157db492026c3f # master as of 2026-08-11
         with:
           args: --exclude-dir=examples --exclude-dir=aws ./...

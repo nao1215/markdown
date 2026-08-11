@@ -1,0 +1,51 @@
+name: CheckAutoGenerateFiles
+
+# doc/*/main.go writes the sample documents that README links to. Nothing used
+# to re-run them, so a change to the builder's output silently staled every one
+# of those files while CI stayed green. This job regenerates them and fails if
+# the working tree moves.
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  check_generate_file:
+    name: Check auto generate files
+    # The generators carry a `//go:build linux || darwin` tag, so `go generate`
+    # is a no-op on Windows. Keep this job on Linux.
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: "go.mod"
+          cache-dependency-path: "go.sum"
+
+      - name: go mod tidy leaves the tree clean
+        run: |
+          go mod tidy
+          ./scripts/assert-clean-tree.sh "go mod tidy"
+
+      - name: gofmt leaves no diff
+        run: |
+          unformatted="$(gofmt -l . | grep -v '^scripts/' || true)"
+          if [ -n "$unformatted" ]; then
+            echo "these files are not gofmt'd:"
+            echo "$unformatted"
+            exit 1
+          fi
+
+      - name: generated documents are up to date
+        run: |
+          go generate ./...
+          ./scripts/assert-clean-tree.sh "go generate ./..."
