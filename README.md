@@ -11,7 +11,7 @@
 
 The markdown package is a simple markdown builder for Go. It assembles a document by method chaining instead of through a template engine such as [html/template](https://pkg.go.dev/html/template), and the syntax it emits follows GitHub Markdown.
 
-It also builds mermaid diagrams: entity relationship, sequence, user journey, git graph, mindmap, requirement, xy chart, packet, block, kanban, flowchart, pie chart, quadrant, state, class, Gantt, architecture, and timeline. That came from the package's origin, which was saving test results for [nao1215/spectest](https://github.com/nao1215/spectest).
+It also builds mermaid diagrams: entity relationship, sequence, user journey, git graph, mindmap, requirement, xy chart, packet, block, kanban, flowchart, pie chart, quadrant, state, class, Gantt, architecture, timeline, and sankey. That came from the package's origin, which was saving test results for [nao1215/spectest](https://github.com/nao1215/spectest).
 
 Anything that would make the library complicated, such as generating nested lists, is out of scope. Staying simple matters more here.
 
@@ -59,6 +59,7 @@ Anything that would make the library complicated, such as generating nested list
 - [x] mermaid Gantt chart
 - [x] mermaid architecture diagram (beta feature) 
 - [x] mermaid timeline diagram
+- [x] mermaid sankey diagram
 
 ### Features not in Markdown syntax
 - Generate badges; RedBadge(), YellowBadge(), GreenBadge().
@@ -1909,6 +1910,74 @@ timeline
         2005 : YouTube
     section Third wave
         2006 : Twitter : Reddit
+```
+
+### Sankey syntax
+
+```go
+package main
+
+import (
+	"io"
+	"os"
+
+	"github.com/nao1215/markdown"
+	"github.com/nao1215/markdown/mermaid/sankey"
+)
+
+//go:generate go run main.go
+
+func main() {
+	f, err := os.Create("generated.md")
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+
+	diagram := sankey.NewDiagram(io.Discard).
+		Link("Agricultural 'waste'", "Bio-conversion", 124.729).
+		Link("Bio-conversion", "Liquid", 0.597).
+		Link("Bio-conversion", "Losses, and more", 26.862).
+		Link("Bio-conversion", "Solid", 280.322).
+		Link("Bio-conversion", "Gas", 81.144).
+		String()
+
+	err = markdown.NewMarkdown(f).
+		H2("Sankey").
+		CodeBlocks(markdown.SyntaxHighlightMermaid, diagram).
+		Build()
+
+	if err != nil {
+		panic(err)
+	}
+}
+```
+
+Nodes are never declared: a node exists because a flow names it, and two flows naming the same node are two flows through one node. The diagram body is CSV, so a node name holding a comma or a double quote is quoted for you, as `Losses, and more` is above.
+
+Plain text output: [markdown is here](./doc/sankey/generated.md)
+````
+## Sankey
+```mermaid
+sankey-beta
+
+Agricultural 'waste',Bio-conversion,124.729
+Bio-conversion,Liquid,0.597
+Bio-conversion,"Losses, and more",26.862
+Bio-conversion,Solid,280.322
+Bio-conversion,Gas,81.144
+```
+````
+
+Mermaid output:
+```mermaid
+sankey-beta
+
+Agricultural 'waste',Bio-conversion,124.729
+Bio-conversion,Liquid,0.597
+Bio-conversion,"Losses, and more",26.862
+Bio-conversion,Solid,280.322
+Bio-conversion,Gas,81.144
 ```
 
 ## Creating an index for a directory full of markdown files
