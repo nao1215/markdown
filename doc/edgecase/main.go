@@ -109,10 +109,13 @@ func supported(diagram string) string {
 		// description once it holds anything else, so a description is down to
 		// text and the punctuation below.
 		"state": emoji + japanese + `,*-|%%`,
-		// treemap doubles a quote in a name and everything else is text inside
-		// the quotes, so only a line break is left out: the hierarchy is
-		// indentation, and a name spanning lines would read as another node.
-		"treemap": `"'#;[](){}<br/>` + emoji + japanese + `:,*-|%%`,
+		// treemap doubles a quote in a name and everything else, a backslash
+		// included, is text inside the quotes, so only a line break is left
+		// out: the hierarchy is indentation, and a name spanning lines would
+		// read as another node. It is the only type here whose labels carry a
+		// backslash, because it is the only one whose quoting was proven to
+		// leave one alone.
+		"treemap": `"'#;[](){}<br/>` + emoji + japanese + `:,*-|%%\`,
 		// userjourney: "#" and ";" end a statement, and ":" separates the
 		// fields of a task.
 		"userjourney": `"'[](){}<br/>` + emoji + japanese + `,*-|%%`,
