@@ -1,0 +1,42 @@
+name: Fuzz
+
+# The push and pull request test runs only exercise the seed corpus of the fuzz
+# targets. This job does real mutation fuzzing on a schedule, because the inputs
+# that break this package are arbitrary user text: a pipe in a table cell, a
+# newline in alert text, punctuation in a heading. A newly found crasher fails
+# the scheduled run and its reproducer is written under testdata/fuzz/; it never
+# blocks a pull request.
+on:
+  workflow_dispatch:
+  schedule:
+    # 03:00 UTC daily.
+    - cron: "0 3 * * *"
+
+permissions:
+  contents: read
+
+jobs:
+  fuzz:
+    name: fuzz (${{ matrix.target }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - FuzzEscapeTableCell
+          - FuzzTableRowKeepsColumnCount
+          - FuzzAlertQuotesEveryLine
+          - FuzzGitHubAnchor
+          - FuzzTableOfContentsAnchorsMatchHeadings
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: "go.mod"
+
+      - name: Fuzz ${{ matrix.target }}
+        run: go test -run='^$' -fuzz='^${{ matrix.target }}$' -fuzztime=3m .
