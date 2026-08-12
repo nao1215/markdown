@@ -78,8 +78,9 @@ func supported(diagram string) string {
 		"c4": `"'#;[](){}<br/>` + emoji + japanese + `:,*-|%%\`,
 		// class: ";" and ":" end a relation label.
 		"class": `"'#[](){}` + emoji + japanese + `,*-|%%`,
-		// er: a double quote ends the comment it is written in.
-		"er": `'#;[](){}<br/>` + emoji + japanese + `:,*-|%%`,
+		// er writes a comment as the entity form mermaid decodes, so the
+		// punctuation is all safe.
+		"er": `"'#;[](){}<br/>` + emoji + japanese + `:,*-|%%`,
 		// flowchart quotes every label and writes a double quote as the entity
 		// form mermaid decodes, so the punctuation is all safe. What is left
 		// out is a line break: the renderer honours "<br/>" inside a label,
