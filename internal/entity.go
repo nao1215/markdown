@@ -19,7 +19,7 @@ import "strconv"
 //
 // The numeric form is used for everything except the double quote, which is
 // written by name because that is the form mermaid's own documentation shows
-// and the form a reader of the generated diagram will recognise.
+// and the form a reader of the generated diagram will recognize.
 func EntityEscape(r rune) string {
 	if r == '"' {
 		return "#quot;"
