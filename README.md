@@ -11,9 +11,15 @@
 
 The markdown package is a simple markdown builder for Go. It assembles a document by method chaining instead of through a template engine such as [html/template](https://pkg.go.dev/html/template), and the syntax it emits follows GitHub Markdown.
 
-It also builds mermaid diagrams: entity relationship, sequence, user journey, git graph, mindmap, requirement, xy chart, packet, block, kanban, flowchart, pie chart, quadrant, state, class, Gantt, architecture, timeline, sankey, radar, and treemap. That came from the package's origin, which was saving test results for [nao1215/spectest](https://github.com/nao1215/spectest).
+It also builds mermaid diagrams: entity relationship, sequence, user journey, git graph, mindmap, requirement, xy chart, packet, block, kanban, flowchart, pie chart, quadrant, state, class, Gantt, architecture, timeline, sankey, radar, treemap, and C4 context. That came from the package's origin, which was saving test results for [nao1215/spectest](https://github.com/nao1215/spectest).
 
 Anything that would make the library complicated, such as generating nested lists, is out of scope. Staying simple matters more here.
+
+## Stability
+
+From v1.0.0 the exported API and the bytes it produces are both stable. Within v1.x nothing exported is removed, renamed or given a different signature, and every builder keeps producing byte-for-byte identical output, so regenerating your documents with a newer version of this library gives you no diff. The one exception is output that is objectively wrong, meaning markdown GitHub does not parse as the call intended or a mermaid diagram the renderer refuses to draw; such a fix ships in a patch release with the reasoning in [CHANGELOG.md](CHANGELOG.md). [SPEC.md](SPEC.md) states both promises in full, and [doc/v1-api-audit.md](doc/v1-api-audit.md) is the inventory they cover.
+
+The library is **feature complete by design**. The expected future addition is a new mermaid diagram type as mermaid ships one, which is additive and changes nothing that exists. Structural markdown features beyond the documented scope, such as nested lists or tables inside list items, will not be added: the value of this library is that a document is a single method chain a reader can follow top to bottom, and those features would replace the chain with a tree.
 
 ## Specification
 
