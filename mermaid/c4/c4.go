@@ -130,7 +130,7 @@ func (d *Diagram) Person(id, label string, opts ...ElementOption) *Diagram {
 }
 
 // PersonExt adds a person outside the enterprise being described. mermaid
-// spells the macro Person_Ext and draws it in a colder colour than Person.
+// spells the macro Person_Ext and draws it in a colder color than Person.
 func (d *Diagram) PersonExt(id, label string, opts ...ElementOption) *Diagram {
 	return d.element("Person_Ext", id, label, opts)
 }

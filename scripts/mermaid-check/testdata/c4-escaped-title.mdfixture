@@ -3,11 +3,12 @@
 The title holds a "#", a ";" and a quotation mark. The first two are the C4
 title lexer's own punctuation and arrive as "#35;" and "#59;"; mermaid decodes
 both before it draws them, so the checker has to as well or it reports this
-title as missing.
+title as missing. The emoji is the numeric form, and it is past U+FFFF on
+purpose: a character code truncates it and a code point does not.
 
 ```mermaid
 C4Context
-    title Ledger #35;1: "core"#59; v2
+    title Ledger #35;1: "core"#59; v2 #128512;
     Person(customer, "Customer")
     System(ledger, "Ledger")
     Rel(customer, ledger, "Reads #quot;the balance#quot;")

@@ -155,16 +155,16 @@ function unquote(value) {
 // drawing, so it has to read the escape the same way mermaid does or it reports
 // a title that is present as missing.
 //
-// mermaid resolves the numeric form itself, as a character code, and hands the
-// named form to the browser as "&name;", so an unknown name is drawn as that
-// literal text rather than as the escape it looks like.
+// mermaid rewrites "#123;" to the HTML reference "&#123;" and "#name;" to
+// "&name;", and lets the browser resolve both, so the decoding here goes through
+// a DOM for the same reason: it agrees on the astral code points that a
+// character code would truncate, and it leaves an unknown name as the literal
+// text mermaid leaves it as.
 function decodeEntities(value) {
   return value.replace(/#(\w+);/g, (whole, body) => {
-    if (/^\+?\d+$/.test(body)) {
-      return String.fromCharCode(parseInt(body, 10));
-    }
+    const reference = /^\+?\d+$/.test(body) ? `&#${body};` : `&${body};`;
     const el = dom.window.document.createElement("div");
-    el.innerHTML = `&${body};`;
+    el.innerHTML = reference;
     return el.textContent;
   });
 }
