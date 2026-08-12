@@ -428,3 +428,29 @@ func TestErrorReportsTheRecordedError(t *testing.T) {
 		t.Errorf("Error() = %v, want the error Build returned, %v", d.Error(), fromBuild)
 	}
 }
+
+// TestZeroValueDiagramDoesNotPanic pins that er.Diagram{} takes calls, which it
+// did when the entity set was a sync.Map and would not have when it became a
+// plain map without this.
+//
+// The type is exported, so a caller can write the zero value, and nothing in
+// this library panics on how it is called: a bad call records an error and the
+// chain runs on. A nil map assignment would have broken that.
+func TestZeroValueDiagramDoesNotPanic(t *testing.T) {
+	t.Parallel()
+
+	defer func() {
+		if r := recover(); r != nil {
+			t.Fatalf("the zero value panicked: %v", r)
+		}
+	}()
+
+	var d Diagram
+	d.NoRelationship(NewEntity("teachers", []*Attribute{
+		{Type: "int", Name: "id", IsPrimaryKey: true, Comment: "Primary key"},
+	}))
+
+	if want := "teachers {"; !strings.Contains(d.String(), want) {
+		t.Errorf("diagram = %q, want it to contain %q", d.String(), want)
+	}
+}
