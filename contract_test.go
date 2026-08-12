@@ -4,6 +4,10 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	goast "go/ast"
+	"go/doc"
+	"go/parser"
+	"go/token"
 	"io"
 	"os"
 	"path/filepath"
@@ -1602,6 +1606,47 @@ func TestReadmeShowsWhatTheGeneratorsProduce(t *testing.T) {
 	}
 }
 
+// TestEveryExportedSymbolHasAnExample walks this module's packages and reports
+// any exported function, or method on an exported type, that godoc would show
+// without a runnable example beside it.
+//
+// The examples are the documentation this library ships: pkg.go.dev puts one
+// under the symbol it is named for, and a reader deciding how to call something
+// looks there first. Counting them here is what keeps a new API from arriving
+// without one, since nothing else notices.
+//
+// Names have to match Go's rules exactly or godoc silently attaches the example
+// to nothing: ExampleMarkdown_H1 for method H1 on Markdown, ExampleBold for the
+// function Bold. The list of examples comes from go/doc rather than from a scan
+// for the name, so an example that takes an argument, returns a value or has no
+// output to check against does not count as documenting anything, which is what
+// godoc does with it too.
+func TestEveryExportedSymbolHasAnExample(t *testing.T) {
+	t.Parallel()
+
+	// The mermaid subpackages are not in this list yet. Each has an
+	// examples_test.go covering its builder, and filling the gaps in all
+	// twenty one is its own piece of work; this list grows to "mermaid/*" when
+	// that lands.
+	packages := []string{"."}
+
+	for _, dir := range packages {
+		t.Run(dir, func(t *testing.T) {
+			t.Parallel()
+
+			symbols, examples := exportedSymbols(t, dir)
+			for _, symbol := range symbols {
+				if !examples[symbol] {
+					t.Errorf(
+						"%s has no example. Add func %s() to %s/examples_test.go, with an // Output: block.",
+						symbol, symbol, dir,
+					)
+				}
+			}
+		})
+	}
+}
+
 // readmeSamples returns the document each "Plain text output" link is followed
 // by, keyed by the directory under doc/ that it links to.
 func readmeSamples(t *testing.T, readme string) map[string]string {
@@ -1638,4 +1683,90 @@ func readmeSamples(t *testing.T, readme string) map[string]string {
 		samples[m[1]] = strings.Join(body, "\n")
 	}
 	return samples
+}
+
+// exportedSymbols returns the example name every exported symbol of the package
+// in dir would be documented under, and the examples the package actually has.
+//
+// Types are in, because pkg.go.dev puts an example under a type and a reader
+// looking at TableSet wants to see one filled in. Constants and variables are
+// not: there are sixty one of them here, they are the enumerations a method
+// takes rather than anything a caller calls, and an example under each would
+// bury the page rather than document it.
+func exportedSymbols(t *testing.T, dir string) ([]string, map[string]bool) {
+	t.Helper()
+
+	fset := token.NewFileSet()
+	pkgs, err := parser.ParseDir(fset, dir, nil, parser.ParseComments)
+	if err != nil {
+		t.Fatalf("parse %s: %v", dir, err)
+	}
+
+	want := []string{}
+	examples := map[string]bool{}
+	for _, pkg := range pkgs {
+		for name, file := range pkg.Files {
+			if strings.HasSuffix(name, "_test.go") {
+				// go/doc reports the examples godoc will actually show: it
+				// leaves out anything that takes an argument, returns a value,
+				// or has no output to check against, which a scan for the name
+				// alone would count.
+				for _, example := range doc.Examples(file) {
+					if example.Output != "" {
+						examples["Example"+example.Name] = true
+					}
+				}
+				continue
+			}
+			want = append(want, documentedSymbols(file)...)
+		}
+	}
+	return want, examples
+}
+
+// documentedSymbols returns the example name each exported function, method on
+// an exported type, and type in file would be documented under.
+func documentedSymbols(file *goast.File) []string {
+	symbols := []string{}
+	for _, decl := range file.Decls {
+		switch d := decl.(type) {
+		case *goast.FuncDecl:
+			if !d.Name.IsExported() {
+				continue
+			}
+			if symbol, ok := documentedAs(d); ok {
+				symbols = append(symbols, symbol)
+			}
+		case *goast.GenDecl:
+			if d.Tok != token.TYPE {
+				continue
+			}
+			for _, spec := range d.Specs {
+				if ts, ok := spec.(*goast.TypeSpec); ok && ts.Name.IsExported() {
+					symbols = append(symbols, "Example"+ts.Name.Name)
+				}
+			}
+		}
+	}
+	return symbols
+}
+
+// documentedAs returns the example name godoc attaches to fn.
+func documentedAs(fn *goast.FuncDecl) (string, bool) {
+	if fn.Recv == nil {
+		return "Example" + fn.Name.Name, true
+	}
+	if len(fn.Recv.List) != 1 {
+		return "", false
+	}
+
+	receiver := fn.Recv.List[0].Type
+	if star, ok := receiver.(*goast.StarExpr); ok {
+		receiver = star.X
+	}
+	ident, ok := receiver.(*goast.Ident)
+	if !ok || !ident.IsExported() {
+		return "", false
+	}
+	return "Example" + ident.Name + "_" + fn.Name.Name, true
 }
