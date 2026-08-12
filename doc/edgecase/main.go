@@ -94,8 +94,10 @@ func supported(diagram string) string {
 		// kanban: quotes end the single quoted metadata, and square brackets
 		// and a closing brace end a node.
 		"kanban": `#;{<br/>` + emoji + japanese + `:,*-|%%`,
-		// mindmap: brackets, parentheses and braces are node shape delimiters.
-		"mindmap": `"'#;]<br/>` + emoji + japanese + `:,*-|%%`,
+		// mindmap writes the brackets, parentheses and braces that delimit a
+		// node shape as the entity form mermaid decodes, so the punctuation is
+		// all safe.
+		"mindmap": `"'#;[](){}<br/>` + emoji + japanese + `:,*-|%%`,
 		// packet and piechart put the title in YAML front matter, and mermaid
 		// strips a "%%" comment from that before the YAML is read.
 		"packet": `"'#;[](){}<br/>` + emoji + japanese + `:,*-|`,
