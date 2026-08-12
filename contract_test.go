@@ -13,6 +13,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+	"sync"
 	"testing"
 	"unicode"
 	"unicode/utf8"
@@ -1769,4 +1770,41 @@ func documentedAs(fn *goast.FuncDecl) (string, bool) {
 		return "", false
 	}
 	return "Example" + ident.Name + "_" + fn.Name.Name, true
+}
+
+// TestABuilderBelongsToOneGoroutine pins the concurrency contract SPEC.md
+// states: a builder is not safe for concurrent use, and the way to build two
+// documents at once is to build two builders.
+//
+// There is no test here that shares one builder between goroutines, because
+// such a test is a data race: it would pass or fail depending on the scheduler,
+// and under -race it would fail on purpose, which is not a test but a promise
+// to break the build. What is pinned instead is the shape the contract points
+// callers at, which has to keep working.
+func TestABuilderBelongsToOneGoroutine(t *testing.T) {
+	t.Parallel()
+
+	const writers = 8
+
+	documents := make([]string, writers)
+	var wg sync.WaitGroup
+	for i := range writers {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+
+			// One builder per goroutine, which is what the contract asks for.
+			documents[i] = markdown.NewMarkdown(io.Discard).
+				H2(fmt.Sprintf("Section %d", i)).
+				PlainText("Built on its own goroutine.").
+				String()
+		}()
+	}
+	wg.Wait()
+
+	for i, document := range documents {
+		if want := fmt.Sprintf("## Section %d", i); !strings.Contains(document, want) {
+			t.Errorf("document %d = %q, want it to contain %q", i, document, want)
+		}
+	}
 }

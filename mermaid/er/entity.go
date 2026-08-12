@@ -94,14 +94,14 @@ func (d *Diagram) Relationship(leftE, rightE Entity, leftR, rightR Relationship,
 		),
 	)
 
-	d.entities.Store(leftE.Name, leftE)
-	d.entities.Store(rightE.Name, rightE)
+	d.entities[leftE.Name] = leftE
+	d.entities[rightE.Name] = rightE
 
 	return d
 }
 
 // NoRelationship adds an entity that has no relationships.
 func (d *Diagram) NoRelationship(e Entity) *Diagram {
-	d.entities.Store(e.Name, e)
+	d.entities[e.Name] = e
 	return d
 }

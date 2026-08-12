@@ -68,11 +68,32 @@ which is documented rather than changed [#155](https://github.com/nao1215/markdo
 
 ### Upgrading from v0.13.0
 
-Nothing to do. `NewMarkdown` gained a variadic options parameter, which every
-existing call site still compiles against; only code that assigned it to a
-`func(io.Writer) *Markdown` variable is affected. Documents regenerated with
-this release differ from v0.13.0 only where the old output did not render, and
-those cases are listed above.
+**Your code needs no change.** The exported API gained 76 symbols and lost none;
+the only signature that changed is `NewMarkdown`, which gained a variadic
+options parameter, so every existing call site still compiles. Only code that
+assigned the function itself to a `func(io.Writer) *Markdown` variable is
+affected.
+
+**Your regenerated documents will differ**, and not only where the old output
+was broken. Running the v0.13.0 sample generators unchanged against this release
+gives these differences:
+
+| change | what it affects |
+| --- | --- |
+| every document now ends with a line ending | **every document** |
+| a mermaid front matter title is quoted: `title: Checkout` becomes `title: "Checkout"` | every diagram with a title |
+| a block diagram title moves from a `title` statement into the front matter | block diagrams with a title |
+| a class annotation moves inside the class body | class diagrams using `<<Interface>>` |
+| the label escaping listed above | only labels holding the punctuation concerned, which did not render before |
+
+The first is the widest: nothing about it was broken, and it changes every file.
+It is deliberate. markdownlint's MD047 requires the trailing line ending, and
+without it a second document appended to the same writer splices its first line
+onto the last line of the first. The rest each replaced output that mermaid
+would not draw or that YAML read as something other than the title given.
+
+Expect a one-line diff in every generated file, and review the diagram titles
+once. After that, v1.x holds the bytes still.
 
 ## [v0.13.0](https://github.com/nao1215/markdown/compare/v0.12.0...v0.13.0) (2026-02-24)
 

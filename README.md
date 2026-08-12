@@ -19,7 +19,9 @@ Anything that would make the library complicated, such as generating nested list
 
 From v1.0.0 the exported API and the bytes it produces are both stable. Within v1.x nothing exported is removed, renamed or given a different signature, and every builder keeps producing byte-for-byte identical output, so regenerating your documents with a newer version of this library gives you no diff. The one exception is output that is objectively wrong, meaning markdown GitHub does not parse as the call intended or a mermaid diagram the renderer refuses to draw; such a fix ships in a patch release with the reasoning in [CHANGELOG.md](CHANGELOG.md). [SPEC.md](SPEC.md) states both promises in full, and [doc/v1-api-audit.md](doc/v1-api-audit.md) is the inventory they cover.
 
-The library is **feature complete by design**. The expected future addition is a new mermaid diagram type as mermaid ships one, which is additive and changes nothing that exists. Structural markdown features beyond the documented scope, such as nested lists or tables inside list items, will not be added: the value of this library is that a document is a single method chain a reader can follow top to bottom, and those features would replace the chain with a tree.
+The **markdown** side is complete by design. Structural features beyond the documented scope, such as nested lists or tables inside list items, will not be added: the value of this library is that a document is a single method chain a reader can follow top to bottom, and those features would replace the chain with a tree.
+
+The **mermaid** side is not finished, and is not meant to be: mermaid keeps shipping diagram types. Twenty-two are supported; the ones mermaid 11 has that this library does not yet build are tracked as issues, and each arrives as a new subpackage that changes nothing already there. A builder is not safe for concurrent use — one builder belongs to one goroutine, and building two documents at once means building two builders.
 
 ## Specification
 
