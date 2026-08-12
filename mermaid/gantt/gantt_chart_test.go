@@ -512,3 +512,80 @@ func TestBuildReportsWriteFailure(t *testing.T) {
 		t.Errorf("Build lost the destination error: %v", err)
 	}
 }
+
+// TestTaskNameEscapesTheColonThatEndsIt names the character this escaping buys.
+// A gantt task is written "name :data" and mermaid splits the line at the first
+// colon, so a colon in the name used to end it early: the chart still drew, with
+// a task called "Deploy" where the caller asked for "Deploy: staging". Nothing
+// reported it, which is what makes it worth fixing.
+func TestTaskNameEscapesTheColonThatEndsIt(t *testing.T) {
+	t.Parallel()
+
+	tests := map[string]struct {
+		build func(*Chart) *Chart
+		want  string
+	}{
+		"a colon in a plain task": {
+			build: func(g *Chart) *Chart {
+				return g.Task("Deploy: staging", "2024-01-01", "2d")
+			},
+			want: "    Deploy#58; staging :2024-01-01, 2d",
+		},
+		"a colon in a critical task": {
+			build: func(g *Chart) *Chart {
+				return g.CriticalTask("a:b", "2024-01-01", "2d")
+			},
+			want: "    a#58;b :crit, 2024-01-01, 2d",
+		},
+		"a colon in a milestone": {
+			build: func(g *Chart) *Chart {
+				return g.Milestone("a:b", "2024-01-01")
+			},
+			want: "    a#58;b :milestone, 2024-01-01, 0d",
+		},
+		"a colon in a task that follows another": {
+			build: func(g *Chart) *Chart {
+				return g.TaskAfter("a:b", "t1", "2d")
+			},
+			want: "    a#58;b :after t1, 2d",
+		},
+		"a named entity in a task name is escaped": {
+			build: func(g *Chart) *Chart {
+				return g.Task("a#quot;b", "2024-01-01", "2d")
+			},
+			want: "    a#35;quot;b :2024-01-01, 2d",
+		},
+		"a plain hash in a task name is left alone": {
+			build: func(g *Chart) *Chart {
+				return g.Task("PR #123 merged", "2024-01-01", "2d")
+			},
+			want: "    PR #123 merged :2024-01-01, 2d",
+		},
+	}
+
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := tt.build(NewChart(io.Discard)).String()
+			if !strings.Contains(got, tt.want) {
+				t.Errorf("chart =\n%s\nwant it to contain\n%s", got, tt.want)
+			}
+		})
+	}
+}
+
+// TestSectionAndTitleKeepTheirColon pins the other half: mermaid reads each of
+// those as the rest of its line, so a colon in one already reaches the drawing
+// and escaping it would change output that is correct today.
+func TestSectionAndTitleKeepTheirColon(t *testing.T) {
+	t.Parallel()
+
+	got := NewChart(io.Discard, WithTitle("Q1: plan")).Section("Ops: core").String()
+
+	for _, want := range []string{"    title Q1: plan", "    section Ops: core"} {
+		if !strings.Contains(got, want) {
+			t.Errorf("chart =\n%s\nwant it to contain\n%s", got, want)
+		}
+	}
+}
