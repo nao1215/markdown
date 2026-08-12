@@ -306,6 +306,9 @@ func entityRelationship(diagram string) string {
 
 func flowchartDiagram(diagram string) string {
 	return flowchart.NewFlowchart(io.Discard, flowchart.WithTitle(title(diagram))).
+		Subgraph("group", shortLabel(diagram)).
+		SubgraphEnd().
+		ClickHref("A", "https://example.com", label(diagram)).
 		NodeWithText("A", label(diagram)).
 		RhombusNode("B", shortLabel(diagram)).
 		CircleNode("C", shortLabel(diagram)).

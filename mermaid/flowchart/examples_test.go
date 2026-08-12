@@ -552,3 +552,178 @@ func ExampleFlowchart_Error() {
 	// before Build: <nil>
 	// after Build: output writer must not be nil
 }
+
+// ExampleFlowchart_Subgraph groups the nodes that follow it into a box.
+// SubgraphEnd closes it, and what lies between is indented.
+func ExampleFlowchart_Subgraph() {
+	_ = flowchart.NewFlowchart(os.Stdout).
+		Subgraph("ingest", "Ingest").
+		NodeWithText("a", "Fetch").
+		NodeWithText("b", "Parse").
+		SubgraphEnd().
+		NodeWithText("c", "Store").
+		Build()
+
+	// Output:
+	// flowchart TB
+	//     subgraph ingest["Ingest"]
+	//         a["Fetch"]
+	//         b["Parse"]
+	//     end
+	//     c["Store"]
+}
+
+// ExampleFlowchart_SubgraphEnd closes the subgraph opened last. Leaving one
+// open is reported from Build, because mermaid refuses a flowchart whose
+// subgraph never ends.
+func ExampleFlowchart_SubgraphEnd() {
+	_ = flowchart.NewFlowchart(os.Stdout).
+		Subgraph("outer", "Outer").
+		Subgraph("inner", "Inner").
+		NodeWithText("a", "A").
+		SubgraphEnd().
+		SubgraphEnd().
+		Build()
+
+	// Output:
+	// flowchart TB
+	//     subgraph outer["Outer"]
+	//         subgraph inner["Inner"]
+	//             a["A"]
+	//         end
+	//     end
+}
+
+// ExampleFlowchart_SubgraphDirection lays one subgraph out across the page
+// while the chart around it runs down, which is the readable arrangement for a
+// row of steps inside a longer flow.
+func ExampleFlowchart_SubgraphDirection() {
+	_ = flowchart.NewFlowchart(os.Stdout).
+		Subgraph("ingest", "Ingest").
+		SubgraphDirection(flowchart.DirectionLR).
+		NodeWithText("a", "Fetch").
+		NodeWithText("b", "Parse").
+		LinkWithArrowHead("a", "b").
+		SubgraphEnd().
+		Build()
+
+	// Output:
+	// flowchart TB
+	//     subgraph ingest["Ingest"]
+	//         direction LR
+	//         a["Fetch"]
+	//         b["Parse"]
+	//         a-->b
+	//     end
+}
+
+// ExampleDirection shows the four ways a subgraph can be laid out. The chart's
+// own direction is an option on NewFlowchart instead.
+func ExampleDirection() {
+	for _, direction := range []flowchart.Direction{
+		flowchart.DirectionTB,
+		flowchart.DirectionBT,
+		flowchart.DirectionLR,
+		flowchart.DirectionRL,
+	} {
+		_ = flowchart.NewFlowchart(os.Stdout).
+			Subgraph("g", "Group").
+			SubgraphDirection(direction).
+			SubgraphEnd().
+			Build()
+		fmt.Println()
+	}
+
+	// Output:
+	// flowchart TB
+	//     subgraph g["Group"]
+	//         direction TB
+	//     end
+	// flowchart TB
+	//     subgraph g["Group"]
+	//         direction BT
+	//     end
+	// flowchart TB
+	//     subgraph g["Group"]
+	//         direction LR
+	//     end
+	// flowchart TB
+	//     subgraph g["Group"]
+	//         direction RL
+	//     end
+}
+
+// ExampleFlowchart_Style colors one node outright. The style is mermaid's own
+// CSS-like syntax, written through unchanged.
+func ExampleFlowchart_Style() {
+	_ = flowchart.NewFlowchart(os.Stdout).
+		NodeWithText("a", "Start").
+		Style("a", "fill:#f9f,stroke:#333").
+		Build()
+
+	// Output:
+	// flowchart TB
+	//     a["Start"]
+	//     style a fill:#f9f,stroke:#333
+}
+
+// ExampleFlowchart_ClassDef names a style so that several nodes can share it.
+func ExampleFlowchart_ClassDef() {
+	_ = flowchart.NewFlowchart(os.Stdout).
+		ClassDef("urgent", "fill:#f96,stroke:#333").
+		NodeWithText("a", "Start").
+		Class("a", "urgent").
+		Build()
+
+	// Output:
+	// flowchart TB
+	//     classDef urgent fill:#f96,stroke:#333
+	//     a["Start"]
+	//     class a urgent
+}
+
+// ExampleFlowchart_Class applies a named style to nodes. Several are given as
+// one comma separated list, which is what mermaid reads there.
+func ExampleFlowchart_Class() {
+	_ = flowchart.NewFlowchart(os.Stdout).
+		ClassDef("urgent", "fill:#f96").
+		NodeWithText("a", "Start").
+		NodeWithText("b", "End").
+		Class("a,b", "urgent").
+		Build()
+
+	// Output:
+	// flowchart TB
+	//     classDef urgent fill:#f96
+	//     a["Start"]
+	//     b["End"]
+	//     class a,b urgent
+}
+
+// ExampleFlowchart_ClickHref makes a node a link, with the text a browser shows
+// on hover. The tooltip is escaped the way a label is.
+func ExampleFlowchart_ClickHref() {
+	_ = flowchart.NewFlowchart(os.Stdout).
+		NodeWithText("a", "Order").
+		ClickHref("a", "https://example.com/order", "The Order type").
+		Build()
+
+	// Output:
+	// flowchart TB
+	//     a["Order"]
+	//     click a "https://example.com/order" "The Order type"
+}
+
+// ExampleFlowchart_ClickCall makes a node call a function in the page when it
+// is clicked. The parentheses are added when the caller leaves them off.
+func ExampleFlowchart_ClickCall() {
+	_ = flowchart.NewFlowchart(os.Stdout).
+		NodeWithText("a", "Order").
+		ClickCall("a", "showOrder", "Show the order").
+		Build()
+
+	// Output:
+	// flowchart TB
+	//     a["Order"]
+	//     click a call showOrder() "Show the order"
+}
