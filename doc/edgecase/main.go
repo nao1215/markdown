@@ -137,8 +137,10 @@ func supported(diagram string) string {
 		// otherwise lose as the entity form mermaid decodes, so the
 		// punctuation is all safe.
 		"userjourney": `"'#;[](){}<br/>` + emoji + japanese + `:,*-|%%`,
-		// xychart: an axis label is written unquoted, so non-ASCII breaks it.
-		"xychart": `"'#;[](){}` + emoji + `:,*-|%%`,
+		// xychart quotes any label that is not an ASCII word, and a quoted one
+		// takes non-ASCII text as readily as ASCII. A line break is left out
+		// because the renderer honors "<br/>" inside a label.
+		"xychart": `"'#;[](){}` + emoji + japanese + `:,*-|%%`,
 	}[diagram]
 }
 
