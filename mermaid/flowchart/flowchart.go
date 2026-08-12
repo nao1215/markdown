@@ -55,6 +55,19 @@ func (f *Flowchart) String() string {
 	return strings.Join(f.body, internal.LineFeed())
 }
 
+// Error returns the error that occurred during the flowchart building.
+//
+// It returns the error the chain recorded, for code that wants to look before
+// writing anything. Build reports that error too when it stops it writing, but
+// the two are not the same call: Build returns nil once it has written the
+// document, whatever was recorded on the way.
+//
+// Every other builder in this library has had this since it was written; this
+// one gained it at v1.0.0, when the API audit noticed it missing.
+func (f *Flowchart) Error() error {
+	return f.err
+}
+
 // Build writes the flowchart body to the output destination.
 func (f *Flowchart) Build() error {
 	if f.dest == nil {

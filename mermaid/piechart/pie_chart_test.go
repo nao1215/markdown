@@ -304,3 +304,25 @@ func TestTitleEscapesThePercentPairThatCommentsItOut(t *testing.T) {
 		})
 	}
 }
+
+// TestErrorReportsTheRecordedError pins the method the v1.0.0 API audit found
+// missing. Every other builder in this library lets the recorded error be read
+// before anything is written, and this one did not.
+func TestErrorReportsTheRecordedError(t *testing.T) {
+	t.Parallel()
+
+	p := NewPieChart(nil).LabelAndIntValue("Go", 60)
+
+	if err := p.Error(); err != nil {
+		t.Errorf("Error() = %v before Build, want nil", err)
+	}
+
+	// Build reports the same error when it is what stopped the write.
+	fromBuild := p.Build()
+	if fromBuild == nil {
+		t.Fatal("Build() = nil with a nil writer, want an error")
+	}
+	if p.Error() == nil || p.Error().Error() != fromBuild.Error() {
+		t.Errorf("Error() = %v, want the error Build returned, %v", p.Error(), fromBuild)
+	}
+}

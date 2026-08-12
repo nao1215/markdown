@@ -478,3 +478,25 @@ func TestNodeTextEscapesOnlyTheHashThatStartsAnEntity(t *testing.T) {
 		})
 	}
 }
+
+// TestErrorReportsTheRecordedError pins the method the v1.0.0 API audit found
+// missing. Every other builder in this library lets the recorded error be read
+// before anything is written, and this one did not.
+func TestErrorReportsTheRecordedError(t *testing.T) {
+	t.Parallel()
+
+	f := NewFlowchart(nil).NodeWithText("A", "Start")
+
+	if err := f.Error(); err != nil {
+		t.Errorf("Error() = %v before Build, want nil", err)
+	}
+
+	// Build reports the same error when it is what stopped the write.
+	fromBuild := f.Build()
+	if fromBuild == nil {
+		t.Fatal("Build() = nil with a nil writer, want an error")
+	}
+	if f.Error() == nil || f.Error().Error() != fromBuild.Error() {
+		t.Errorf("Error() = %v, want the error Build returned, %v", f.Error(), fromBuild)
+	}
+}
