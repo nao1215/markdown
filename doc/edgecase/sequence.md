@@ -4,9 +4,9 @@ Every label below holds the punctuation this diagram type can carry. Generated b
 
 ```mermaid
 sequenceDiagram
-    participant x"'#[]🎉日本語*-|x
-    participant x"'#[]🎉日本語*-|x two
-    x"'#[]🎉日本語*-|x->>x"'#[]🎉日本語*-|x two: before "'#[]🎉日本語*-| after
-    x"'#[]🎉日本語*-|x two-->>x"'#[]🎉日本語*-|x: before "'#[]🎉日本語*-| after
-    note over x"'#[]🎉日本語*-|x: before "'#[]🎉日本語*-| after
+    participant x"'##59;[]#40;#41;{}🎉日本語#58;#44;*#45;|#37;#37;x
+    participant x"'##59;[]#40;#41;{}🎉日本語#58;#44;*#45;|#37;#37;x two
+    x"'##59;[]#40;#41;{}🎉日本語#58;#44;*#45;|#37;#37;x->>x"'##59;[]#40;#41;{}🎉日本語#58;#44;*#45;|#37;#37;x two: before "'#35;#59;[](){}🎉日本語:,*-|%% after
+    x"'##59;[]#40;#41;{}🎉日本語#58;#44;*#45;|#37;#37;x two-->>x"'##59;[]#40;#41;{}🎉日本語#58;#44;*#45;|#37;#37;x: before "'#35;#59;[](){}🎉日本語:,*-|%% after
+    note over x"'##59;[]#40;#41;{}🎉日本語#58;,*#45;|#37;#37;x: before "'#35;#59;[](){}🎉日本語:,*-|%% after
 ```

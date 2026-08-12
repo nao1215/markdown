@@ -13,7 +13,7 @@ func (d *Diagram) AutoNumber() *Diagram {
 
 // BoxStart add a box to the sequence diagram.
 func (d *Diagram) BoxStart(participant []string) *Diagram {
-	d.body = append(d.body, fmt.Sprintf("    box %s", strings.Join(participant, " & ")))
+	d.body = append(d.body, fmt.Sprintf("    box %s", strings.Join(escapeParticipants(participant), " & ")))
 	return d
 }
 
@@ -25,36 +25,36 @@ func (d *Diagram) BoxEnd() *Diagram {
 
 // Participant add a participant to the sequence diagram.
 func (d *Diagram) Participant(participant string) *Diagram {
-	d.body = append(d.body, fmt.Sprintf("    participant %s", participant))
+	d.body = append(d.body, fmt.Sprintf("    participant %s", escapeParticipant(participant)))
 	return d
 }
 
 // Actor add a participant to the sequence diagram.
 func (d *Diagram) Actor(actor string) *Diagram {
-	d.body = append(d.body, fmt.Sprintf("    actor %s", actor))
+	d.body = append(d.body, fmt.Sprintf("    actor %s", escapeParticipant(actor)))
 	return d
 }
 
 // CreateParticipant add a participant to the sequence diagram.
 func (d *Diagram) CreateParticipant(participant string) *Diagram {
-	d.body = append(d.body, fmt.Sprintf("    create participant %s", participant))
+	d.body = append(d.body, fmt.Sprintf("    create participant %s", escapeParticipant(participant)))
 	return d
 }
 
 // DestroyParticipant add a participant to the sequence diagram.
 func (d *Diagram) DestroyParticipant(participant string) *Diagram {
-	d.body = append(d.body, fmt.Sprintf("    destroy %s", participant))
+	d.body = append(d.body, fmt.Sprintf("    destroy %s", escapeParticipant(participant)))
 	return d
 }
 
 // CreateActor add a participant to the sequence diagram.
 func (d *Diagram) CreateActor(actor string) *Diagram {
-	d.body = append(d.body, fmt.Sprintf("    create actor %s", actor))
+	d.body = append(d.body, fmt.Sprintf("    create actor %s", escapeParticipant(actor)))
 	return d
 }
 
 // DestroyActor add a participant to the sequence diagram.
 func (d *Diagram) DestroyActor(actor string) *Diagram {
-	d.body = append(d.body, fmt.Sprintf("    destroy %s", actor))
+	d.body = append(d.body, fmt.Sprintf("    destroy %s", escapeParticipant(actor)))
 	return d
 }
