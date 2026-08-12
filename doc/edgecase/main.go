@@ -96,8 +96,11 @@ func supported(diagram string) string {
 		// packet and piechart put the title in YAML front matter, and mermaid
 		// strips a "%%" comment from that before the YAML is read.
 		"packet": `"'#;[](){}<br/>` + emoji + japanese + `:,*-|`,
-		// piechart: a double quote ends the quoted label.
-		"piechart": `'#;[](){}<br/>` + emoji + japanese + `:,*-|`,
+		// piechart quotes a slice label and writes a double quote as the entity
+		// form mermaid decodes. Its title is unquoted, so a "%%" there would
+		// open a comment and cut the title short; that pair is written as an
+		// entity too.
+		"piechart": `"'#;[](){}<br/>` + emoji + japanese + `:,*-|%%`,
 		// radar quotes every label, so the punctuation is all safe. A line
 		// break is the only thing left out, since one label is one line.
 		"radar": `"'#;[](){}` + emoji + japanese + `:,*-|%%`,

@@ -224,3 +224,83 @@ func TestBuildReportsWriteFailure(t *testing.T) {
 		t.Errorf("Build lost the destination error: %v", err)
 	}
 }
+
+// TestLabelEscapesTheQuoteThatEndsIt names the character this escaping buys. A
+// double quote in a slice label used to reach mermaid unescaped and lose the
+// whole chart: the reader got an error box rather than a picture.
+func TestLabelEscapesTheQuoteThatEndsIt(t *testing.T) {
+	t.Parallel()
+
+	tests := map[string]struct {
+		build func(*PieChart) *PieChart
+		want  string
+	}{
+		"a quote in an int label": {
+			build: func(p *PieChart) *PieChart {
+				return p.LabelAndIntValue(`say "hi"`, 10)
+			},
+			want: `    "say #quot;hi#quot;" : 10`,
+		},
+		"a quote in a float label": {
+			build: func(p *PieChart) *PieChart {
+				return p.LabelAndFloatValue(`"`, 1.5)
+			},
+			want: `    "#quot;" : 1.500000`,
+		},
+		"a named entity in a label is escaped": {
+			build: func(p *PieChart) *PieChart {
+				return p.LabelAndIntValue("a#quot;b", 10)
+			},
+			want: `    "a#35;quot;b" : 10`,
+		},
+		"a plain hash in a label is left alone": {
+			build: func(p *PieChart) *PieChart {
+				return p.LabelAndIntValue("PR #123 merged", 10)
+			},
+			want: `    "PR #123 merged" : 10`,
+		},
+	}
+
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := tt.build(NewPieChart(io.Discard)).String()
+			if !strings.Contains(got, tt.want) {
+				t.Errorf("chart =\n%s\nwant it to contain\n%s", got, tt.want)
+			}
+		})
+	}
+}
+
+// TestTitleEscapesThePercentPairThatCommentsItOut names the other character
+// this buys. The title is unquoted, so a "%%" in one opened a mermaid comment
+// and the rest of the title was dropped from the drawing without any error.
+func TestTitleEscapesThePercentPairThatCommentsItOut(t *testing.T) {
+	t.Parallel()
+
+	tests := map[string]struct {
+		title string
+		want  string
+	}{
+		"a percent pair is escaped":          {title: "100%% done", want: "    title 100#37;#37; done"},
+		"a longer run is escaped whole":      {title: "a%%%b", want: "    title a#37;#37;#37;b"},
+		"a lone percent is left alone":       {title: "100% done", want: "    title 100% done"},
+		"percents apart are left alone":      {title: "50% of 10%", want: "    title 50% of 10%"},
+		"a named entity is escaped":          {title: "a#quot;b", want: "    title a#35;quot;b"},
+		"a plain hash is left alone":         {title: "PR #123 merged", want: "    title PR #123 merged"},
+		"a quote needs nothing when bare":    {title: `the "core"`, want: `    title the "core"`},
+		"text with neither is left as it is": {title: "Sales", want: "    title Sales"},
+	}
+
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := NewPieChart(io.Discard, WithTitle(tt.title)).String()
+			if !strings.Contains(got, tt.want) {
+				t.Errorf("chart =\n%s\nwant it to contain\n%s", got, tt.want)
+			}
+		})
+	}
+}

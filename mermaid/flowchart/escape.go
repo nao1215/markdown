@@ -1,6 +1,10 @@
 package flowchart
 
-import "strings"
+import (
+	"strings"
+
+	"github.com/nao1215/markdown/internal"
+)
 
 // escapeText returns text ready to be written inside a flowchart's quoted
 // label.
@@ -28,32 +32,12 @@ func escapeText(text string) string {
 	for i := 0; i < len(text); i++ {
 		switch {
 		case text[i] == '"':
-			b.WriteString("#quot;")
-		case text[i] == '#' && startsEntity(text[i+1:]):
-			b.WriteString("#35;")
+			b.WriteString(internal.EntityEscape('"'))
+		case text[i] == '#' && internal.StartsEntity(text[i+1:]):
+			b.WriteString(internal.EntityEscape('#'))
 		default:
 			b.WriteByte(text[i])
 		}
 	}
 	return b.String()
-}
-
-// startsEntity reports whether rest completes an entity that began with a "#",
-// that is whether it opens with one or more letters or digits and then a ";".
-func startsEntity(rest string) bool {
-	for i := 0; i < len(rest); i++ {
-		switch {
-		case rest[i] == ';':
-			return i > 0
-		case isEntityByte(rest[i]):
-		default:
-			return false
-		}
-	}
-	return false
-}
-
-// isEntityByte reports whether c may appear in an entity name.
-func isEntityByte(c byte) bool {
-	return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9')
 }
