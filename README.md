@@ -62,6 +62,7 @@ Anything that would make the library complicated, such as generating nested list
 - [x] mermaid treemap diagram
 - [x] mermaid radar chart
 - [x] mermaid sankey diagram
+- [x] mermaid C4 context diagram (experimental feature)
 
 ### Features not in Markdown syntax
 - Generate badges; RedBadge(), YellowBadge(), GreenBadge().
@@ -2135,6 +2136,96 @@ treemap-beta
     "Travel": 300
 "Marketing"
     "Ads": 800
+```
+
+### C4 context syntax
+
+mermaid marks its C4 support experimental and says the syntax may change, so this package stays on the C4Context diagram: the people and the software systems around the one being described.
+
+```go
+package main
+
+import (
+	"io"
+	"os"
+
+	"github.com/nao1215/markdown"
+	"github.com/nao1215/markdown/mermaid/c4"
+)
+
+//go:generate go run main.go
+
+func main() {
+	f, err := os.Create("generated.md")
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+
+	diagram := c4.NewDiagram(io.Discard, c4.WithTitle("System Context: Internet Banking")).
+		EnterpriseBoundary("bank", "Big Bank plc").
+		Person("customer", "Personal Banking Customer", c4.WithDescription("A customer of the bank.")).
+		SystemBoundary("banking", "Internet Banking").
+		System("web", "Internet Banking System", c4.WithDescription("Shows account information.")).
+		SystemDb("accounts", "Accounts Database").
+		BoundaryEnd().
+		BoundaryEnd().
+		SystemExt("mail", "E-mail System", c4.WithDescription("The internal Microsoft Exchange system.")).
+		Rel("customer", "web", "Views balances", c4.WithTechnology("HTTPS")).
+		BiRel("web", "accounts", "Reads from and writes to", c4.WithTechnology("SQL/TCP")).
+		Rel("web", "mail", "Sends e-mail using", c4.WithTechnology("SMTP")).
+		String()
+
+	err = markdown.NewMarkdown(f).
+		H2("C4 Context").
+		CodeBlocks(markdown.SyntaxHighlightMermaid, diagram).
+		Build()
+
+	if err != nil {
+		panic(err)
+	}
+}
+```
+
+A boundary is a pair of calls rather than a nested builder: `Boundary`, `EnterpriseBoundary` and `SystemBoundary` open one, everything after belongs to it, and `BoundaryEnd` closes it. Leaving one open is reported from `Build`, because mermaid refuses a diagram whose brace never closes.
+
+Labels are escaped with the entity form mermaid decodes, so a quotation mark or a `#` in one cannot break the macro syntax. The title is the exception: mermaid reads the rest of the line, quotes and all, so the package does not quote it.
+
+Plain text output: [markdown is here](./doc/c4/generated.md)
+````
+## C4 Context
+```mermaid
+C4Context
+    title System Context: Internet Banking
+    Enterprise_Boundary(bank, "Big Bank plc") {
+        Person(customer, "Personal Banking Customer", "A customer of the bank.")
+        System_Boundary(banking, "Internet Banking") {
+            System(web, "Internet Banking System", "Shows account information.")
+            SystemDb(accounts, "Accounts Database")
+        }
+    }
+    System_Ext(mail, "E-mail System", "The internal Microsoft Exchange system.")
+    Rel(customer, web, "Views balances", "HTTPS")
+    BiRel(web, accounts, "Reads from and writes to", "SQL/TCP")
+    Rel(web, mail, "Sends e-mail using", "SMTP")
+```
+````
+
+Mermaid output:
+```mermaid
+C4Context
+    title System Context: Internet Banking
+    Enterprise_Boundary(bank, "Big Bank plc") {
+        Person(customer, "Personal Banking Customer", "A customer of the bank.")
+        System_Boundary(banking, "Internet Banking") {
+            System(web, "Internet Banking System", "Shows account information.")
+            SystemDb(accounts, "Accounts Database")
+        }
+    }
+    System_Ext(mail, "E-mail System", "The internal Microsoft Exchange system.")
+    Rel(customer, web, "Views balances", "HTTPS")
+    BiRel(web, accounts, "Reads from and writes to", "SQL/TCP")
+    Rel(web, mail, "Sends e-mail using", "SMTP")
 ```
 
 ## Creating an index for a directory full of markdown files
