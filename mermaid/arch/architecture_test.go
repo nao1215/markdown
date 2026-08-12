@@ -322,8 +322,8 @@ func TestBuildReportsWriteFailure(t *testing.T) {
 	}
 }
 
-// TestTitleIsPassedThroughUnchanged pins the decision recorded in SPEC.md and
-// in this package's documentation: mermaid's architecture-beta grammar accepts
+// TestTitleIsPassedThroughUnchanged pins the decision this package's
+// documentation records: mermaid's architecture-beta grammar accepts
 // only [A-Za-z0-9_ ] in a title and refuses even its own "#name;" escape there,
 // so there is nothing to encode to.
 //

@@ -38,7 +38,7 @@ func FrontMatterTitle(title string) string {
 // out mangles the title one way or another: replacing the byte with U+FFFD
 // loses it just as thoroughly and changes bytes this library has already
 // shipped. Reinterpretation at least keeps the diagram, keeps the front matter
-// parseable, and is documented in SPEC.md rather than being a surprise.
+// parseable, and is documented here rather than being a surprise.
 func quoteYAML(value string) string {
 	return strconv.Quote(value)
 }

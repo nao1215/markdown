@@ -9,23 +9,11 @@
 
 # What is markdown package
 
-The markdown package is a simple markdown builder for Go. It assembles a document by method chaining instead of through a template engine such as [html/template](https://pkg.go.dev/html/template), and the syntax it emits follows GitHub Markdown.
+The markdown package is a simple markdown builder in golang. The markdown package assembles Markdown using method chaining, not uses a template engine like [html/template](https://pkg.go.dev/html/template). The syntax of Markdown follows **GitHub Markdown**.
 
-It also builds mermaid diagrams: entity relationship, sequence, user journey, git graph, mindmap, requirement, xy chart, packet, block, kanban, flowchart, pie chart, quadrant, state, class, Gantt, architecture, timeline, sankey, radar, treemap, C4 context, Venn, and Wardley map. That came from the package's origin, which was saving test results for [nao1215/spectest](https://github.com/nao1215/spectest).
+The markdown package was initially developed to save test results in [nao1215/spectest](https://github.com/nao1215/spectest). Therefore, the markdown package implements the features required by spectest. For example, the markdown package supports **mermaid diagrams (entity relationship diagram, sequence diagram, user journey diagram, git graph diagram, mindmap diagram, requirement diagram, xy chart, packet diagram, block diagram, kanban diagram, flowchart, pie chart, quadrant chart, state diagram, class diagram, Gantt chart, architecture diagram, timeline diagram, sankey diagram, radar chart, treemap diagram, C4 context diagram, Venn diagram, Wardley map)**, which was a necessary feature in spectest.
 
-Anything that would make the library complicated, such as generating nested lists, is out of scope. Staying simple matters more here.
-
-## Stability
-
-From v1.0.0 the exported API and the bytes it produces are both stable. Within v1.x nothing exported is removed, renamed or given a different signature, and every builder keeps producing byte-for-byte identical output, so regenerating your documents with a newer version of this library gives you no diff. The one exception is output that is objectively wrong, meaning markdown GitHub does not parse as the call intended or a mermaid diagram the renderer refuses to draw; such a fix ships in a patch release with the reasoning in [CHANGELOG.md](CHANGELOG.md). [SPEC.md](SPEC.md) states both promises in full, and [doc/v1-api-audit.md](doc/v1-api-audit.md) is the inventory they cover.
-
-The **markdown** side is complete by design. Structural features beyond the documented scope, such as nested lists or tables inside list items, will not be added: the value of this library is that a document is a single method chain a reader can follow top to bottom, and those features would replace the chain with a tree.
-
-The **mermaid** side is not finished, and is not meant to be: mermaid keeps shipping diagram types. Twenty-four are supported; the ones mermaid 11 has that this library does not yet build are tracked as issues, and each arrives as a new subpackage that changes nothing already there. A builder is not safe for concurrent use — one builder belongs to one goroutine, and building two documents at once means building two builders.
-
-## Specification
-
-[SPEC.md](SPEC.md) states which markdown this library generates, what it deliberately leaves out, and what stays unchanged between releases. Read it before opening a feature request, and read it if you depend on the generated documents not changing under you.
+Additionally, complex code that increases the complexity of the library, such as generating nested lists, will not be added. I want to keep this library as simple as possible.
 
 ## Supported OS and go version
 - OS: Linux, macOS, Windows
@@ -78,17 +66,6 @@ The **mermaid** side is not finished, and is not meant to be: mermaid keeps ship
 - Generate badges; RedBadge(), YellowBadge(), GreenBadge().
 - Generate an index for a directory full of markdown files; GenerateIndex()
 
-### Spacing between blocks
-By default the builder inserts only the blank lines markdown cannot do without, such as after a list or an alert. That keeps documents compact, but markdownlint and stricter renderers like mkdocs want a blank line around every heading, fenced block, and table.
-
-Pass `WithBlockSpacing()` when the document is going to be linted or rendered by something other than GitHub, and the builder separates every block:
-
-```go
-md.NewMarkdown(os.Stdout, md.WithBlockSpacing())
-```
-
-`BlankLine()` inserts a single blank line where you want one. `LF()` writes a line holding two spaces, which is a hard line break marker; it separates blocks as a side effect, and `BlankLine()` is the clearer way to say it.
-  
 ## Example
 ### Basic usage
 ```go

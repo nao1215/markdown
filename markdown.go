@@ -1,20 +1,21 @@
-// Package markdown is markdown builder that includes to convert Markdown to HTML.
+// Package markdown is a simple markdown builder.
 //
-// # Error handling
+// A document is one method chain: call [NewMarkdown] with a writer, add blocks
+// in the order they should appear, and finish with [Markdown.Build]. The output
+// follows GitHub Flavored Markdown.
 //
-// A document is one method chain, so the builder records errors instead of
-// returning them from every call. Nothing in a chain panics on bad input, and
-// nothing has to be checked individually: the chain runs to the end and the
-// error surfaces from [Markdown.Error] or from [Markdown.Build], which agree.
+// Nested structures, such as a list inside a list item, are out of scope. They
+// would turn the chain into a tree.
 //
-// A rejected call does not stop the document. The blocks after it are still
-// added, so a table with a mismatched row costs that table and nothing else.
-// When a chain records more than one error, the first is kept, because it is
-// the one that explains the rest; later failures are appended to its message.
+// The builder records errors instead of returning them from every call. Nothing
+// panics on bad input, and a rejected call does not stop the document: the
+// chain runs to the end, and [Markdown.Error] and [Markdown.Build] both report
+// the first error it recorded.
 //
-// [Markdown.String] returns the document whether or not an error occurred, and
-// it needs no writer, which is how the mermaid subpackages hand a diagram to
-// [Markdown.CodeBlocks].
+// [Markdown.String] returns the document without needing a writer. That is how
+// the mermaid subpackages hand a diagram to [Markdown.CodeBlocks].
+//
+// A builder is not safe for concurrent use. Build one document per goroutine.
 package markdown
 
 import (

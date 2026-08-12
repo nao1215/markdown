@@ -32,8 +32,8 @@ type Diagram struct {
 	// A plain map rather than a sync.Map, which is what this was. The sync.Map
 	// read as a promise this package does not keep: Relationship appends to
 	// body in the same call, body is an ordinary slice, and two goroutines
-	// sharing a builder race on it whatever this field is. SPEC.md says a
-	// builder belongs to one goroutine, and this now says the same thing.
+	// sharing a builder race on it whatever this field is. A builder belongs
+	// to one goroutine, and this now says the same thing.
 	entities map[string]Entity
 }
 

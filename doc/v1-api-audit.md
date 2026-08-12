@@ -2,8 +2,9 @@
 
 This is the inventory of everything this library exports, and the verdict on
 each of it for v1.0.0. From that release the exported API and the bytes it
-produces are frozen: see the API stability and output stability sections of
-[SPEC.md](../SPEC.md).
+produces are frozen: within v1.x nothing exported is removed, renamed or
+re-signatured, and every builder keeps producing byte-for-byte identical
+output.
 
 The audit covers **894 exported symbols** across **25 packages**. The verdict on
 every one of them is **keep**. Nothing is removed, nothing is renamed, no
@@ -102,7 +103,7 @@ Accepted for v1: the `TableAlignment` constants are prefixed `Align` rather than
 | `FootnoteDefinition` | func | keep |  |
 | `FootnoteReference` | func | keep |  |
 | `GenerateIndex` | func | keep |  |
-| `Highlight` | func | keep | Emits `==text==`, which GitHub does not render. Kept: it has always been exported, it costs nothing, and SPEC.md already says it is outside the GFM target. |
+| `Highlight` | func | keep | Emits `==text==`, which GitHub does not render. Kept: it has always been exported and it costs nothing. |
 | `Image` | func | keep |  |
 | `Index` | type | keep | Carries what GenerateIndex collected and exposes nothing. Kept: it is the return shape of an exported function, so it cannot be unexported. |
 | `IndexOption` | type | keep |  |
