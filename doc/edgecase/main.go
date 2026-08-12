@@ -42,6 +42,7 @@ import (
 	"github.com/nao1215/markdown/mermaid/treemap"
 	"github.com/nao1215/markdown/mermaid/userjourney"
 	"github.com/nao1215/markdown/mermaid/venn"
+	"github.com/nao1215/markdown/mermaid/wardley"
 	"github.com/nao1215/markdown/mermaid/xychart"
 )
 
@@ -129,7 +130,13 @@ func supported(diagram string) string {
 		// hyphen there, so a name outside that is reported rather than mangled,
 		// which is why the labels below carry the punctuation and the names do
 		// not.
-		"venn":    everything,
+		"venn": everything,
+		// wardley writes every name unquoted and mermaid reads only letters,
+		// digits, spaces, underscores, hyphens and parentheses there, refusing
+		// its own escape form as well, so a name outside that set is reported
+		// rather than mangled. Its title is the opposite: mermaid takes the
+		// rest of the line and every character probed reaches the drawing.
+		"wardley": everything,
 		"xychart": everything,
 	}[diagram])
 }
@@ -243,6 +250,7 @@ func diagrams() []diagram {
 		{name: "Treemap", file: "treemap", build: treemapDiagram},
 		{name: "User journey", file: "userjourney", build: userJourney},
 		{name: "Venn", file: "venn", build: vennDiagram},
+		{name: "Wardley map", file: "wardley", build: wardleyMap},
 		{name: "XY chart", file: "xychart", build: xyChart},
 	}
 }
@@ -462,6 +470,20 @@ func vennDiagram(diagram string) string {
 	return venn.NewDiagram(io.Discard, venn.WithTitle(title(diagram))).
 		SetWithLabel("a", label(diagram)).
 		SetWithLabel("b", shortLabel(diagram)).
+		String()
+}
+
+// wardleyMap is the Wardley map's edge case document.
+//
+// Only the title carries the punctuation: a component name cannot hold any of
+// it, and there is nothing to escape to, so the names here are the plain ones
+// mermaid reads.
+func wardleyMap(diagram string) string {
+	return wardley.NewMap(io.Discard, wardley.WithTitle(title(diagram))).
+		Anchor("Customer", 0.95, 0.95).        //nolint:mnd
+		Component("Checkout (web)", 0.6, 0.8). //nolint:mnd
+		Link("Customer", "Checkout (web)").
+		Evolve("Checkout (web)", 0.9). //nolint:mnd
 		String()
 }
 

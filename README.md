@@ -11,7 +11,7 @@
 
 The markdown package is a simple markdown builder for Go. It assembles a document by method chaining instead of through a template engine such as [html/template](https://pkg.go.dev/html/template), and the syntax it emits follows GitHub Markdown.
 
-It also builds mermaid diagrams: entity relationship, sequence, user journey, git graph, mindmap, requirement, xy chart, packet, block, kanban, flowchart, pie chart, quadrant, state, class, Gantt, architecture, timeline, sankey, radar, treemap, and C4 context. That came from the package's origin, which was saving test results for [nao1215/spectest](https://github.com/nao1215/spectest).
+It also builds mermaid diagrams: entity relationship, sequence, user journey, git graph, mindmap, requirement, xy chart, packet, block, kanban, flowchart, pie chart, quadrant, state, class, Gantt, architecture, timeline, sankey, radar, treemap, C4 context, Venn, and Wardley map. That came from the package's origin, which was saving test results for [nao1215/spectest](https://github.com/nao1215/spectest).
 
 Anything that would make the library complicated, such as generating nested lists, is out of scope. Staying simple matters more here.
 
@@ -21,7 +21,7 @@ From v1.0.0 the exported API and the bytes it produces are both stable. Within v
 
 The **markdown** side is complete by design. Structural features beyond the documented scope, such as nested lists or tables inside list items, will not be added: the value of this library is that a document is a single method chain a reader can follow top to bottom, and those features would replace the chain with a tree.
 
-The **mermaid** side is not finished, and is not meant to be: mermaid keeps shipping diagram types. Twenty-two are supported; the ones mermaid 11 has that this library does not yet build are tracked as issues, and each arrives as a new subpackage that changes nothing already there. A builder is not safe for concurrent use — one builder belongs to one goroutine, and building two documents at once means building two builders.
+The **mermaid** side is not finished, and is not meant to be: mermaid keeps shipping diagram types. Twenty-four are supported; the ones mermaid 11 has that this library does not yet build are tracked as issues, and each arrives as a new subpackage that changes nothing already there. A builder is not safe for concurrent use — one builder belongs to one goroutine, and building two documents at once means building two builders.
 
 ## Specification
 
@@ -72,6 +72,7 @@ The **mermaid** side is not finished, and is not meant to be: mermaid keeps ship
 - [x] mermaid sankey diagram
 - [x] mermaid C4 context diagram (experimental feature)
 - [x] mermaid Venn diagram (beta feature)
+- [x] mermaid Wardley map (beta feature)
 
 ### Features not in Markdown syntax
 - Generate badges; RedBadge(), YellowBadge(), GreenBadge().
@@ -2353,6 +2354,86 @@ venn-beta
     set go["Go"]
     set rust["Rust"]
     set compiled["Compiled and statically typed"]
+```
+
+### Wardley map syntax
+
+```go
+package main
+
+import (
+	"io"
+	"os"
+
+	"github.com/nao1215/markdown"
+	"github.com/nao1215/markdown/mermaid/wardley"
+)
+
+//go:generate go run main.go
+
+func main() {
+	f, err := os.Create("generated.md")
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+
+	diagram := wardley.NewMap(io.Discard, wardley.WithTitle("Checkout, as it stands")).
+		Anchor("Customer", 0.95, 0.95).
+		Component("Checkout (web)", 0.6, 0.8).
+		Component("Payment service", 0.75, 0.5).
+		Component("Card network", 0.95, 0.2).
+		Link("Customer", "Checkout (web)").
+		Link("Checkout (web)", "Payment service").
+		Link("Payment service", "Card network").
+		Evolve("Payment service", 0.9).
+		String()
+
+	err = markdown.NewMarkdown(f, markdown.WithBlockSpacing()).
+		H2("Wardley map").
+		CodeBlocks(markdown.SyntaxHighlightMermaid, diagram).
+		Build()
+
+	if err != nil {
+		panic(err)
+	}
+}
+```
+
+The two coordinates are evolution and visibility, each from 0.0 to 1.0: evolution runs left to right, from something built for the first time to something bought as a commodity, and visibility runs bottom to top, from the plumbing to what the user actually touches. `Evolve` is what turns a map of today into an argument about tomorrow.
+
+A name is written unquoted and mermaid reads only letters, digits, spaces, underscores, hyphens and parentheses there, refusing its own escape form as well, so a name outside that set is reported from `Build` rather than mangled into one that draws something else.
+
+Plain text output: [markdown is here](./doc/wardley/generated.md)
+````
+## Wardley map
+
+```mermaid
+wardley-beta
+    title Checkout, as it stands
+    anchor Customer [0.95, 0.95]
+    component Checkout (web) [0.6, 0.8]
+    component Payment service [0.75, 0.5]
+    component Card network [0.95, 0.2]
+    Customer -> Checkout (web)
+    Checkout (web) -> Payment service
+    Payment service -> Card network
+    evolve Payment service 0.9
+```
+````
+
+Mermaid output:
+```mermaid
+wardley-beta
+    title Checkout, as it stands
+    anchor Customer [0.95, 0.95]
+    component Checkout (web) [0.6, 0.8]
+    component Payment service [0.75, 0.5]
+    component Card network [0.95, 0.2]
+    Customer -> Checkout (web)
+    Checkout (web) -> Payment service
+    Payment service -> Card network
+    evolve Payment service 0.9
 ```
 
 ## Creating an index for a directory full of markdown files
