@@ -336,7 +336,7 @@ type SourceRelationBuilder struct {
 
 // Member adds a member using Class : Member syntax.
 func (d *Diagram) Member(className, member string) *Diagram {
-	d.body = append(d.body, fmt.Sprintf("    %s : %s", className, member))
+	d.body = append(d.body, fmt.Sprintf("    %s : %s", className, escapeAfterColon(member)))
 	return d
 }
 
@@ -494,7 +494,7 @@ func (d *Diagram) AssociationWithCardinalityAndLabel(
 func (d *Diagram) RelationWithLabel(from string, relationship Relationship, to, label string) *Diagram {
 	d.body = append(
 		d.body,
-		fmt.Sprintf("    %s %s %s : %s", from, relationship, to, label),
+		fmt.Sprintf("    %s %s %s : %s", from, relationship, to, escapeAfterColon(label)),
 	)
 	return d
 }
@@ -531,7 +531,7 @@ func (d *Diagram) RelationWithCardinalityAndLabel(
 			relationship,
 			quote(toCardinality),
 			to,
-			label,
+			escapeAfterColon(label),
 		),
 	)
 	return d
