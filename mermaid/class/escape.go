@@ -11,7 +11,7 @@ import (
 //
 // Those two lines are the only unquoted text a class diagram takes, and mermaid
 // reads a colon or a semicolon in them as the end of the statement. Either one
-// makes it refuse the whole diagram, so a relationship labelled "owns: many"
+// makes it refuse the whole diagram, so a relationship labeled "owns: many"
 // left the reader an error box instead of a picture.
 //
 // Both are written as the entity form mermaid decodes, which was found by
