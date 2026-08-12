@@ -121,11 +121,10 @@ func supported(diagram string) string {
 		// name, and a parenthesis or a brace in one ends it too once the name
 		// holds anything else.
 		"sequence": `"'#[]` + emoji + japanese + `*-|`,
-		// state: a colon ends the note it is written in. A quote, a hash, a
-		// semicolon, a bracket, a brace or a parenthesis each end a state
-		// description once it holds anything else, so a description is down to
-		// text and the punctuation below.
-		"state": emoji + japanese + `,*-|%%`,
+		// state writes the colon that would end a one line note as the entity
+		// form mermaid decodes, and every other construct here takes the
+		// punctuation as it is.
+		"state": `"'#;[](){}<br/>` + emoji + japanese + `:,*-|%%`,
 		// treemap doubles a quote in a name and everything else, a backslash
 		// included, is text inside the quotes, so only a line break is left
 		// out: the hierarchy is indentation, and a name spanning lines would

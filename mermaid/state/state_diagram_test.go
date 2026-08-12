@@ -589,3 +589,80 @@ func TestBuildReportsWriteFailure(t *testing.T) {
 		t.Errorf("Build lost the destination error: %v", err)
 	}
 }
+
+// TestStatementTextEscapesTheSemicolonThatEndsIt names the character this
+// escaping buys. A semicolon in a state description or a transition label ends
+// the statement, and what follows is parsed as one of its own: "a;b" happens to
+// draw because "b" reads as a state id, while "a;b{c" loses the whole diagram.
+// A description is prose and cannot be relied on to end in a word, so the
+// semicolon is escaped whatever follows it.
+func TestStatementTextEscapesTheSemicolonThatEndsIt(t *testing.T) {
+	t.Parallel()
+
+	tests := map[string]struct {
+		build func(io.Writer) *Diagram
+		want  string
+	}{
+		"a semicolon in a description": {
+			build: func(w io.Writer) *Diagram { return NewDiagram(w).State("s1", "queued; retrying") },
+			want:  "    s1 : queued#59; retrying",
+		},
+		"a semicolon in a transition label": {
+			build: func(w io.Writer) *Diagram {
+				return NewDiagram(w).TransitionWithNote("s1", "s2", "a;b")
+			},
+			want: "    s1 --> s2 : a#59;b",
+		},
+		"a semicolon in a start transition": {
+			build: func(w io.Writer) *Diagram { return NewDiagram(w).StartTransitionWithNote("s1", "a;b") },
+			want:  "    [*] --> s1 : a#59;b",
+		},
+		"a semicolon in an end transition": {
+			build: func(w io.Writer) *Diagram { return NewDiagram(w).EndTransitionWithNote("s1", "a;b") },
+			want:  "    s1 --> [*] : a#59;b",
+		},
+		"a colon in a description is left alone": {
+			// Only the one line note reads a colon as syntax.
+			build: func(w io.Writer) *Diagram { return NewDiagram(w).State("s1", "retry: three times") },
+			want:  "    s1 : retry: three times",
+		},
+		"a colon and a semicolon in a one line note": {
+			build: func(w io.Writer) *Diagram {
+				return NewDiagram(w).State("s1", "d").NoteRight("s1", "retry: three; then stop")
+			},
+			want: "    note right of s1 : retry#58; three#59; then stop",
+		},
+		"a named entity is escaped": {
+			build: func(w io.Writer) *Diagram { return NewDiagram(w).State("s1", "a#59;b") },
+			want:  "    s1 : a#35;59#59;b",
+		},
+		"a plain hash is left alone": {
+			build: func(w io.Writer) *Diagram { return NewDiagram(w).State("s1", "PR #123") },
+			want:  "    s1 : PR #123",
+		},
+	}
+
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := tt.build(io.Discard).String()
+			if !strings.Contains(got, tt.want) {
+				t.Errorf("diagram =\n%s\nwant it to contain\n%s", got, tt.want)
+			}
+		})
+	}
+}
+
+// TestMultiLineNoteKeepsItsPunctuation pins the other half: mermaid reads each
+// line of a multi line note as text until "end note" and takes every character
+// probed, so escaping there would change output that is correct today.
+func TestMultiLineNoteKeepsItsPunctuation(t *testing.T) {
+	t.Parallel()
+
+	got := NewDiagram(io.Discard).State("s1", "d").NoteRightMultiLine("s1", "retry: three; then stop").String()
+
+	if want := "        retry: three; then stop"; !strings.Contains(got, want) {
+		t.Errorf("diagram =\n%s\nwant it to contain\n%s", got, want)
+	}
+}
