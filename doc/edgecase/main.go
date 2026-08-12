@@ -91,9 +91,11 @@ func supported(diagram string) string {
 		// the entity form mermaid decodes, so the punctuation is all safe.
 		"gantt":    `"'#;[](){}<br/>` + emoji + japanese + `:,*-|%%`,
 		"gitgraph": `"'#;[](){}` + emoji + japanese + `:,*-|%%`,
-		// kanban: quotes end the single quoted metadata, and square brackets
-		// and a closing brace end a node.
-		"kanban": `#;{<br/>` + emoji + japanese + `:,*-|%%`,
+		// kanban writes the punctuation that would end a card label, and the
+		// punctuation the kanban lexer takes out of a metadata value before
+		// YAML sees it, as the entity form mermaid decodes. A single quote in
+		// metadata is doubled instead, because that is YAML's own escape.
+		"kanban": `"'#;[](){}<br/>` + emoji + japanese + `:,*-|%%`,
 		// mindmap writes the brackets, parentheses and braces that delimit a
 		// node shape as the entity form mermaid decodes, so the punctuation is
 		// all safe.

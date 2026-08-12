@@ -185,7 +185,7 @@ func TestDiagram_BracketedNamesAndMetadataEscaping(t *testing.T) {
 
 	want := `kanban
     [Todo]
-        [Fix parser]@{ ticket: 'KB-\\123', assigned: 'O\'Reilly' }`
+        [Fix parser]@{ ticket: 'KB-\\123', assigned: 'O''Reilly' }`
 
 	got := strings.ReplaceAll(d.String(), "\r\n", "\n")
 	if diff := cmp.Diff(want, got); diff != "" {
@@ -223,13 +223,6 @@ func TestDiagram_Error(t *testing.T) {
 			want: "kanban",
 		},
 		{
-			name: "column name with bracket char",
-			run: func() *Diagram {
-				return NewDiagram(io.Discard).Column("To[do]")
-			},
-			want: "kanban",
-		},
-		{
 			name: "column id with whitespace",
 			run: func() *Diagram {
 				return NewDiagram(io.Discard).Column("Todo", WithColumnID("to do"))
@@ -248,14 +241,6 @@ func TestDiagram_Error(t *testing.T) {
 			name: "task name with newline",
 			run: func() *Diagram {
 				return NewDiagram(io.Discard).Column("Todo").Task("Define\nscope")
-			},
-			want: `kanban
-    [Todo]`,
-		},
-		{
-			name: "task name with bracket char",
-			run: func() *Diagram {
-				return NewDiagram(io.Discard).Column("Todo").Task("Fix [parser]")
 			},
 			want: `kanban
     [Todo]`,
@@ -447,5 +432,104 @@ func TestBuildReportsWriteFailure(t *testing.T) {
 	}
 	if !errors.Is(err, errWrite) {
 		t.Errorf("Build lost the destination error: %v", err)
+	}
+}
+
+// TestCardLabelEscapesWhatEndsIt names the characters this escaping buys in a
+// card. A card is written "id[label]" and mermaid ends the label at a closing
+// bracket, a parenthesis or a closing brace, so a task called "Fix parser (v2)"
+// lost the whole diagram. A bracket used to be rejected outright instead, which
+// is not this library's job: a caller passes data and the builder encodes it.
+func TestCardLabelEscapesWhatEndsIt(t *testing.T) {
+	t.Parallel()
+
+	tests := map[string]struct {
+		build func(io.Writer) *Diagram
+		want  string
+	}{
+		"parentheses in a column": {
+			build: func(w io.Writer) *Diagram { return NewDiagram(w).Column("Todo (soon)") },
+			want:  "    [Todo #40;soon#41;]",
+		},
+		"a closing bracket in a task": {
+			build: func(w io.Writer) *Diagram {
+				return NewDiagram(w).Column("Todo").Task("Fix parser]")
+			},
+			want: "        [Fix parser#93;]",
+		},
+		"a closing brace in a task": {
+			build: func(w io.Writer) *Diagram {
+				return NewDiagram(w).Column("Todo").Task("a}b")
+			},
+			want: "        [a#125;b]",
+		},
+		"an opening bracket and brace are left alone": {
+			// mermaid takes either inside a label, so escaping them would
+			// change output that already reaches the drawing.
+			build: func(w io.Writer) *Diagram {
+				return NewDiagram(w).Column("Todo").Task("a[b{c")
+			},
+			want: "        [a[b{c]",
+		},
+		"a quote needs nothing in a label": {
+			build: func(w io.Writer) *Diagram {
+				return NewDiagram(w).Column("Todo").Task(`say "hi" to O'Reilly`)
+			},
+			want: `        [say "hi" to O'Reilly]`,
+		},
+		"a named entity is escaped": {
+			build: func(w io.Writer) *Diagram { return NewDiagram(w).Column("a#93;b") },
+			want:  "    [a#35;93;b]",
+		},
+		"a plain hash is left alone": {
+			build: func(w io.Writer) *Diagram { return NewDiagram(w).Column("PR #123") },
+			want:  "    [PR #123]",
+		},
+	}
+
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := tt.build(io.Discard).String()
+			if !strings.Contains(got, tt.want) {
+				t.Errorf("diagram =\n%s\nwant it to contain\n%s", got, tt.want)
+			}
+		})
+	}
+}
+
+// TestMetadataEscapingMeetsThreeReaders names what a metadata value has to get
+// past. mermaid reads "@{ ticket: 'value' }" as YAML and then draws the result,
+// so a single quote is doubled the way YAML wants it, while the punctuation the
+// kanban lexer takes before YAML ever sees the line is written as a mermaid
+// entity. Writing "\'" for the quote, as this package used to, makes the YAML
+// parser refuse the line and lose the diagram.
+func TestMetadataEscapingMeetsThreeReaders(t *testing.T) {
+	t.Parallel()
+
+	tests := map[string]struct {
+		value string
+		want  string
+	}{
+		"a single quote is doubled":     {value: "O'Reilly", want: "ticket: 'O''Reilly'"},
+		"a double quote is an entity":   {value: `say "hi"`, want: `ticket: 'say #quot;hi#quot;'`},
+		"a closing brace is an entity":  {value: "a}b", want: "ticket: 'a#125;b'"},
+		"a backslash keeps its escape":  {value: `KB-\123`, want: `ticket: 'KB-\\123'`},
+		"an opening brace is left":      {value: "a{b", want: "ticket: 'a{b'"},
+		"a plain hash is left alone":    {value: "PR #123", want: "ticket: 'PR #123'"},
+		"a named entity gets escaped":   {value: "a#125;b", want: "ticket: 'a#35;125;b'"},
+		"ordinary text is left as text": {value: "KB-1", want: "ticket: 'KB-1'"},
+	}
+
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := NewDiagram(io.Discard).Column("Todo").Task("t", WithTaskTicket(tt.value)).String()
+			if !strings.Contains(got, tt.want) {
+				t.Errorf("diagram =\n%s\nwant it to contain\n%s", got, tt.want)
+			}
+		})
 	}
 }
