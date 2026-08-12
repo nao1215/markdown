@@ -4,8 +4,8 @@ Every label below holds the punctuation this diagram type can carry. Generated b
 
 ```mermaid
 architecture-beta
-    group cloudgroup(cloud)[plainlabel]
-    service api(server)[plainlabel]
-    service db(database)[plainlabel] in cloudgroup
+    group cloudgroup(cloud)[plain_label 1]
+    service api(server)[plain_label 1]
+    service db(database)[plain_label 1] in cloudgroup
     api:R >-- L:db
 ```

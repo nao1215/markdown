@@ -63,6 +63,7 @@ Raising the `go` directive is a minor release, not a major one, because it does 
 
 These are contracts rather than accidents, and are covered by tests:
 
+- Mermaid diagram labels are escaped by the builder, so text from a database or a command's output can be handed to one without the caller quoting it. The one exception is `mermaid/arch`: mermaid's `architecture-beta` grammar accepts only `[A-Za-z0-9_ ]` in a group or service title, refuses its own `#name;` entity escape there as well, and so leaves nothing to encode to. A title outside that set makes mermaid refuse the whole diagram. The package documents this, and the limit lifts when mermaid's beta grammar does.
 - Text handed to a builder is expected to be valid UTF-8. A mermaid diagram title that is not valid UTF-8 still produces a diagram and still produces parseable YAML front matter, but each byte outside a valid UTF-8 sequence is read back as the code point of that byte: a title holding the single byte `0xC9` is written as `"\xc9"` and reads as `É`. YAML is defined over Unicode, so such a title has no faithful representation in it; the diagram is kept rather than the exact bytes.
 - A builder records the errors it encounters while the chain runs and returns them from `Error` and from `Build`. Nothing in the chain panics on bad input, and no call has to be checked individually.
 - `Build` with a nil writer returns an error rather than panicking.

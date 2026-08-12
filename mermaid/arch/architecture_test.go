@@ -321,3 +321,36 @@ func TestBuildReportsWriteFailure(t *testing.T) {
 		t.Errorf("Build lost the destination error: %v", err)
 	}
 }
+
+// TestTitleIsPassedThroughUnchanged pins the decision recorded in SPEC.md and
+// in this package's documentation: mermaid's architecture-beta grammar accepts
+// only [A-Za-z0-9_ ] in a title and refuses even its own "#name;" escape there,
+// so there is nothing to encode to.
+//
+// A title outside that set is passed through as it was given rather than
+// mangled into something that renders but says something else, and rather than
+// rejected, because a label mermaid cannot take is not a caller error. What
+// this test guards is that no later sweep quietly starts escaping here: the
+// escape would not work, and the output would change for nothing.
+func TestTitleIsPassedThroughUnchanged(t *testing.T) {
+	t.Parallel()
+
+	tests := map[string]string{
+		"the set mermaid accepts": "plain_label 1",
+		"a quotation mark":        `the "core"`,
+		"a hyphen":                "Order-Service",
+		"Japanese":                "注文サービス",
+		"an entity escape":        "a#quot;b",
+	}
+
+	for name, title := range tests {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := NewArchitecture(io.Discard).Service("api", IconServer, title).String()
+			if want := "    service api(server)[" + title + "]"; !strings.Contains(got, want) {
+				t.Errorf("diagram =\n%s\nwant it to contain\n%s", got, want)
+			}
+		})
+	}
+}
