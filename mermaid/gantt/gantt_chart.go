@@ -100,110 +100,110 @@ func (c *Chart) Section(name string) *Chart {
 // startDate can be a date string (e.g., "2024-01-01") or "after taskID".
 // duration can be a duration string (e.g., "30d", "1w") or an end date.
 func (c *Chart) Task(name, startDate, duration string) *Chart {
-	c.body = append(c.body, fmt.Sprintf("    %s :%s, %s", name, startDate, duration))
+	c.body = append(c.body, fmt.Sprintf("    %s :%s, %s", escapeTaskName(name), startDate, duration))
 	return c
 }
 
 // TaskWithID adds a task with an ID to the Gantt chart.
 func (c *Chart) TaskWithID(name, id, startDate, duration string) *Chart {
-	c.body = append(c.body, fmt.Sprintf("    %s :%s, %s, %s", name, id, startDate, duration))
+	c.body = append(c.body, fmt.Sprintf("    %s :%s, %s, %s", escapeTaskName(name), id, startDate, duration))
 	return c
 }
 
 // CriticalTask adds a critical task to the Gantt chart.
 func (c *Chart) CriticalTask(name, startDate, duration string) *Chart {
-	c.body = append(c.body, fmt.Sprintf("    %s :crit, %s, %s", name, startDate, duration))
+	c.body = append(c.body, fmt.Sprintf("    %s :crit, %s, %s", escapeTaskName(name), startDate, duration))
 	return c
 }
 
 // CriticalTaskWithID adds a critical task with an ID to the Gantt chart.
 func (c *Chart) CriticalTaskWithID(name, id, startDate, duration string) *Chart {
-	c.body = append(c.body, fmt.Sprintf("    %s :crit, %s, %s, %s", name, id, startDate, duration))
+	c.body = append(c.body, fmt.Sprintf("    %s :crit, %s, %s, %s", escapeTaskName(name), id, startDate, duration))
 	return c
 }
 
 // ActiveTask adds an active task to the Gantt chart.
 func (c *Chart) ActiveTask(name, startDate, duration string) *Chart {
-	c.body = append(c.body, fmt.Sprintf("    %s :active, %s, %s", name, startDate, duration))
+	c.body = append(c.body, fmt.Sprintf("    %s :active, %s, %s", escapeTaskName(name), startDate, duration))
 	return c
 }
 
 // ActiveTaskWithID adds an active task with an ID to the Gantt chart.
 func (c *Chart) ActiveTaskWithID(name, id, startDate, duration string) *Chart {
-	c.body = append(c.body, fmt.Sprintf("    %s :active, %s, %s, %s", name, id, startDate, duration))
+	c.body = append(c.body, fmt.Sprintf("    %s :active, %s, %s, %s", escapeTaskName(name), id, startDate, duration))
 	return c
 }
 
 // DoneTask adds a done task to the Gantt chart.
 func (c *Chart) DoneTask(name, startDate, duration string) *Chart {
-	c.body = append(c.body, fmt.Sprintf("    %s :done, %s, %s", name, startDate, duration))
+	c.body = append(c.body, fmt.Sprintf("    %s :done, %s, %s", escapeTaskName(name), startDate, duration))
 	return c
 }
 
 // DoneTaskWithID adds a done task with an ID to the Gantt chart.
 func (c *Chart) DoneTaskWithID(name, id, startDate, duration string) *Chart {
-	c.body = append(c.body, fmt.Sprintf("    %s :done, %s, %s, %s", name, id, startDate, duration))
+	c.body = append(c.body, fmt.Sprintf("    %s :done, %s, %s, %s", escapeTaskName(name), id, startDate, duration))
 	return c
 }
 
 // CriticalActiveTask adds a critical and active task to the Gantt chart.
 func (c *Chart) CriticalActiveTask(name, startDate, duration string) *Chart {
-	c.body = append(c.body, fmt.Sprintf("    %s :crit, active, %s, %s", name, startDate, duration))
+	c.body = append(c.body, fmt.Sprintf("    %s :crit, active, %s, %s", escapeTaskName(name), startDate, duration))
 	return c
 }
 
 // CriticalActiveTaskWithID adds a critical and active task with an ID to the Gantt chart.
 func (c *Chart) CriticalActiveTaskWithID(name, id, startDate, duration string) *Chart {
-	c.body = append(c.body, fmt.Sprintf("    %s :crit, active, %s, %s, %s", name, id, startDate, duration))
+	c.body = append(c.body, fmt.Sprintf("    %s :crit, active, %s, %s, %s", escapeTaskName(name), id, startDate, duration))
 	return c
 }
 
 // CriticalDoneTask adds a critical and done task to the Gantt chart.
 func (c *Chart) CriticalDoneTask(name, startDate, duration string) *Chart {
-	c.body = append(c.body, fmt.Sprintf("    %s :crit, done, %s, %s", name, startDate, duration))
+	c.body = append(c.body, fmt.Sprintf("    %s :crit, done, %s, %s", escapeTaskName(name), startDate, duration))
 	return c
 }
 
 // CriticalDoneTaskWithID adds a critical and done task with an ID to the Gantt chart.
 func (c *Chart) CriticalDoneTaskWithID(name, id, startDate, duration string) *Chart {
-	c.body = append(c.body, fmt.Sprintf("    %s :crit, done, %s, %s, %s", name, id, startDate, duration))
+	c.body = append(c.body, fmt.Sprintf("    %s :crit, done, %s, %s, %s", escapeTaskName(name), id, startDate, duration))
 	return c
 }
 
 // Milestone adds a milestone to the Gantt chart.
 // A milestone is a task with 0 duration.
 func (c *Chart) Milestone(name, date string) *Chart {
-	c.body = append(c.body, fmt.Sprintf("    %s :milestone, %s, 0d", name, date))
+	c.body = append(c.body, fmt.Sprintf("    %s :milestone, %s, 0d", escapeTaskName(name), date))
 	return c
 }
 
 // MilestoneWithID adds a milestone with an ID to the Gantt chart.
 func (c *Chart) MilestoneWithID(name, id, date string) *Chart {
-	c.body = append(c.body, fmt.Sprintf("    %s :milestone, %s, %s, 0d", name, id, date))
+	c.body = append(c.body, fmt.Sprintf("    %s :milestone, %s, %s, 0d", escapeTaskName(name), id, date))
 	return c
 }
 
 // CriticalMilestone adds a critical milestone to the Gantt chart.
 func (c *Chart) CriticalMilestone(name, date string) *Chart {
-	c.body = append(c.body, fmt.Sprintf("    %s :crit, milestone, %s, 0d", name, date))
+	c.body = append(c.body, fmt.Sprintf("    %s :crit, milestone, %s, 0d", escapeTaskName(name), date))
 	return c
 }
 
 // CriticalMilestoneWithID adds a critical milestone with an ID to the Gantt chart.
 func (c *Chart) CriticalMilestoneWithID(name, id, date string) *Chart {
-	c.body = append(c.body, fmt.Sprintf("    %s :crit, milestone, %s, %s, 0d", name, id, date))
+	c.body = append(c.body, fmt.Sprintf("    %s :crit, milestone, %s, %s, 0d", escapeTaskName(name), id, date))
 	return c
 }
 
 // TaskAfter adds a task that starts after another task.
 func (c *Chart) TaskAfter(name, afterTaskID, duration string) *Chart {
-	c.body = append(c.body, fmt.Sprintf("    %s :after %s, %s", name, afterTaskID, duration))
+	c.body = append(c.body, fmt.Sprintf("    %s :after %s, %s", escapeTaskName(name), afterTaskID, duration))
 	return c
 }
 
 // TaskAfterWithID adds a task with ID that starts after another task.
 func (c *Chart) TaskAfterWithID(name, id, afterTaskID, duration string) *Chart {
-	c.body = append(c.body, fmt.Sprintf("    %s :%s, after %s, %s", name, id, afterTaskID, duration))
+	c.body = append(c.body, fmt.Sprintf("    %s :%s, after %s, %s", escapeTaskName(name), id, afterTaskID, duration))
 	return c
 }
 

@@ -85,8 +85,9 @@ func supported(diagram string) string {
 		// out is a line break: the renderer honours "<br/>" inside a label,
 		// which is what a caller wanting one should pass.
 		"flowchart": `"'#;[](){}` + emoji + japanese + `:,*-|%%\`,
-		// gantt: a colon separates a task name from its data.
-		"gantt":    `"'#;[](){}<br/>` + emoji + japanese + `,*-|%%`,
+		// gantt writes the colon that separates a task name from its data as
+		// the entity form mermaid decodes, so the punctuation is all safe.
+		"gantt":    `"'#;[](){}<br/>` + emoji + japanese + `:,*-|%%`,
 		"gitgraph": `"'#;[](){}` + emoji + japanese + `:,*-|%%`,
 		// kanban: quotes end the single quoted metadata, and square brackets
 		// and a closing brace end a node.
