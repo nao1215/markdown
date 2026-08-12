@@ -11,7 +11,7 @@
 
 The markdown package is a simple markdown builder for Go. It assembles a document by method chaining instead of through a template engine such as [html/template](https://pkg.go.dev/html/template), and the syntax it emits follows GitHub Markdown.
 
-It also builds mermaid diagrams: entity relationship, sequence, user journey, git graph, mindmap, requirement, xy chart, packet, block, kanban, flowchart, pie chart, quadrant, state, class, Gantt, architecture, timeline, sankey, radar, treemap, and C4 context. That came from the package's origin, which was saving test results for [nao1215/spectest](https://github.com/nao1215/spectest).
+It also builds mermaid diagrams: entity relationship, sequence, user journey, git graph, mindmap, requirement, xy chart, packet, block, kanban, flowchart, pie chart, quadrant, state, class, Gantt, architecture, timeline, sankey, radar, treemap, C4 context, Venn, and Wardley map. That came from the package's origin, which was saving test results for [nao1215/spectest](https://github.com/nao1215/spectest).
 
 Anything that would make the library complicated, such as generating nested lists, is out of scope. Staying simple matters more here.
 
@@ -21,7 +21,7 @@ From v1.0.0 the exported API and the bytes it produces are both stable. Within v
 
 The **markdown** side is complete by design. Structural features beyond the documented scope, such as nested lists or tables inside list items, will not be added: the value of this library is that a document is a single method chain a reader can follow top to bottom, and those features would replace the chain with a tree.
 
-The **mermaid** side is not finished, and is not meant to be: mermaid keeps shipping diagram types. Twenty-two are supported; the ones mermaid 11 has that this library does not yet build are tracked as issues, and each arrives as a new subpackage that changes nothing already there. A builder is not safe for concurrent use — one builder belongs to one goroutine, and building two documents at once means building two builders.
+The **mermaid** side is not finished, and is not meant to be: mermaid keeps shipping diagram types. Twenty-four are supported; the ones mermaid 11 has that this library does not yet build are tracked as issues, and each arrives as a new subpackage that changes nothing already there. A builder is not safe for concurrent use — one builder belongs to one goroutine, and building two documents at once means building two builders.
 
 ## Specification
 

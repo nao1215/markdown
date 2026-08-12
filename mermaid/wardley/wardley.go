@@ -73,7 +73,7 @@ func NewMap(w io.Writer, opts ...Option) *Map {
 		m.err = errors.New("title must not contain newline characters")
 		return m
 	}
-	m.body = append(m.body, indentUnit+"title "+trimmedTitle)
+	m.body = append(m.body, indentUnit+"title "+escapeTitle(trimmedTitle))
 	return m
 }
 

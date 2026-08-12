@@ -130,7 +130,13 @@ func supported(diagram string) string {
 		// hyphen there, so a name outside that is reported rather than mangled,
 		// which is why the labels below carry the punctuation and the names do
 		// not.
-		"venn":    everything,
+		"venn": everything,
+		// wardley writes every name unquoted and mermaid reads only letters,
+		// digits, spaces, underscores, hyphens and parentheses there, refusing
+		// its own escape form as well, so a name outside that set is reported
+		// rather than mangled. Its title is the opposite: mermaid takes the
+		// rest of the line and every character probed reaches the drawing.
+		"wardley": everything,
 		"xychart": everything,
 	}[diagram])
 }

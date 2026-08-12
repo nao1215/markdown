@@ -67,13 +67,36 @@ func TestMap(t *testing.T) {
 			},
 			want: lines("wardley-beta", "    evolve Checkout 0.8"),
 		},
-		"a title is written through unchanged": {
-			// mermaid takes every character probed in a title, so nothing here
-			// is escaped and a quotation mark is drawn as itself.
+		"a title keeps the punctuation mermaid reads there": {
+			// A quotation mark, a hash and a semicolon are drawn as themselves,
+			// so nothing here is escaped.
 			build: func(w io.Writer) *wardley.Map {
-				return wardley.NewMap(w, wardley.WithTitle(`The "core" #1; map`))
+				return wardley.NewMap(w, wardley.WithTitle(`The "core" #1 map; v2`))
 			},
-			want: lines("wardley-beta", `    title The "core" #1; map`),
+			want: lines("wardley-beta", `    title The "core" #1 map; v2`),
+		},
+		"a title escapes a hash that would start an entity": {
+			// "#1;" is the entity for the character with code 1, so a title
+			// holding one has to come out different from a title holding that
+			// character.
+			build: func(w io.Writer) *wardley.Map {
+				return wardley.NewMap(w, wardley.WithTitle("issue #1; closed"))
+			},
+			want: lines("wardley-beta", "    title issue #35;1; closed"),
+		},
+		"a title escapes the percent run that would comment it out": {
+			// "%%" opens a mermaid comment, so the rest of the title is dropped
+			// and the map still draws, saying less than it was asked to.
+			build: func(w io.Writer) *wardley.Map {
+				return wardley.NewMap(w, wardley.WithTitle("100%% done"))
+			},
+			want: lines("wardley-beta", "    title 100#37;#37; done"),
+		},
+		"a lone percent in a title is left alone": {
+			build: func(w io.Writer) *wardley.Map {
+				return wardley.NewMap(w, wardley.WithTitle("50% done"))
+			},
+			want: lines("wardley-beta", "    title 50% done"),
 		},
 		"a name may hold spaces and the punctuation mermaid reads": {
 			build: func(w io.Writer) *wardley.Map {
