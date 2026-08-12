@@ -650,3 +650,94 @@ func TestBuildReportsWriteFailure(t *testing.T) {
 		t.Errorf("Build lost the destination error: %v", err)
 	}
 }
+
+// TestRelationLabelEscapesTheCharactersThatEndTheStatement names the two
+// characters this escaping buys. The "A --> B : label" and "A : member" lines
+// are the only unquoted text a class diagram takes, and a colon or a semicolon
+// in one ended the statement: mermaid refused the whole diagram and the reader
+// got an error box rather than a picture.
+func TestRelationLabelEscapesTheCharactersThatEndTheStatement(t *testing.T) {
+	t.Parallel()
+
+	tests := map[string]struct {
+		build func(*Diagram) *Diagram
+		want  string
+	}{
+		"a colon in a relation label": {
+			build: func(d *Diagram) *Diagram {
+				return d.RelationWithLabel("A", RelationshipAssociation, "B", "owns: many")
+			},
+			want: "    A --> B : owns#58; many",
+		},
+		"a semicolon in a relation label": {
+			build: func(d *Diagram) *Diagram {
+				return d.RelationWithLabel("A", RelationshipAssociation, "B", "a;b")
+			},
+			want: "    A --> B : a#59;b",
+		},
+		"a colon in a relation label with cardinality": {
+			build: func(d *Diagram) *Diagram {
+				return d.RelationWithCardinalityAndLabel("A", "1", RelationshipAssociation, "B", "*", "a:b")
+			},
+			want: `    A "1" --> "*" B : a#58;b`,
+		},
+		"a colon in a member": {
+			build: func(d *Diagram) *Diagram {
+				return d.Member("A", "start: time.Time")
+			},
+			want: "    A : start#58; time.Time",
+		},
+		"a named entity in a label is escaped": {
+			build: func(d *Diagram) *Diagram {
+				return d.RelationWithLabel("A", RelationshipAssociation, "B", "a#58;b")
+			},
+			want: "    A --> B : a#35;58#59;b",
+		},
+		"a plain hash in a label is left alone": {
+			build: func(d *Diagram) *Diagram {
+				return d.RelationWithLabel("A", RelationshipAssociation, "B", "PR #123 merged")
+			},
+			want: "    A --> B : PR #123 merged",
+		},
+		"a hash beside a semicolon keeps both": {
+			// The "#" starts no entity, so it stays; the ";" becomes one. The
+			// "##59;" that comes out reads back as "#" then ";", because
+			// mermaid finds the entity at the second "#".
+			build: func(d *Diagram) *Diagram {
+				return d.RelationWithLabel("A", RelationshipAssociation, "B", "a#;b")
+			},
+			want: "    A --> B : a##59;b",
+		},
+	}
+
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := tt.build(NewDiagram(io.Discard)).String()
+			if !strings.Contains(got, tt.want) {
+				t.Errorf("diagram =\n%s\nwant it to contain\n%s", got, tt.want)
+			}
+		})
+	}
+}
+
+// TestQuotedTextKeepsItsColonAndSemicolon pins the other half: everywhere else
+// in a class diagram is already quoted, and a class body member, a class label
+// and a note each take both characters as they are. Escaping there would change
+// output that is correct today.
+func TestQuotedTextKeepsItsColonAndSemicolon(t *testing.T) {
+	t.Parallel()
+
+	got := NewDiagram(io.Discard).
+		ClassWithLabel("A", "a:b;c").
+		Note("a:b;c").
+		NoteFor("A", "a:b;c").
+		String()
+
+	for _, want := range []string{`class A["a:b;c"]`, `note "a:b;c"`, `note for A "a:b;c"`} {
+		if !strings.Contains(got, want) {
+			t.Errorf("diagram =\n%s\nwant it to contain\n%s", got, want)
+		}
+	}
+}

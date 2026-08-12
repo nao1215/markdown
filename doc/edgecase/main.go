@@ -76,8 +76,9 @@ func supported(diagram string) string {
 		// every character below survives both. Only a line break is left out:
 		// one macro is one line, and "<br/>" is how a label breaks one.
 		"c4": `"'#;[](){}<br/>` + emoji + japanese + `:,*-|%%\`,
-		// class: ";" and ":" end a relation label.
-		"class": `"'#[](){}` + emoji + japanese + `,*-|%%`,
+		// class writes the ";" and the ":" that would end a relation label as
+		// the entity form mermaid decodes, so the punctuation is all safe.
+		"class": `"'#;[](){}` + emoji + japanese + `:,*-|%%`,
 		// er writes a comment as the entity form mermaid decodes, so the
 		// punctuation is all safe.
 		"er": `"'#;[](){}<br/>` + emoji + japanese + `:,*-|%%`,
