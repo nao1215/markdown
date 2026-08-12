@@ -41,6 +41,7 @@ import (
 	"github.com/nao1215/markdown/mermaid/state"
 	"github.com/nao1215/markdown/mermaid/treemap"
 	"github.com/nao1215/markdown/mermaid/userjourney"
+	"github.com/nao1215/markdown/mermaid/venn"
 	"github.com/nao1215/markdown/mermaid/xychart"
 )
 
@@ -122,7 +123,14 @@ func supported(diagram string) string {
 		"state":       everything,
 		"treemap":     everything,
 		"userjourney": everything,
-		"xychart":     everything,
+		// venn writes a set label as the entity form mermaid decodes and its
+		// title as the pair the unquoted lexer would take. A set name is the
+		// one thing it cannot encode: mermaid reads only word characters and a
+		// hyphen there, so a name outside that is reported rather than mangled,
+		// which is why the labels below carry the punctuation and the names do
+		// not.
+		"venn":    everything,
+		"xychart": everything,
 	}[diagram])
 }
 
@@ -234,6 +242,7 @@ func diagrams() []diagram {
 		{name: "State", file: "state", build: stateDiagram},
 		{name: "Treemap", file: "treemap", build: treemapDiagram},
 		{name: "User journey", file: "userjourney", build: userJourney},
+		{name: "Venn", file: "venn", build: vennDiagram},
 		{name: "XY chart", file: "xychart", build: xyChart},
 	}
 }
@@ -445,6 +454,14 @@ func userJourney(diagram string) string {
 	return userjourney.NewDiagram(io.Discard, userjourney.WithTitle(title(diagram))).
 		Section(shortLabel(diagram)).
 		Task(shortLabel(diagram), userjourney.ScoreSatisfied, shortLabel(diagram)).
+		String()
+}
+
+// vennDiagram is the Venn diagram's edge case document.
+func vennDiagram(diagram string) string {
+	return venn.NewDiagram(io.Discard, venn.WithTitle(title(diagram))).
+		SetWithLabel("a", label(diagram)).
+		SetWithLabel("b", shortLabel(diagram)).
 		String()
 }
 

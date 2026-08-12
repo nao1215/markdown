@@ -5,7 +5,7 @@ each of it for v1.0.0. From that release the exported API and the bytes it
 produces are frozen: see the API stability and output stability sections of
 [SPEC.md](../SPEC.md).
 
-The audit covers **872 exported symbols** across **23 packages**. The verdict on
+The audit covers **882 exported symbols** across **24 packages**. The verdict on
 every one of them is **keep**. Nothing is removed, nothing is renamed, no
 signature changes, and nothing is deprecated: this library is used in production
 and backward compatibility outranks tidiness.
@@ -75,6 +75,7 @@ the tables below, which is where the reason for each of them is.
 | `github.com/nao1215/markdown/mermaid/timeline` | 11 | none | none |
 | `github.com/nao1215/markdown/mermaid/treemap` | 11 | none | none |
 | `github.com/nao1215/markdown/mermaid/userjourney` | 17 | none | none |
+| `github.com/nao1215/markdown/mermaid/venn` | 10 | none | none |
 | `github.com/nao1215/markdown/mermaid/xychart` | 21 | none | none |
 
 ## github.com/nao1215/markdown
@@ -1041,6 +1042,21 @@ Accepted for v1: the `Identify` constants are suffixed `Identifying` rather than
 | `Diagram.String` | method | keep |  |
 | `Diagram.Task` | method | keep |  |
 | `Diagram.TaskIn` | method | keep |  |
+
+## github.com/nao1215/markdown/mermaid/venn
+
+| Symbol | Kind | Verdict | Note |
+| --- | --- | --- | --- |
+| `Diagram` | type | keep |  |
+| `NewDiagram` | func | keep |  |
+| `Option` | type | keep |  |
+| `WithTitle` | func | keep |  |
+| `Diagram.Build` | method | keep |  |
+| `Diagram.Error` | method | keep |  |
+| `Diagram.LF` | method | keep |  |
+| `Diagram.Set` | method | keep |  |
+| `Diagram.SetWithLabel` | method | keep |  |
+| `Diagram.String` | method | keep |  |
 
 ## github.com/nao1215/markdown/mermaid/xychart
 
