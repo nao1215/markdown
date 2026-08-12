@@ -65,10 +65,13 @@ const (
 // what keeps this file honest: the labels only ever get harder.
 func supported(diagram string) string {
 	return map[string]string{
-		// architecture writes service and group labels between square brackets
-		// with no quoting at all, and mermaid's architecture-beta grammar takes
-		// only word characters there. Every character probed fails, including a
-		// plain emoji and Japanese text.
+		// architecture writes service and group labels between square brackets,
+		// and mermaid's architecture-beta grammar accepts only [A-Za-z0-9_ ]
+		// there. Every character probed fails, including a plain emoji and
+		// Japanese text, and so does the "#name;" entity form: this lexer
+		// refuses the "#" before anything gets a chance to decode it. There is
+		// nothing to escape to, which is why this entry stays empty rather than
+		// waiting on a fix. SPEC.md records the limit.
 		"architecture": "",
 		"block":        `"'#;[](){}<br/>` + emoji + japanese + `:,*-|%%`,
 		// c4 escapes a quote and a "#" in a label as the entity form mermaid
@@ -174,8 +177,10 @@ func shortLabel(diagram string) string {
 	if p := punctuation(diagram); p != "" {
 		return "x" + p + "x"
 	}
-	// architecture takes no punctuation at all, and no space either.
-	return "plainlabel"
+	// architecture takes no punctuation at all. What it does take is the rest
+	// of [A-Za-z0-9_ ], so the label below covers that whole set: if mermaid's
+	// beta grammar narrows further, this is what fails.
+	return "plain_label 1"
 }
 
 // title is the diagram title. Some types write it into YAML front matter and
