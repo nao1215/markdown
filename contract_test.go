@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	goast "go/ast"
+	"go/doc"
 	"go/parser"
 	"go/token"
 	"io"
@@ -1616,8 +1617,10 @@ func TestReadmeShowsWhatTheGeneratorsProduce(t *testing.T) {
 //
 // Names have to match Go's rules exactly or godoc silently attaches the example
 // to nothing: ExampleMarkdown_H1 for method H1 on Markdown, ExampleBold for the
-// function Bold. A suffix after another underscore, ExampleMarkdown_H1_second,
-// is a second example of the same symbol and counts for it.
+// function Bold. The list of examples comes from go/doc rather than from a scan
+// for the name, so an example that takes an argument, returns a value or has no
+// output to check against does not count as documenting anything, which is what
+// godoc does with it too.
 func TestEveryExportedSymbolHasAnExample(t *testing.T) {
 	t.Parallel()
 
@@ -1683,12 +1686,18 @@ func readmeSamples(t *testing.T, readme string) map[string]string {
 }
 
 // exportedSymbols returns the example name every exported symbol of the package
-// in dir would be documented under, and the example names the package defines.
+// in dir would be documented under, and the examples the package actually has.
+//
+// Types are in, because pkg.go.dev puts an example under a type and a reader
+// looking at TableSet wants to see one filled in. Constants and variables are
+// not: there are sixty one of them here, they are the enumerations a method
+// takes rather than anything a caller calls, and an example under each would
+// bury the page rather than document it.
 func exportedSymbols(t *testing.T, dir string) ([]string, map[string]bool) {
 	t.Helper()
 
 	fset := token.NewFileSet()
-	pkgs, err := parser.ParseDir(fset, dir, nil, 0)
+	pkgs, err := parser.ParseDir(fset, dir, nil, parser.ParseComments)
 	if err != nil {
 		t.Fatalf("parse %s: %v", dir, err)
 	}
@@ -1697,25 +1706,49 @@ func exportedSymbols(t *testing.T, dir string) ([]string, map[string]bool) {
 	examples := map[string]bool{}
 	for _, pkg := range pkgs {
 		for name, file := range pkg.Files {
-			for _, decl := range file.Decls {
-				fn, ok := decl.(*goast.FuncDecl)
-				if !ok || !fn.Name.IsExported() {
-					continue
-				}
-
-				if strings.HasSuffix(name, "_test.go") {
-					if base, found := exampleSymbol(fn.Name.Name); found {
-						examples[base] = true
+			if strings.HasSuffix(name, "_test.go") {
+				// go/doc reports the examples godoc will actually show: it
+				// leaves out anything that takes an argument, returns a value,
+				// or has no output to check against, which a scan for the name
+				// alone would count.
+				for _, example := range doc.Examples(file) {
+					if example.Output != "" {
+						examples["Example"+example.Name] = true
 					}
-					continue
 				}
-				if symbol, ok := documentedAs(fn); ok {
-					want = append(want, symbol)
+				continue
+			}
+			want = append(want, documentedSymbols(file)...)
+		}
+	}
+	return want, examples
+}
+
+// documentedSymbols returns the example name each exported function, method on
+// an exported type, and type in file would be documented under.
+func documentedSymbols(file *goast.File) []string {
+	symbols := []string{}
+	for _, decl := range file.Decls {
+		switch d := decl.(type) {
+		case *goast.FuncDecl:
+			if !d.Name.IsExported() {
+				continue
+			}
+			if symbol, ok := documentedAs(d); ok {
+				symbols = append(symbols, symbol)
+			}
+		case *goast.GenDecl:
+			if d.Tok != token.TYPE {
+				continue
+			}
+			for _, spec := range d.Specs {
+				if ts, ok := spec.(*goast.TypeSpec); ok && ts.Name.IsExported() {
+					symbols = append(symbols, "Example"+ts.Name.Name)
 				}
 			}
 		}
 	}
-	return want, examples
+	return symbols
 }
 
 // documentedAs returns the example name godoc attaches to fn.
@@ -1736,18 +1769,4 @@ func documentedAs(fn *goast.FuncDecl) (string, bool) {
 		return "", false
 	}
 	return "Example" + ident.Name + "_" + fn.Name.Name, true
-}
-
-// exampleSymbol returns the symbol an example name documents, dropping the
-// lowercase suffix that marks a second example of the same symbol.
-func exampleSymbol(name string) (string, bool) {
-	if !strings.HasPrefix(name, "Example") {
-		return "", false
-	}
-
-	parts := strings.Split(name, "_")
-	if len(parts) > 1 && parts[len(parts)-1] != "" && unicode.IsLower(rune(parts[len(parts)-1][0])) {
-		parts = parts[:len(parts)-1]
-	}
-	return strings.Join(parts, "_"), true
 }

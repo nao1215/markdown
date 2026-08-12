@@ -1161,3 +1161,194 @@ func ExampleWithWriter() {
 	// ### guide
 	// - [Install](install.md)
 }
+
+// ExampleTableSet shows the shape a table is described with. Every row must
+// have as many cells as the header.
+func ExampleTableSet() {
+	set := md.TableSet{
+		Header: []string{"Package", "Coverage"},
+		Rows: [][]string{
+			{"markdown", "96%"},
+			{"internal", "100%"},
+		},
+	}
+
+	_ = md.NewMarkdown(os.Stdout).Table(set).Build()
+
+	// Output:
+	// | Package | Coverage |
+	// |---------|---------|
+	// | markdown | 96% |
+	// | internal | 100% |
+}
+
+// ExampleTableOptions shows the options CustomTable takes. They control the
+// header casing and the wrapping, not the alignment, which is a field of the
+// table itself.
+func ExampleTableOptions() {
+	_ = md.NewMarkdown(os.Stdout).
+		CustomTable(md.TableSet{
+			Header: []string{"package", "coverage"},
+			Rows:   [][]string{{"markdown", "96%"}},
+		}, md.TableOptions{
+			AutoFormatHeaders: true,
+			AutoWrapText:      false,
+		}).
+		Build()
+
+	// Output:
+	// | PACKAGE  | COVERAGE |
+	// |----------|----------|
+	// | MARKDOWN | 96 %     |
+}
+
+// ExampleTableOfContentsOptions shows the range a table of contents covers.
+// Naming both ends is how a document leaves its own title out of its contents.
+func ExampleTableOfContentsOptions() {
+	options := md.TableOfContentsOptions{
+		MinDepth: md.TableOfContentsDepthH2,
+		MaxDepth: md.TableOfContentsDepthH2,
+	}
+
+	_ = md.NewMarkdown(os.Stdout).
+		H1("Guide").
+		TableOfContentsWithRange(options.MinDepth, options.MaxDepth).
+		H2("Install").
+		H3("From source").
+		Build()
+
+	// Output:
+	// # Guide
+	// <!-- BEGIN_TOC -->
+	// - [Install](#install)
+	// <!-- END_TOC -->
+	//
+	// ## Install
+	// ### From source
+}
+
+// ExampleTableOfContentsDepth shows the heading level a table of contents stops
+// at.
+func ExampleTableOfContentsDepth() {
+	_ = md.NewMarkdown(os.Stdout).
+		TableOfContents(md.TableOfContentsDepthH2).
+		H2("Install").
+		H3("From source").
+		Build()
+
+	// Output:
+	// <!-- BEGIN_TOC -->
+	// - [Install](#install)
+	// <!-- END_TOC -->
+	//
+	// ## Install
+	// ### From source
+}
+
+// ExampleCheckBoxSet shows the shape one item of a task list is described with.
+func ExampleCheckBoxSet() {
+	_ = md.NewMarkdown(os.Stdout).
+		CheckBox([]md.CheckBoxSet{
+			{Checked: true, Text: "Write the proposal"},
+			{Checked: false, Text: "Get it reviewed"},
+		}).
+		Build()
+
+	// Output:
+	// - [x] Write the proposal
+	// - [ ] Get it reviewed
+}
+
+// ExampleSyntaxHighlight shows the language a code block is tagged with. The
+// constants cover the languages GitHub highlights; any other string works too.
+func ExampleSyntaxHighlight() {
+	_ = md.NewMarkdown(os.Stdout).
+		CodeBlocks(md.SyntaxHighlightGo, `fmt.Println("hello")`).
+		CodeBlocks(md.SyntaxHighlightNone, "no highlighting here").
+		Build()
+
+	// Output:
+	// ```go
+	// fmt.Println("hello")
+	// ```
+	// ```
+	// no highlighting here
+	// ```
+}
+
+// ExampleOption shows what an Option is: a function that changes how a document
+// is written, passed to NewMarkdown.
+func ExampleOption() {
+	options := []md.Option{md.WithBlockSpacing()}
+
+	_ = md.NewMarkdown(os.Stdout, options...).
+		H2("Deploy").
+		PlainText("Runs on every merge to main.").
+		Build()
+
+	// Output:
+	// ## Deploy
+	//
+	// Runs on every merge to main.
+}
+
+// ExampleIndexOption shows what an IndexOption is: a function that changes what
+// GenerateIndex writes, passed to it after the directory.
+func ExampleIndexOption() {
+	parent, err := os.MkdirTemp("", "markdown-index")
+	if err != nil {
+		fmt.Println("temp dir:", err)
+		return
+	}
+	defer func() { _ = os.RemoveAll(parent) }()
+
+	dir := filepath.Join(parent, "guide")
+	if err := os.Mkdir(dir, 0o750); err != nil {
+		fmt.Println("mkdir:", err)
+		return
+	}
+	if err := os.WriteFile(filepath.Join(dir, "install.md"), []byte("# Install\n"), 0o600); err != nil {
+		fmt.Println("write:", err)
+		return
+	}
+
+	options := []md.IndexOption{md.WithTitle("Documentation"), md.WithWriter(os.Stdout)}
+	if err := md.GenerateIndex(dir, options...); err != nil {
+		fmt.Println("generate:", err)
+	}
+
+	// Output:
+	// ## Documentation
+	// ### guide
+	// - [Install](install.md)
+}
+
+// ExampleIndex shows where an Index comes from. The type carries what
+// GenerateIndex collected, and nothing exported reaches inside it: the index is
+// written rather than inspected.
+func ExampleIndex() {
+	parent, err := os.MkdirTemp("", "markdown-index")
+	if err != nil {
+		fmt.Println("temp dir:", err)
+		return
+	}
+	defer func() { _ = os.RemoveAll(parent) }()
+
+	dir := filepath.Join(parent, "guide")
+	if err := os.Mkdir(dir, 0o750); err != nil {
+		fmt.Println("mkdir:", err)
+		return
+	}
+	if err := os.WriteFile(filepath.Join(dir, "usage.md"), []byte("# Usage\n"), 0o600); err != nil {
+		fmt.Println("write:", err)
+		return
+	}
+
+	if err := md.GenerateIndex(dir, md.WithWriter(os.Stdout)); err != nil {
+		fmt.Println("generate:", err)
+	}
+
+	// Output:
+	// ### guide
+	// - [Usage](usage.md)
+}
