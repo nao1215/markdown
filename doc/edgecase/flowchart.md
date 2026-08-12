@@ -4,12 +4,12 @@ Every label below holds the punctuation this diagram type can carry. Generated b
 
 ```mermaid
 ---
-title: "title '#;[](){}🎉日本語:,*-|%%"
+title: "title \"'#;[](){}🎉日本語:,*-|%%\\"
 ---
 flowchart TB
-    A["before '#;[](){}🎉日本語:,*-|%% after"]
-    B{"x'#;[](){}🎉日本語:,*-|%%x"}
-    C(("x'#;[](){}🎉日本語:,*-|%%x"))
-    A-->|"x'#;[](){}🎉日本語:,*-|%%x"|B
-    B-. "x'#;[](){}🎉日本語:,*-|%%x" .-> C
+    A["before #quot;'#;[](){}🎉日本語:,*-|%%\ after"]
+    B{"x#quot;'#;[](){}🎉日本語:,*-|%%\x"}
+    C(("x#quot;'#;[](){}🎉日本語:,*-|%%\x"))
+    A-->|"x#quot;'#;[](){}🎉日本語:,*-|%%\x"|B
+    B-. "x#quot;'#;[](){}🎉日本語:,*-|%%\x" .-> C
 ```
