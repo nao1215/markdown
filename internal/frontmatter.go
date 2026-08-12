@@ -26,6 +26,19 @@ func FrontMatterTitle(title string) string {
 // the replacements misses the control characters that have no shorthand, and a
 // literal control character inside a quoted scalar is a parse error, which loses
 // the whole diagram rather than mangling one line of it.
+//
+// The two forms agree for every title that is valid UTF-8, which is every title
+// a caller has. They part company below that: strconv.Quote writes a byte that
+// no valid UTF-8 sequence covers as \xNN, meaning that byte, and YAML reads
+// \xNN as the code point U+00NN. A title holding the single byte 0xC9 is written
+// as "\xc9" and read back as "É".
+//
+// That is left alone deliberately. YAML is defined over Unicode, so a byte
+// string that is not UTF-8 has no faithful representation in it, and every way
+// out mangles the title one way or another: replacing the byte with U+FFFD
+// loses it just as thoroughly and changes bytes this library has already
+// shipped. Reinterpretation at least keeps the diagram, keeps the front matter
+// parseable, and is documented in SPEC.md rather than being a surprise.
 func quoteYAML(value string) string {
 	return strconv.Quote(value)
 }
