@@ -1624,11 +1624,11 @@ func TestReadmeShowsWhatTheGeneratorsProduce(t *testing.T) {
 func TestEveryExportedSymbolHasAnExample(t *testing.T) {
 	t.Parallel()
 
-	// The mermaid subpackages are not in this list yet. Each has an
-	// examples_test.go covering its builder, and filling the gaps in all
-	// twenty one is its own piece of work; this list grows to "mermaid/*" when
-	// that lands.
-	packages := []string{"."}
+	packages, err := filepath.Glob("mermaid/*")
+	if err != nil {
+		t.Fatalf("list the mermaid subpackages: %v", err)
+	}
+	packages = append(packages, ".")
 
 	for _, dir := range packages {
 		t.Run(dir, func(t *testing.T) {

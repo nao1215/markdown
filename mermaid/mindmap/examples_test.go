@@ -111,12 +111,18 @@ func ExampleDiagram_Error() {
 // ExampleDiagram_LF adds a blank line to the diagram body.
 func ExampleDiagram_LF() {
 	_ = mindmap.NewDiagram(os.Stdout).
-		Root("Product").Child("Market").
+		Root("Product").
+		Child("Market").
 		LF().
-		Root("Product").Child("Market").
+		Sibling("Engineering").
 		Build()
 
 	// Output:
+	// mindmap
+	//     Product
+	//         Market
+	//
+	//         Engineering
 }
 
 // ExampleDiagram_full shows a mindmap built end to end and put into a markdown
