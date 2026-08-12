@@ -4,14 +4,14 @@ Every label below holds the punctuation this diagram type can carry. Generated b
 
 ```mermaid
 ---
-title: "title \"'#;[](){}🎉日本語:,*-|%%"
+title: "title \"'#;[](){}🎉日本語:,*-|%%\\"
 ---
 classDiagram
     class Account {
         +string id
     }
-    class Ledger["before &quot;'#;[](){}🎉日本語:,*-|%% after"]
+    class Ledger["before &quot;'#;[](){}<br/>🎉日本語:,*-|%%&#92; after"]
     Account --> Ledger
-    Account ..> Ledger : x"'##59;[](){}🎉日本語#58;,*-|%%x
-    note for Account "before &quot;'#;[](){}🎉日本語:,*-|%% after"
+    Account ..> Ledger : x"'##59;[](){}<br/>🎉日本語#58;,*-|%%\x
+    note for Account "before &quot;'#;[](){}<br/>🎉日本語:,*-|%%&#92; after"
 ```

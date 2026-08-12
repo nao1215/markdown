@@ -4,18 +4,18 @@ Every label below holds the punctuation this diagram type can carry. Generated b
 
 ```mermaid
 ---
-title: "title \"'#;[](){}🎉日本語:,*-|%%"
+title: "title \"'#;[](){}🎉日本語:,*-|%%\\"
 ---
 requirementDiagram
-    requirement "x&quot;'#;[](){}🎉日本語:,*-|%%x" {
+    requirement "x&quot;'#;[](){}<br/>🎉日本語:,*-|%%&#92;x" {
         id: "1"
-        text: "before &quot;'#;[](){}🎉日本語:,*-|%% after"
+        text: "before &quot;'#;[](){}<br/>🎉日本語:,*-|%%&#92; after"
         risk: Low
         verifymethod: Test
     }
-    element "x&quot;'#;[](){}🎉日本語:,*-|%%x element" {
+    element "x&quot;'#;[](){}<br/>🎉日本語:,*-|%%&#92;x element" {
         type: "simulation"
         docRef: "./tests"
     }
-    "x&quot;'#;[](){}🎉日本語:,*-|%%x element" - satisfies -> "x&quot;'#;[](){}🎉日本語:,*-|%%x"
+    "x&quot;'#;[](){}<br/>🎉日本語:,*-|%%&#92;x element" - satisfies -> "x&quot;'#;[](){}<br/>🎉日本語:,*-|%%&#92;x"
 ```

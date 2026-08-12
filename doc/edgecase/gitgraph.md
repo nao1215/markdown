@@ -4,10 +4,10 @@ Every label below holds the punctuation this diagram type can carry. Generated b
 
 ```mermaid
 ---
-title: "title \"'#;[](){}🎉日本語:,*-|%%"
+title: "title \"'#;[](){}🎉日本語:,*-|%%\\"
 ---
 gitGraph
-    commit id: "x&quot;'#;[](){}🎉日本語:,*-|%%x" tag: "x&quot;'#;[](){}🎉日本語:,*-|%%x"
+    commit id: "x&quot;'#;[](){}<br/>🎉日本語:,*-|%%&#92;x" tag: "x&quot;'#;[](){}<br/>🎉日本語:,*-|%%&#92;x"
     branch develop
     checkout develop
     commit id: "second"

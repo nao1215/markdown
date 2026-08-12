@@ -4,9 +4,9 @@ Every label below holds the punctuation this diagram type can carry. Generated b
 
 ```mermaid
 ---
-title: "title \"'#;[](){}🎉日本語:,*-|%%"
+title: "title \"'#;[](){}🎉日本語:,*-|%%\\"
 ---
 kanban
-    todo[x"'#;[#93;#40;#41;{#125;<br/>🎉日本語:,*-|%%x]
-        [before "'#;[#93;#40;#41;{#125;<br/>🎉日本語:,*-|%% after]@{ assigned: 'x#quot;''#;[](){#125;<br/>🎉日本語:,*-|%%x', priority: 'High' }
+    todo[x"'#;[#93;#40;#41;{#125;<br/>🎉日本語:,*-|%%\x]
+        [before "'#;[#93;#40;#41;{#125;<br/>🎉日本語:,*-|%%\ after]@{ assigned: 'x#quot;''#;[](){#125;<br/>🎉日本語:,*-|%%\\x', priority: 'High' }
 ```

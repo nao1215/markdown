@@ -7,9 +7,9 @@ Every label below holds the punctuation this diagram type can carry. Generated b
 title: "title \"'#;[](){}🎉日本語:,*-|%%\\"
 ---
 flowchart TB
-    A["before #quot;'#;[](){}🎉日本語:,*-|%%\ after"]
-    B{"x#quot;'#;[](){}🎉日本語:,*-|%%\x"}
-    C(("x#quot;'#;[](){}🎉日本語:,*-|%%\x"))
-    A-->|"x#quot;'#;[](){}🎉日本語:,*-|%%\x"|B
-    B-. "x#quot;'#;[](){}🎉日本語:,*-|%%\x" .-> C
+    A["before #quot;'#;[](){}<br/>🎉日本語:,*-|%%\ after"]
+    B{"x#quot;'#;[](){}<br/>🎉日本語:,*-|%%\x"}
+    C(("x#quot;'#;[](){}<br/>🎉日本語:,*-|%%\x"))
+    A-->|"x#quot;'#;[](){}<br/>🎉日本語:,*-|%%\x"|B
+    B-. "x#quot;'#;[](){}<br/>🎉日本語:,*-|%%\x" .-> C
 ```

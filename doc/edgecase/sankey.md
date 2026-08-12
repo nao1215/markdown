@@ -5,6 +5,6 @@ Every label below holds the punctuation this diagram type can carry. Generated b
 ```mermaid
 sankey-beta
 
-"x""'#;[](){}<br/>:,*-|%%x","x""'#;[](){}<br/>:,*-|%%x target",100
-"x""'#;[](){}<br/>:,*-|%%x target","before ""'#;[](){}<br/>:,*-|%% after",42.5
+"x""'#;[](){}<br/>:,*-|%%\x","x""'#;[](){}<br/>:,*-|%%\x target",100
+"x""'#;[](){}<br/>:,*-|%%\x target","before ""'#;[](){}<br/>:,*-|%%\ after",42.5
 ```
