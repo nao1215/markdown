@@ -83,7 +83,7 @@ func (d *Diagram) State(id, description string) *Diagram {
 	if description == "" {
 		d.body = append(d.body, fmt.Sprintf("    %s", id))
 	} else {
-		d.body = append(d.body, fmt.Sprintf("    %s : %s", id, description))
+		d.body = append(d.body, fmt.Sprintf("    %s : %s", id, escapeStatement(description, statementUnsafe)))
 	}
 	return d
 }
@@ -96,7 +96,7 @@ func (d *Diagram) Transition(from, to string) *Diagram {
 
 // TransitionWithNote adds a transition between states with a note.
 func (d *Diagram) TransitionWithNote(from, to, note string) *Diagram {
-	d.body = append(d.body, fmt.Sprintf("    %s --> %s : %s", from, to, note))
+	d.body = append(d.body, fmt.Sprintf("    %s --> %s : %s", from, to, escapeStatement(note, statementUnsafe)))
 	return d
 }
 
@@ -108,7 +108,7 @@ func (d *Diagram) StartTransition(to string) *Diagram {
 
 // StartTransitionWithNote adds a transition from the start state with a note.
 func (d *Diagram) StartTransitionWithNote(to, note string) *Diagram {
-	d.body = append(d.body, fmt.Sprintf("    [*] --> %s : %s", to, note))
+	d.body = append(d.body, fmt.Sprintf("    [*] --> %s : %s", to, escapeStatement(note, statementUnsafe)))
 	return d
 }
 
@@ -120,19 +120,19 @@ func (d *Diagram) EndTransition(from string) *Diagram {
 
 // EndTransitionWithNote adds a transition to the end state with a note.
 func (d *Diagram) EndTransitionWithNote(from, note string) *Diagram {
-	d.body = append(d.body, fmt.Sprintf("    %s --> [*] : %s", from, note))
+	d.body = append(d.body, fmt.Sprintf("    %s --> [*] : %s", from, escapeStatement(note, statementUnsafe)))
 	return d
 }
 
 // NoteLeft adds a note on the left side of a state.
 func (d *Diagram) NoteLeft(state, note string) *Diagram {
-	d.body = append(d.body, fmt.Sprintf("    note left of %s : %s", state, note))
+	d.body = append(d.body, fmt.Sprintf("    note left of %s : %s", state, escapeStatement(note, noteUnsafe)))
 	return d
 }
 
 // NoteRight adds a note on the right side of a state.
 func (d *Diagram) NoteRight(state, note string) *Diagram {
-	d.body = append(d.body, fmt.Sprintf("    note right of %s : %s", state, note))
+	d.body = append(d.body, fmt.Sprintf("    note right of %s : %s", state, escapeStatement(note, noteUnsafe)))
 	return d
 }
 
@@ -176,7 +176,7 @@ func (b *CompositeStateBuilder) State(id, description string) *CompositeStateBui
 	if description == "" {
 		b.body = append(b.body, fmt.Sprintf("        %s", id))
 	} else {
-		b.body = append(b.body, fmt.Sprintf("        %s : %s", id, description))
+		b.body = append(b.body, fmt.Sprintf("        %s : %s", id, escapeStatement(description, statementUnsafe)))
 	}
 	return b
 }
@@ -189,7 +189,7 @@ func (b *CompositeStateBuilder) Transition(from, to string) *CompositeStateBuild
 
 // TransitionWithNote adds a transition with a note in the composite state.
 func (b *CompositeStateBuilder) TransitionWithNote(from, to, note string) *CompositeStateBuilder {
-	b.body = append(b.body, fmt.Sprintf("        %s --> %s : %s", from, to, note))
+	b.body = append(b.body, fmt.Sprintf("        %s --> %s : %s", from, to, escapeStatement(note, statementUnsafe)))
 	return b
 }
 
