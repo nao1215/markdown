@@ -79,9 +79,9 @@ func (ch *Chart) Build() error {
 // If rightLabel is provided, it will be displayed on the right side of the axis.
 func (ch *Chart) XAxis(leftLabel string, rightLabel ...string) *Chart {
 	if len(rightLabel) > 0 && rightLabel[0] != "" {
-		ch.body = append(ch.body, fmt.Sprintf("    x-axis %s --> %s", leftLabel, rightLabel[0]))
+		ch.body = append(ch.body, fmt.Sprintf("    x-axis %s --> %s", escapeLabel(leftLabel), escapeLabel(rightLabel[0])))
 	} else {
-		ch.body = append(ch.body, fmt.Sprintf("    x-axis %s", leftLabel))
+		ch.body = append(ch.body, fmt.Sprintf("    x-axis %s", escapeLabel(leftLabel)))
 	}
 	return ch
 }
@@ -90,41 +90,41 @@ func (ch *Chart) XAxis(leftLabel string, rightLabel ...string) *Chart {
 // If topLabel is provided, it will be displayed on the top of the axis.
 func (ch *Chart) YAxis(bottomLabel string, topLabel ...string) *Chart {
 	if len(topLabel) > 0 && topLabel[0] != "" {
-		ch.body = append(ch.body, fmt.Sprintf("    y-axis %s --> %s", bottomLabel, topLabel[0]))
+		ch.body = append(ch.body, fmt.Sprintf("    y-axis %s --> %s", escapeLabel(bottomLabel), escapeLabel(topLabel[0])))
 	} else {
-		ch.body = append(ch.body, fmt.Sprintf("    y-axis %s", bottomLabel))
+		ch.body = append(ch.body, fmt.Sprintf("    y-axis %s", escapeLabel(bottomLabel)))
 	}
 	return ch
 }
 
 // Quadrant1 sets the label for quadrant 1 (top-right).
 func (ch *Chart) Quadrant1(label string) *Chart {
-	ch.body = append(ch.body, fmt.Sprintf("    quadrant-1 %s", label))
+	ch.body = append(ch.body, fmt.Sprintf("    quadrant-1 %s", escapeLabel(label)))
 	return ch
 }
 
 // Quadrant2 sets the label for quadrant 2 (top-left).
 func (ch *Chart) Quadrant2(label string) *Chart {
-	ch.body = append(ch.body, fmt.Sprintf("    quadrant-2 %s", label))
+	ch.body = append(ch.body, fmt.Sprintf("    quadrant-2 %s", escapeLabel(label)))
 	return ch
 }
 
 // Quadrant3 sets the label for quadrant 3 (bottom-left).
 func (ch *Chart) Quadrant3(label string) *Chart {
-	ch.body = append(ch.body, fmt.Sprintf("    quadrant-3 %s", label))
+	ch.body = append(ch.body, fmt.Sprintf("    quadrant-3 %s", escapeLabel(label)))
 	return ch
 }
 
 // Quadrant4 sets the label for quadrant 4 (bottom-right).
 func (ch *Chart) Quadrant4(label string) *Chart {
-	ch.body = append(ch.body, fmt.Sprintf("    quadrant-4 %s", label))
+	ch.body = append(ch.body, fmt.Sprintf("    quadrant-4 %s", escapeLabel(label)))
 	return ch
 }
 
 // Point adds a data point to the quadrant chart.
 // x and y should be values between 0 and 1.
 func (ch *Chart) Point(name string, x, y float64) *Chart {
-	ch.body = append(ch.body, fmt.Sprintf("    %s: [%.2f, %.2f]", name, x, y))
+	ch.body = append(ch.body, fmt.Sprintf("    %s: [%.2f, %.2f]", escapePointName(name), x, y))
 	return ch
 }
 
@@ -162,7 +162,7 @@ func (ps PointStyle) String() string {
 // x and y should be values between 0 and 1.
 // style can include properties like "radius: 10" or "color: #ff0000".
 func (ch *Chart) PointWithStyle(name string, x, y float64, style string) *Chart {
-	ch.body = append(ch.body, fmt.Sprintf("    %s: [%.2f, %.2f] %s", name, x, y, style))
+	ch.body = append(ch.body, fmt.Sprintf("    %s: [%.2f, %.2f] %s", escapePointName(name), x, y, style))
 	return ch
 }
 
@@ -171,9 +171,9 @@ func (ch *Chart) PointWithStyle(name string, x, y float64, style string) *Chart 
 func (ch *Chart) PointStyled(name string, x, y float64, style PointStyle) *Chart {
 	styleStr := style.String()
 	if styleStr != "" {
-		ch.body = append(ch.body, fmt.Sprintf("    %s: [%.2f, %.2f] %s", name, x, y, styleStr))
+		ch.body = append(ch.body, fmt.Sprintf("    %s: [%.2f, %.2f] %s", escapePointName(name), x, y, styleStr))
 	} else {
-		ch.body = append(ch.body, fmt.Sprintf("    %s: [%.2f, %.2f]", name, x, y))
+		ch.body = append(ch.body, fmt.Sprintf("    %s: [%.2f, %.2f]", escapePointName(name), x, y))
 	}
 	return ch
 }
@@ -182,7 +182,7 @@ func (ch *Chart) PointStyled(name string, x, y float64, style PointStyle) *Chart
 // x and y should be values between 0 and 1.
 // className is the name of the class defined by ClassDef.
 func (ch *Chart) PointWithClass(name string, x, y float64, className string) *Chart {
-	ch.body = append(ch.body, fmt.Sprintf("    %s:::%s: [%.2f, %.2f]", name, className, x, y))
+	ch.body = append(ch.body, fmt.Sprintf("    %s:::%s: [%.2f, %.2f]", escapePointName(name), className, x, y))
 	return ch
 }
 
@@ -191,7 +191,7 @@ func (ch *Chart) PointWithClass(name string, x, y float64, className string) *Ch
 // className is the name of the class defined by ClassDef.
 // style can include properties like "radius: 10" or "color: #ff0000".
 func (ch *Chart) PointWithClassAndStyle(name string, x, y float64, className, style string) *Chart {
-	ch.body = append(ch.body, fmt.Sprintf("    %s:::%s: [%.2f, %.2f] %s", name, className, x, y, style))
+	ch.body = append(ch.body, fmt.Sprintf("    %s:::%s: [%.2f, %.2f] %s", escapePointName(name), className, x, y, style))
 	return ch
 }
 

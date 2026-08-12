@@ -111,8 +111,12 @@ func supported(diagram string) string {
 		// radar quotes every label, so the punctuation is all safe. A line
 		// break is the only thing left out, since one label is one line.
 		"radar": `"'#;[](){}` + emoji + japanese + `:,*-|%%`,
-		// quadrant: axis, quadrant and point labels are all written unquoted.
-		"quadrant":    `'#` + emoji + japanese + `,*-`,
+		// quadrant writes an axis label, a quadrant label and a point name
+		// unquoted, so each writes the punctuation mermaid's grammar would
+		// otherwise take as the entity form it decodes. "<br/>" is a line
+		// break in most diagram types and not accepted here at all, so it goes
+		// out as text.
+		"quadrant":    `"'#;[](){}<br/>` + emoji + japanese + `:,*-|%%`,
 		"requirement": `"'#;[](){}` + emoji + japanese + `:,*-|%%`,
 		// sankey quotes a node name that needs it, so the punctuation is all
 		// safe. What it cannot take is non-ASCII text: mermaid's sankey parser
