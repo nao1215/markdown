@@ -9,62 +9,15 @@
 
 # What is markdown package
 
-The markdown package is a simple markdown builder in golang. The markdown package assembles Markdown using method chaining, not uses a template engine like [html/template](https://pkg.go.dev/html/template). The syntax of Markdown follows **GitHub Markdown**.
+The markdown package is a simple markdown builder in golang. The markdown package assembles Markdown using method chaining, not uses a template engine like [html/template](https://pkg.go.dev/html/template). The syntax of Markdown follows GitHub Markdown.
 
-The markdown package was initially developed to save test results in [nao1215/spectest](https://github.com/nao1215/spectest). Therefore, the markdown package implements the features required by spectest. For example, the markdown package supports **mermaid diagrams (entity relationship diagram, sequence diagram, user journey diagram, git graph diagram, mindmap diagram, requirement diagram, xy chart, packet diagram, block diagram, kanban diagram, flowchart, pie chart, quadrant chart, state diagram, class diagram, Gantt chart, architecture diagram, timeline diagram, sankey diagram, radar chart, treemap diagram, C4 context diagram, Venn diagram, Wardley map)**, which was a necessary feature in spectest.
+It covers the GitHub Markdown syntax: headings, lists, checkbox lists, tables, code blocks, blockquotes, horizontal rules, text formatting, links, images, details, footnotes, math expressions, and alerts. It also builds 24 mermaid diagram types, from sequence and flowchart to Gantt, C4 context, and Wardley map; each one has an example below. Two helpers go beyond Markdown syntax: status badges and an index for a directory full of markdown files.
 
-Additionally, complex code that increases the complexity of the library, such as generating nested lists, will not be added. I want to keep this library as simple as possible.
+Complex code that increases the complexity of the library, such as generating nested lists, will not be added. I want to keep this library as simple as possible.
 
 ## Supported OS and go version
 - OS: Linux, macOS, Windows
 - Go: 1.23 or later
-  
-## Supported Markdown features
-- [x] Heading; H1, H2, H3, H4, H5, H6
-- [x] Blockquote 
-- [x] Bullet list
-- [x] Ordered list
-- [x] Checkbox list 
-- [x] Code blocks
-- [x] Horizontal rule 
-- [x] Table
-- [x] Text formatting; bold, italic, code, strikethrough, bold italic
-- [x] Text with link
-- [x] Reference link
-- [x] Text with image
-- [x] Plain text
-- [x] Details 
-- [x] Footnotes
-- [x] Mathematical expressions
-- [x] Alerts; NOTE, TIP, IMPORTANT, CAUTION, WARNING
-- [x] mermaid sequence diagram
-- [x] mermaid user journey diagram
-- [x] mermaid git graph diagram
-- [x] mermaid mindmap diagram
-- [x] mermaid requirement diagram
-- [x] mermaid xy chart
-- [x] mermaid packet diagram
-- [x] mermaid block diagram
-- [x] mermaid kanban diagram
-- [x] mermaid entity relationship diagram
-- [x] mermaid flowchart 
-- [x] mermaid pie chart
-- [x] mermaid quadrant chart
-- [x] mermaid state diagram
-- [x] mermaid class diagram
-- [x] mermaid Gantt chart
-- [x] mermaid architecture diagram (beta feature) 
-- [x] mermaid timeline diagram
-- [x] mermaid treemap diagram
-- [x] mermaid radar chart
-- [x] mermaid sankey diagram
-- [x] mermaid C4 context diagram (experimental feature)
-- [x] mermaid Venn diagram (beta feature)
-- [x] mermaid Wardley map (beta feature)
-
-### Features not in Markdown syntax
-- Generate badges; RedBadge(), YellowBadge(), GreenBadge().
-- Generate an index for a directory full of markdown files; GenerateIndex()
 
 ## Example
 ### Basic usage
