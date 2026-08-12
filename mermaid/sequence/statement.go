@@ -6,7 +6,7 @@ import (
 
 // LoopStart add a loop to the sequence diagram.
 func (d *Diagram) LoopStart(description string) *Diagram {
-	d.body = append(d.body, fmt.Sprintf("    loop %s", description))
+	d.body = append(d.body, fmt.Sprintf("    loop %s", escapeText(description)))
 	return d
 }
 
@@ -18,13 +18,13 @@ func (d *Diagram) LoopEnd() *Diagram {
 
 // AltStart add a alt to the sequence diagram.
 func (d *Diagram) AltStart(description string) *Diagram {
-	d.body = append(d.body, fmt.Sprintf("    alt %s", description))
+	d.body = append(d.body, fmt.Sprintf("    alt %s", escapeText(description)))
 	return d
 }
 
 // AltElse add a alt to the sequence diagram.
 func (d *Diagram) AltElse(description string) *Diagram {
-	d.body = append(d.body, fmt.Sprintf("    else %s", description))
+	d.body = append(d.body, fmt.Sprintf("    else %s", escapeText(description)))
 	return d
 }
 
@@ -36,7 +36,7 @@ func (d *Diagram) AltEnd() *Diagram {
 
 // OptStart add a opt to the sequence diagram.
 func (d *Diagram) OptStart(description string) *Diagram {
-	d.body = append(d.body, fmt.Sprintf("    opt %s", description))
+	d.body = append(d.body, fmt.Sprintf("    opt %s", escapeText(description)))
 	return d
 }
 
@@ -48,13 +48,13 @@ func (d *Diagram) OptEnd() *Diagram {
 
 // ParallelStart add a parallel to the sequence diagram.
 func (d *Diagram) ParallelStart(description string) *Diagram {
-	d.body = append(d.body, fmt.Sprintf("    par %s", description))
+	d.body = append(d.body, fmt.Sprintf("    par %s", escapeText(description)))
 	return d
 }
 
 // ParallelAnd add a parallel to the sequence diagram.
 func (d *Diagram) ParallelAnd(description string) *Diagram {
-	d.body = append(d.body, fmt.Sprintf("    and %s", description))
+	d.body = append(d.body, fmt.Sprintf("    and %s", escapeText(description)))
 	return d
 }
 
@@ -66,13 +66,13 @@ func (d *Diagram) ParallelEnd() *Diagram {
 
 // CriticalStart add a critical to the sequence diagram.
 func (d *Diagram) CriticalStart(description string) *Diagram {
-	d.body = append(d.body, fmt.Sprintf("    critical %s", description))
+	d.body = append(d.body, fmt.Sprintf("    critical %s", escapeText(description)))
 	return d
 }
 
 // CriticalOption add a critical opiton to the sequence diagram.
 func (d *Diagram) CriticalOption(description string) *Diagram {
-	d.body = append(d.body, fmt.Sprintf("    option %s", description))
+	d.body = append(d.body, fmt.Sprintf("    option %s", escapeText(description)))
 	return d
 }
 
@@ -84,7 +84,7 @@ func (d *Diagram) CriticalEnd() *Diagram {
 
 // BreakStart add a break to the sequence diagram.
 func (d *Diagram) BreakStart(description string) *Diagram {
-	d.body = append(d.body, fmt.Sprintf("    break %s", description))
+	d.body = append(d.body, fmt.Sprintf("    break %s", escapeText(description)))
 	return d
 }
 

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -774,5 +775,122 @@ func TestBuildReportsWriteFailure(t *testing.T) {
 	}
 	if !errors.Is(err, errWrite) {
 		t.Errorf("Build lost the destination error: %v", err)
+	}
+}
+
+// TestMessageTextEscapesWhatEndsIt names the characters this escaping buys in
+// the text of a diagram. A sequence diagram takes no quoted text at all, so a
+// message, a note and a block description each go out bare.
+func TestMessageTextEscapesWhatEndsIt(t *testing.T) {
+	t.Parallel()
+
+	tests := map[string]struct {
+		build func(io.Writer) *Diagram
+		want  string
+	}{
+		"a semicolon in a message loses the diagram": {
+			build: func(w io.Writer) *Diagram { return NewDiagram(w).SyncRequest("A", "B", "a;b") },
+			want:  "    A->>B: a#59;b",
+		},
+		"a hash in a message cuts it short": {
+			build: func(w io.Writer) *Diagram {
+				return NewDiagram(w).SyncRequest("A", "B", "deploy #2 of 3")
+			},
+			want: "    A->>B: deploy #35;2 of 3",
+		},
+		"a hash in a note": {
+			build: func(w io.Writer) *Diagram { return NewDiagram(w).NoteOver("A", "run #1") },
+			want:  "    note over A: run #35;1",
+		},
+		"a semicolon in a loop description": {
+			build: func(w io.Writer) *Diagram { return NewDiagram(w).LoopStart("retry; twice") },
+			want:  "    loop retry#59; twice",
+		},
+		"a colon in a message is left alone": {
+			// Only the first colon on the line is syntax, and this package
+			// writes that one itself.
+			build: func(w io.Writer) *Diagram { return NewDiagram(w).SyncRequest("A", "B", "a:b") },
+			want:  "    A->>B: a:b",
+		},
+		"a percent pair in a message is left alone": {
+			build: func(w io.Writer) *Diagram { return NewDiagram(w).SyncRequest("A", "B", "100%% done") },
+			want:  "    A->>B: 100%% done",
+		},
+	}
+
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := tt.build(io.Discard).String()
+			if !strings.Contains(got, tt.want) {
+				t.Errorf("diagram =\n%s\nwant it to contain\n%s", got, tt.want)
+			}
+		})
+	}
+}
+
+// TestParticipantNameEscapesWhatEndsIt names the characters a participant's
+// name loses, which are a different set from the text above. The name is
+// escaped identically where it is declared and where a message refers to it, so
+// the two still match.
+func TestParticipantNameEscapesWhatEndsIt(t *testing.T) {
+	t.Parallel()
+
+	tests := map[string]struct {
+		build func(io.Writer) *Diagram
+		want  string
+	}{
+		"a hyphen would be read as an arrow": {
+			build: func(w io.Writer) *Diagram { return NewDiagram(w).Participant("web-server") },
+			want:  "    participant web#45;server",
+		},
+		"the declaration and the reference agree": {
+			build: func(w io.Writer) *Diagram {
+				return NewDiagram(w).Participant("web-server").SyncRequest("web-server", "db", "read")
+			},
+			want: "    web#45;server->>db: read",
+		},
+		"a colon and a comma in an actor": {
+			build: func(w io.Writer) *Diagram { return NewDiagram(w).Actor("Ops: EU, US") },
+			want:  "    actor Ops#58; EU#44; US",
+		},
+		"parentheses in a name": {
+			build: func(w io.Writer) *Diagram { return NewDiagram(w).Participant("Deploy (prod)") },
+			want:  "    participant Deploy #40;prod#41;",
+		},
+		"an angle bracket in a name": {
+			build: func(w io.Writer) *Diagram { return NewDiagram(w).Participant("a<b") },
+			want:  "    participant a#60;b",
+		},
+		"a percent pair in a name": {
+			build: func(w io.Writer) *Diagram { return NewDiagram(w).Participant("a%%b") },
+			want:  "    participant a#37;#37;b",
+		},
+		"a lone percent in a name is left alone": {
+			build: func(w io.Writer) *Diagram { return NewDiagram(w).Participant("50% traffic") },
+			want:  "    participant 50% traffic",
+		},
+		"a hash in a name is left alone": {
+			build: func(w io.Writer) *Diagram { return NewDiagram(w).Participant("PR #12") },
+			want:  "    participant PR #12",
+		},
+		"a comma between two participants a note spans is a separator": {
+			// A note may be placed over two participants at once, and this
+			// package cannot tell that apart from one name holding a comma.
+			build: func(w io.Writer) *Diagram { return NewDiagram(w).NoteOver("Alice,Bob", "m") },
+			want:  "    note over Alice,Bob: m",
+		},
+	}
+
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := tt.build(io.Discard).String()
+			if !strings.Contains(got, tt.want) {
+				t.Errorf("diagram =\n%s\nwant it to contain\n%s", got, tt.want)
+			}
+		})
 	}
 }

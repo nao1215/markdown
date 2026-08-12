@@ -4,19 +4,19 @@ import "fmt"
 
 // Activate add a participant to the sequence diagram.
 func (d *Diagram) Activate(participant string) *Diagram {
-	d.body = append(d.body, fmt.Sprintf("    activate %s", participant))
+	d.body = append(d.body, fmt.Sprintf("    activate %s", escapeParticipant(participant)))
 	return d
 }
 
 // Deactivate add a participant to the sequence diagram.
 func (d *Diagram) Deactivate(participant string) *Diagram {
-	d.body = append(d.body, fmt.Sprintf("    deactivate %s", participant))
+	d.body = append(d.body, fmt.Sprintf("    deactivate %s", escapeParticipant(participant)))
 	return d
 }
 
 // SyncRequestWithActivation add a request to the sequence diagram.
 func (d *Diagram) SyncRequestWithActivation(from, to, message string) *Diagram {
-	d.body = append(d.body, fmt.Sprintf("    %s->>+%s: %s", from, to, message))
+	d.body = append(d.body, fmt.Sprintf("    %s->>+%s: %s", escapeParticipant(from), escapeParticipant(to), escapeText(message)))
 	return d
 }
 
@@ -27,7 +27,7 @@ func (d *Diagram) SyncRequestfWithActivation(from, to, format string, args ...an
 
 // SyncResponseWithActivation add a response to the sequence diagram.
 func (d *Diagram) SyncResponseWithActivation(from, to, message string) *Diagram {
-	d.body = append(d.body, fmt.Sprintf("    %s-->>-%s: %s", from, to, message))
+	d.body = append(d.body, fmt.Sprintf("    %s-->>-%s: %s", escapeParticipant(from), escapeParticipant(to), escapeText(message)))
 	return d
 }
 
@@ -38,7 +38,7 @@ func (d *Diagram) SyncResponsefWithActivation(from, to, format string, args ...a
 
 // AsyncRequestWithActivation add a async request to the sequence diagram.
 func (d *Diagram) AsyncRequestWithActivation(from, to, message string) *Diagram {
-	d.body = append(d.body, fmt.Sprintf("    %s->>+%s: %s", from, to, message))
+	d.body = append(d.body, fmt.Sprintf("    %s->>+%s: %s", escapeParticipant(from), escapeParticipant(to), escapeText(message)))
 	return d
 }
 
@@ -49,7 +49,7 @@ func (d *Diagram) AsyncRequestfWithActivation(from, to, format string, args ...a
 
 // AsyncResponseWithActivation add a async response to the sequence diagram.
 func (d *Diagram) AsyncResponseWithActivation(from, to, message string) *Diagram {
-	d.body = append(d.body, fmt.Sprintf("    %s-->>-%s: %s", from, to, message))
+	d.body = append(d.body, fmt.Sprintf("    %s-->>-%s: %s", escapeParticipant(from), escapeParticipant(to), escapeText(message)))
 	return d
 }
 

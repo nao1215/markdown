@@ -119,10 +119,11 @@ func supported(diagram string) string {
 		// refuses an emoji or Japanese in a node name, the same way its xy
 		// chart parser does.
 		"sankey": `"'#;[](){}<br/>:,*-|%%`,
-		// sequence: ";" and "%%" end a statement, ":" and "," end a participant
-		// name, and a parenthesis or a brace in one ends it too once the name
-		// holds anything else.
-		"sequence": `"'#[]` + emoji + japanese + `*-|`,
+		// sequence takes no quoted text at all, so each construct writes the
+		// punctuation it would otherwise lose as the entity form mermaid
+		// decodes. A line break is left out because the renderer honors
+		// "<br/>" inside a message.
+		"sequence": `"'#;[](){}` + emoji + japanese + `:,*-|%%`,
 		// state writes the colon that would end a one line note as the entity
 		// form mermaid decodes, and every other construct here takes the
 		// punctuation as it is.

@@ -73,7 +73,7 @@ func (d *Diagram) Build() error {
 
 // SyncRequest add a request to the sequence diagram.
 func (d *Diagram) SyncRequest(from, to, message string) *Diagram {
-	d.body = append(d.body, fmt.Sprintf("    %s->>%s: %s", from, to, message))
+	d.body = append(d.body, fmt.Sprintf("    %s->>%s: %s", escapeParticipant(from), escapeParticipant(to), escapeText(message)))
 	return d
 }
 
@@ -84,7 +84,7 @@ func (d *Diagram) SyncRequestf(from, to, format string, args ...any) *Diagram {
 
 // SyncResponse add a response to the sequence diagram.
 func (d *Diagram) SyncResponse(from, to, message string) *Diagram {
-	d.body = append(d.body, fmt.Sprintf("    %s-->>%s: %s", from, to, message))
+	d.body = append(d.body, fmt.Sprintf("    %s-->>%s: %s", escapeParticipant(from), escapeParticipant(to), escapeText(message)))
 	return d
 }
 
@@ -95,7 +95,7 @@ func (d *Diagram) SyncResponsef(from, to, format string, args ...any) *Diagram {
 
 // RequestError add a request error to the sequence diagram.
 func (d *Diagram) RequestError(from, to, message string) *Diagram {
-	d.body = append(d.body, fmt.Sprintf("    %s-x%s: %s", from, to, message))
+	d.body = append(d.body, fmt.Sprintf("    %s-x%s: %s", escapeParticipant(from), escapeParticipant(to), escapeText(message)))
 	return d
 }
 
@@ -106,7 +106,7 @@ func (d *Diagram) RequestErrorf(from, to, format string, args ...any) *Diagram {
 
 // ResponseError add a response error to the sequence diagram.
 func (d *Diagram) ResponseError(from, to, message string) *Diagram {
-	d.body = append(d.body, fmt.Sprintf("    %s--x%s: %s", from, to, message))
+	d.body = append(d.body, fmt.Sprintf("    %s--x%s: %s", escapeParticipant(from), escapeParticipant(to), escapeText(message)))
 	return d
 }
 
@@ -117,7 +117,7 @@ func (d *Diagram) ResponseErrorf(from, to, format string, args ...any) *Diagram 
 
 // AsyncRequest add a async request to the sequence diagram.
 func (d *Diagram) AsyncRequest(from, to, message string) *Diagram {
-	d.body = append(d.body, fmt.Sprintf("    %s->)%s: %s", from, to, message))
+	d.body = append(d.body, fmt.Sprintf("    %s->)%s: %s", escapeParticipant(from), escapeParticipant(to), escapeText(message)))
 	return d
 }
 
@@ -128,7 +128,7 @@ func (d *Diagram) AsyncRequestf(from, to, format string, args ...any) *Diagram {
 
 // AsyncResponse add a async response to the sequence diagram.
 func (d *Diagram) AsyncResponse(from, to, message string) *Diagram {
-	d.body = append(d.body, fmt.Sprintf("    %s--)%s: %s", from, to, message))
+	d.body = append(d.body, fmt.Sprintf("    %s--)%s: %s", escapeParticipant(from), escapeParticipant(to), escapeText(message)))
 	return d
 }
 
