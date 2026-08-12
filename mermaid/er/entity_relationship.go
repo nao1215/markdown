@@ -53,6 +53,20 @@ func NewDiagram(w io.Writer, opts ...Option) *Diagram {
 	}
 }
 
+// remember records an entity so that String declares it once, however many
+// relationships name it.
+//
+// The map is made here rather than only in NewDiagram because Diagram is
+// exported: a caller can write er.Diagram{} and, before this package used a
+// map, that value took writes without complaint. Nothing in this library
+// panics on how it is called, and a nil map assignment would.
+func (d *Diagram) remember(e Entity) {
+	if d.entities == nil {
+		d.entities = map[string]Entity{}
+	}
+	d.entities[e.Name] = e
+}
+
 // String returns the entity relationship diagram body.
 func (d *Diagram) String() string {
 	s := strings.Join(d.body, internal.LineFeed())

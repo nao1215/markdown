@@ -81,7 +81,7 @@ gives these differences:
 | change | what it affects |
 | --- | --- |
 | every document now ends with a line ending | **every document** |
-| a mermaid front matter title is quoted: `title: Checkout` becomes `title: "Checkout"` | every diagram with a title |
+| a mermaid front matter title is quoted: `title: Checkout` becomes `title: "Checkout"` | diagrams whose title goes in front matter, which is not the ones writing a `title` statement |
 | a block diagram title moves from a `title` statement into the front matter | block diagrams with a title |
 | a class annotation moves inside the class body | class diagrams using `<<Interface>>` |
 | the label escaping listed above | only labels holding the punctuation concerned, which did not render before |
