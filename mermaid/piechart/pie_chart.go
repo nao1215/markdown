@@ -52,7 +52,7 @@ func NewPieChart(w io.Writer, opts ...Option) *PieChart {
 		lines = append(lines, baseLine)
 	} else {
 		lines = append(lines, baseLine)
-		lines = append(lines, fmt.Sprintf("    title %s", c.title))
+		lines = append(lines, fmt.Sprintf("    title %s", escapeTitle(c.title)))
 	}
 
 	return &PieChart{
@@ -87,13 +87,13 @@ func (p *PieChart) Build() error {
 
 // LabelAndIntValue adds a label and value to the pie chart.
 func (p *PieChart) LabelAndIntValue(label string, value uint64) *PieChart {
-	p.body = append(p.body, fmt.Sprintf("    \"%s\" : %d", label, value))
+	p.body = append(p.body, fmt.Sprintf("    \"%s\" : %d", escapeLabel(label), value))
 	return p
 }
 
 // LabelAndFloatValue adds a label and value to the pie chart.
 // The value is formatted with a precision of 6 digits after the decimal point.
 func (p *PieChart) LabelAndFloatValue(label string, value float64) *PieChart {
-	p.body = append(p.body, fmt.Sprintf("    \"%s\" : %f", label, value))
+	p.body = append(p.body, fmt.Sprintf("    \"%s\" : %f", escapeLabel(label), value))
 	return p
 }
