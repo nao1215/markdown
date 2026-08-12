@@ -70,7 +70,7 @@ func (a *Attribute) string() string {
 		keys = append(keys, "UK")
 	}
 
-	s := fmt.Sprintf("        %s %s %s \"%s\"", a.Type, a.Name, strings.Join(keys, ","), a.Comment)
+	s := fmt.Sprintf("        %s %s %s \"%s\"", a.Type, a.Name, strings.Join(keys, ","), escapeComment(a.Comment))
 	s = strings.TrimSuffix(s, " ")
 	return strings.ReplaceAll(s, "\"\"", "")
 }
@@ -90,7 +90,7 @@ func (d *Diagram) Relationship(leftE, rightE Entity, leftR, rightR Relationship,
 			identidy.string(),
 			rightR.string(right),
 			rightE.Name,
-			comment,
+			escapeComment(comment),
 		),
 	)
 

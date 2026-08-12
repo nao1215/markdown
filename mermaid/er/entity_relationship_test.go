@@ -345,3 +345,62 @@ func TestBuildReportsWriteFailure(t *testing.T) {
 		t.Errorf("Build lost the destination error: %v", err)
 	}
 }
+
+// TestCommentEscapesTheQuoteThatEndsIt names the character this escaping buys.
+// A double quote in an attribute comment or a relationship comment used to
+// reach mermaid unescaped and lose the whole diagram: the reader got an error
+// box rather than a picture.
+func TestCommentEscapesTheQuoteThatEndsIt(t *testing.T) {
+	t.Parallel()
+
+	tests := map[string]struct {
+		build func(io.Writer) *Diagram
+		want  string
+	}{
+		"a quote in an attribute comment": {
+			build: func(w io.Writer) *Diagram {
+				return NewDiagram(w).NoRelationship(NewEntity("teachers", []*Attribute{
+					{Type: "int", Name: "id", IsPrimaryKey: true, Comment: `the "primary" key`},
+				}))
+			},
+			want: `        int id PK "the #quot;primary#quot; key"`,
+		},
+		"a quote in a relationship comment": {
+			build: func(w io.Writer) *Diagram {
+				return NewDiagram(w).Relationship(
+					NewEntity("teachers", []*Attribute{{Type: "int", Name: "id"}}),
+					NewEntity("students", []*Attribute{{Type: "int", Name: "id"}}),
+					ExactlyOneRelationship, ZeroToMoreRelationship, Identifying, `"teaches"`,
+				)
+			},
+			want: `"#quot;teaches#quot;"`,
+		},
+		"a named entity in a comment is escaped": {
+			build: func(w io.Writer) *Diagram {
+				return NewDiagram(w).NoRelationship(NewEntity("teachers", []*Attribute{
+					{Type: "int", Name: "id", Comment: "a#quot;b"},
+				}))
+			},
+			want: `"a#35;quot;b"`,
+		},
+		"a plain hash in a comment is left alone": {
+			build: func(w io.Writer) *Diagram {
+				return NewDiagram(w).NoRelationship(NewEntity("teachers", []*Attribute{
+					{Type: "int", Name: "id", Comment: "PR #123 merged"},
+				}))
+			},
+			want: `"PR #123 merged"`,
+		},
+	}
+
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := tt.build(io.Discard).String()
+			if !strings.Contains(got, tt.want) {
+				t.Errorf("diagram =\n%s\nwant it to contain\n%s", got, tt.want)
+			}
+		})
+	}
+}
