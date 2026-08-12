@@ -75,9 +75,13 @@ func (d *Diagram) String() string {
 // Error returns the error that occurred during the entity relationship diagram
 // building.
 //
-// It reports the same error Build does, for code that wants to look before
-// writing anything. Every other builder in this library has had it since it was
-// written; this one gained it at v1.0.0, when the API audit noticed it missing.
+// It returns the error the chain recorded, for code that wants to look before
+// writing anything. Build reports that error too when it stops it writing, but
+// the two are not the same call: Build returns nil once it has written the
+// document, whatever was recorded on the way.
+//
+// Every other builder in this library has had this since it was written; this
+// one gained it at v1.0.0, when the API audit noticed it missing.
 func (d *Diagram) Error() error {
 	return d.err
 }

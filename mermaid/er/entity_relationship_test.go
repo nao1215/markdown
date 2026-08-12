@@ -405,10 +405,10 @@ func TestCommentEscapesTheQuoteThatEndsIt(t *testing.T) {
 	}
 }
 
-// TestErrorReportsWhatBuildWould pins the method the v1.0.0 API audit found
-// missing. Every other builder in this library reports its recorded error from
-// Error as well as from Build, and this one did not.
-func TestErrorReportsWhatBuildWould(t *testing.T) {
+// TestErrorReportsTheRecordedError pins the method the v1.0.0 API audit found
+// missing. Every other builder in this library lets the recorded error be read
+// before anything is written, and this one did not.
+func TestErrorReportsTheRecordedError(t *testing.T) {
 	t.Parallel()
 
 	d := NewDiagram(nil).NoRelationship(NewEntity("teachers", []*Attribute{
@@ -419,6 +419,7 @@ func TestErrorReportsWhatBuildWould(t *testing.T) {
 		t.Errorf("Error() = %v before Build, want nil", err)
 	}
 
+	// Build reports the same error when it is what stopped the write.
 	fromBuild := d.Build()
 	if fromBuild == nil {
 		t.Fatal("Build() = nil with a nil writer, want an error")

@@ -5,7 +5,7 @@ each of it for v1.0.0. From that release the exported API and the bytes it
 produces are frozen: see the API stability and output stability sections of
 [SPEC.md](../SPEC.md).
 
-The audit covers **826 exported symbols** across **23 packages**. The verdict on
+The audit covers **859 exported symbols** across **23 packages**. The verdict on
 every one of them is **keep**. Nothing is removed, nothing is renamed, no
 signature changes, and nothing is deprecated: this library is used in production
 and backward compatibility outranks tidiness.
@@ -31,7 +31,12 @@ other builder in the library did. Adding one is additive, so it was done here
 rather than written down as a wart to live with forever. That is what this audit
 was for.
 
-What is left is naming, and naming cannot be fixed without breaking callers:
+What is left is naming, and naming cannot be fixed without breaking callers.
+Two of the deviations above are enumerations: `markdown.TableAlignment`'s
+constants are prefixed `Align` rather than with the type name, and
+`er.Relationship`'s are suffixed rather than prefixed. Both still share an
+affix, which is what makes them readable at a call site, so neither is worth
+breaking a caller over. The rest are types and methods:
 `arch.Architecture` is the one builder not called `Diagram`, `gantt.Chart` and
 `quadrant.Chart` and `piechart.PieChart` and `flowchart.Flowchart` follow what
 mermaid calls them rather than the convention, and
@@ -43,12 +48,12 @@ thing in the API forever, which is worse than the typo.
 
 | Package | Symbols | Deviations |
 | --- | ---: | --- |
-| `github.com/nao1215/markdown` | 143 | none |
-| `github.com/nao1215/markdown/mermaid/arch` | 31 | none |
+| `github.com/nao1215/markdown` | 153 | the `TableAlignment` constants are prefixed `Align` rather than with the type name |
+| `github.com/nao1215/markdown/mermaid/arch` | 34 | none |
 | `github.com/nao1215/markdown/mermaid/block` | 60 | none |
 | `github.com/nao1215/markdown/mermaid/c4` | 26 | none |
-| `github.com/nao1215/markdown/mermaid/class` | 95 | none |
-| `github.com/nao1215/markdown/mermaid/er` | 19 | none |
+| `github.com/nao1215/markdown/mermaid/class` | 96 | none |
+| `github.com/nao1215/markdown/mermaid/er` | 27 | the `Identify` constants are suffixed `Identifying` rather than prefixed; the `Relationship` constants are suffixed `Relationship` rather than prefixed |
 | `github.com/nao1215/markdown/mermaid/flowchart` | 39 | none |
 | `github.com/nao1215/markdown/mermaid/gantt` | 32 | none |
 | `github.com/nao1215/markdown/mermaid/gitgraph` | 26 | none |
@@ -56,9 +61,9 @@ thing in the API forever, which is worse than the typo.
 | `github.com/nao1215/markdown/mermaid/mindmap` | 13 | none |
 | `github.com/nao1215/markdown/mermaid/packet` | 11 | none |
 | `github.com/nao1215/markdown/mermaid/piechart` | 11 | none |
-| `github.com/nao1215/markdown/mermaid/quadrant` | 25 | none |
+| `github.com/nao1215/markdown/mermaid/quadrant` | 33 | none |
 | `github.com/nao1215/markdown/mermaid/radar` | 12 | none |
-| `github.com/nao1215/markdown/mermaid/requirement` | 81 | none |
+| `github.com/nao1215/markdown/mermaid/requirement` | 84 | none |
 | `github.com/nao1215/markdown/mermaid/sankey` | 9 | none |
 | `github.com/nao1215/markdown/mermaid/sequence` | 72 | none |
 | `github.com/nao1215/markdown/mermaid/state` | 37 | none |
@@ -68,6 +73,8 @@ thing in the API forever, which is worse than the typo.
 | `github.com/nao1215/markdown/mermaid/xychart` | 21 | none |
 
 ## github.com/nao1215/markdown
+
+Accepted for v1: the `TableAlignment` constants are prefixed `Align` rather than with the type name.
 
 | Symbol | Kind | Verdict | Note |
 | --- | --- | --- | --- |
@@ -164,6 +171,8 @@ thing in the API forever, which is worse than the typo.
 | `WithDescription` | func | keep |  |
 | `WithTitle` | func | keep |  |
 | `WithWriter` | func | keep |  |
+| `CheckBoxSet.Checked` | field | keep |  |
+| `CheckBoxSet.Text` | field | keep |  |
 | `Markdown.BlankLine` | method | keep |  |
 | `Markdown.Blockquote` | method | keep |  |
 | `Markdown.BlueBadge` | method | keep |  |
@@ -213,6 +222,14 @@ thing in the API forever, which is worse than the typo.
 | `Markdown.Warningf` | method | keep |  |
 | `Markdown.YellowBadge` | method | keep |  |
 | `Markdown.YellowBadgef` | method | keep |  |
+| `TableOfContentsOptions.MaxDepth` | field | keep |  |
+| `TableOfContentsOptions.MinDepth` | field | keep |  |
+| `TableOptions.AutoFormatHeaders` | field | keep |  |
+| `TableOptions.AutoWrapText` | field | keep |  |
+| `TableSet.Alignment` | field | keep |  |
+| `TableSet.EscapeCells` | field | keep |  |
+| `TableSet.Header` | field | keep |  |
+| `TableSet.Rows` | field | keep |  |
 | `TableSet.ValidateColumns` | method | keep |  |
 
 ## github.com/nao1215/markdown/mermaid/arch
@@ -250,6 +267,9 @@ thing in the API forever, which is worse than the typo.
 | `Architecture.Service` | method | keep |  |
 | `Architecture.ServiceInGroup` | method | keep |  |
 | `Architecture.String` | method | keep |  |
+| `Edge.Arrow` | field | keep |  |
+| `Edge.Position` | field | keep |  |
+| `Edge.ServiceID` | field | keep |  |
 
 ## github.com/nao1215/markdown/mermaid/block
 
@@ -445,9 +465,12 @@ thing in the API forever, which is worse than the typo.
 | `Diagram.Style` | method | keep |  |
 | `SourceRelationBuilder.Association` | method | keep |  |
 | `SourceRelationBuilder.Composition` | method | keep |  |
+| `SourceRelationBuilder.Diagram` | field | keep |  |
 | `SourceRelationBuilder.Relation` | method | keep |  |
 
 ## github.com/nao1215/markdown/mermaid/er
+
+Accepted for v1: the `Identify` constants are suffixed `Identifying` rather than prefixed; the `Relationship` constants are suffixed `Relationship` rather than prefixed.
 
 | Symbol | Kind | Verdict | Note |
 | --- | --- | --- | --- |
@@ -465,11 +488,19 @@ thing in the API forever, which is worse than the typo.
 | `Relationship` | type | keep |  |
 | `ZeroToMoreRelationship` | const | keep |  |
 | `ZeroToOneRelationship` | const | keep |  |
+| `Attribute.Comment` | field | keep |  |
+| `Attribute.IsForeignKey` | field | keep |  |
+| `Attribute.IsPrimaryKey` | field | keep |  |
+| `Attribute.IsUniqueKey` | field | keep |  |
+| `Attribute.Name` | field | keep |  |
+| `Attribute.Type` | field | keep |  |
 | `Diagram.Build` | method | keep |  |
 | `Diagram.Error` | method | keep |  |
 | `Diagram.NoRelationship` | method | keep |  |
 | `Diagram.Relationship` | method | keep | The last parameter is spelled `identidy`. Accepted for v1: a parameter name is not part of the type, so fixing it breaks nobody, but it is also not worth a release note. Left alone. |
 | `Diagram.String` | method | keep |  |
+| `Entity.Attributes` | field | keep |  |
+| `Entity.Name` | field | keep |  |
 
 ## github.com/nao1215/markdown/mermaid/flowchart
 
@@ -689,8 +720,16 @@ thing in the API forever, which is worse than the typo.
 | `Chart.String` | method | keep |  |
 | `Chart.XAxis` | method | keep |  |
 | `Chart.YAxis` | method | keep |  |
+| `ClassStyle.Color` | field | keep |  |
+| `ClassStyle.Radius` | field | keep |  |
 | `ClassStyle.String` | method | keep |  |
+| `ClassStyle.StrokeColor` | field | keep |  |
+| `ClassStyle.StrokeWidth` | field | keep |  |
+| `PointStyle.Color` | field | keep |  |
+| `PointStyle.Radius` | field | keep |  |
 | `PointStyle.String` | method | keep |  |
+| `PointStyle.StrokeColor` | field | keep |  |
+| `PointStyle.StrokeWidth` | field | keep |  |
 
 ## github.com/nao1215/markdown/mermaid/radar
 
@@ -759,6 +798,8 @@ thing in the API forever, which is worse than the typo.
 | `WithText` | func | keep |  |
 | `WithTitle` | func | keep |  |
 | `WithVerifyMethod` | func | keep |  |
+| `ClassDefSpec.ClassNames` | field | keep |  |
+| `ClassDefSpec.Style` | field | keep |  |
 | `Diagram.Build` | method | keep |  |
 | `Diagram.Class` | method | keep |  |
 | `Diagram.ClassDef` | method | keep |  |
@@ -789,6 +830,7 @@ thing in the API forever, which is worse than the typo.
 | `SourceRelationBuilder.Contains` | method | keep |  |
 | `SourceRelationBuilder.Copies` | method | keep |  |
 | `SourceRelationBuilder.Derives` | method | keep |  |
+| `SourceRelationBuilder.Diagram` | field | keep |  |
 | `SourceRelationBuilder.Refines` | method | keep |  |
 | `SourceRelationBuilder.Relation` | method | keep |  |
 | `SourceRelationBuilder.Satisfies` | method | keep |  |

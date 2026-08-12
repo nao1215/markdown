@@ -68,11 +68,18 @@ type pkg struct {
 	findings []string
 }
 
-// symbol is one exported identifier.
+// symbol is one exported identifier, with the parts of its declaration the
+// consistency checks need.
 type symbol struct {
 	name string
 	kind string
 	recv string
+	// results are the result types of a function, by name.
+	results []string
+	// params are the parameter types of a function, by name.
+	params []string
+	// typeName is the declared type of a constant, where it has one.
+	typeName string
 }
 
 func main() {
@@ -142,7 +149,12 @@ func exported(file *ast.File) []symbol {
 			if !d.Name.IsExported() {
 				continue
 			}
-			s := symbol{name: d.Name.Name, kind: "func"}
+			s := symbol{
+				name:    d.Name.Name,
+				kind:    "func",
+				results: typeNames(d.Type.Results),
+				params:  typeNames(d.Type.Params),
+			}
 			if d.Recv != nil && len(d.Recv.List) == 1 {
 				s.kind = "method"
 				s.recv = receiver(d.Recv.List[0].Type)
@@ -162,25 +174,120 @@ func exported(file *ast.File) []symbol {
 // declaration.
 func exportedSpecs(d *ast.GenDecl) []symbol {
 	symbols := []symbol{}
+	constType := ""
 	for _, spec := range d.Specs {
 		switch s := spec.(type) {
 		case *ast.TypeSpec:
-			if s.Name.IsExported() {
-				symbols = append(symbols, symbol{name: s.Name.Name, kind: "type"})
+			if !s.Name.IsExported() {
+				continue
 			}
+			symbols = append(symbols, symbol{name: s.Name.Name, kind: "type"})
+			symbols = append(symbols, members(s)...)
 		case *ast.ValueSpec:
 			kind := "const"
 			if d.Tok == token.VAR {
 				kind = "var"
 			}
+			// A constant in a group inherits the type of the first spec that
+			// names one, which is how an iota block declares its type once.
+			if named := typeName(s.Type); named != "" {
+				constType = named
+			}
 			for _, ident := range s.Names {
 				if ident.IsExported() {
-					symbols = append(symbols, symbol{name: ident.Name, kind: kind})
+					symbols = append(symbols, symbol{name: ident.Name, kind: kind, typeName: constType})
 				}
 			}
 		}
 	}
 	return symbols
+}
+
+// members returns the exported fields of an exported struct and the exported
+// methods of an exported interface.
+//
+// They are part of the API as much as the type is: a caller writes
+// er.Attribute{Type: "int"}, so the field name is frozen at v1.0.0 the same way
+// the type name is.
+func members(spec *ast.TypeSpec) []symbol {
+	symbols := []symbol{}
+	switch t := spec.Type.(type) {
+	case *ast.StructType:
+		for _, field := range fieldNames(t.Fields) {
+			symbols = append(symbols, symbol{name: field, kind: "field", recv: spec.Name.Name})
+		}
+	case *ast.InterfaceType:
+		for _, method := range fieldNames(t.Methods) {
+			symbols = append(symbols, symbol{name: method, kind: "method", recv: spec.Name.Name})
+		}
+	}
+	return symbols
+}
+
+// fieldNames returns the exported names declared in a field list, including an
+// embedded type, which a caller can reach through just as it can a named field.
+func fieldNames(fields *ast.FieldList) []string {
+	if fields == nil {
+		return nil
+	}
+
+	names := []string{}
+	for _, field := range fields.List {
+		if len(field.Names) == 0 {
+			if name := receiver(field.Type); ast.IsExported(name) {
+				names = append(names, name)
+			}
+			continue
+		}
+		for _, ident := range field.Names {
+			if ident.IsExported() {
+				names = append(names, ident.Name)
+			}
+		}
+	}
+	return names
+}
+
+// typeNames returns the type of each entry in a field list, written the way the
+// source writes it, which is enough to compare against a name.
+func typeNames(fields *ast.FieldList) []string {
+	if fields == nil {
+		return nil
+	}
+
+	names := []string{}
+	for _, field := range fields.List {
+		named := typeName(field.Type)
+		count := len(field.Names)
+		if count == 0 {
+			count = 1
+		}
+		for range count {
+			names = append(names, named)
+		}
+	}
+	return names
+}
+
+// typeName writes an expression the way its type reads in source: "*Diagram",
+// "io.Writer", "...Option".
+func typeName(expr ast.Expr) string {
+	switch t := expr.(type) {
+	case *ast.Ident:
+		return t.Name
+	case *ast.StarExpr:
+		return "*" + typeName(t.X)
+	case *ast.Ellipsis:
+		return "..." + typeName(t.Elt)
+	case *ast.SelectorExpr:
+		return typeName(t.X) + "." + t.Sel.Name
+	case *ast.ArrayType:
+		return "[]" + typeName(t.Elt)
+	case *ast.FuncType:
+		return "func"
+	default:
+		return ""
+	}
 }
 
 // receiver returns the type name a method is on.
@@ -197,94 +304,208 @@ func receiver(expr ast.Expr) string {
 // check runs the consistency checklist over a package and returns what it
 // found. An empty result means the package follows every convention.
 func check(p pkg) []string {
-	findings := []string{}
-
-	builders := map[string]map[string]bool{}
-	for _, s := range p.symbols {
-		if s.kind != "method" {
-			continue
-		}
-		if builders[s.recv] == nil {
-			builders[s.recv] = map[string]bool{}
-		}
-		builders[s.recv][s.name] = true
-	}
-
-	receivers := make([]string, 0, len(builders))
-	for name := range builders {
-		receivers = append(receivers, name)
-	}
-	sort.Strings(receivers)
-
-	for _, name := range receivers {
-		methods := builders[name]
-		// A builder is a type with Build; the small value types that only have
-		// String are not one and are not held to this.
-		if !methods["Build"] {
-			continue
-		}
-		for _, want := range []string{"Build", "Error", "String"} {
-			if !methods[want] {
-				findings = append(findings, fmt.Sprintf("`%s` has no `%s`", name, want))
-			}
-		}
-		if !hasSymbol(p, "New"+name) && !hasConstructorFor(p, name) {
-			findings = append(findings, fmt.Sprintf("`%s` has no `New%s`", name, name))
-		}
-	}
-
-	for _, s := range p.symbols {
-		if s.kind != "func" || s.recv != "" {
-			continue
-		}
-		if strings.HasPrefix(s.name, "New") || strings.HasPrefix(s.name, "With") {
-			continue
-		}
-		if returnsOption(p, s.name) {
-			findings = append(findings, fmt.Sprintf("`%s` returns an option but is not named `WithXxx`", s.name))
-		}
-	}
-
+	findings := checkBuilders(p)
+	findings = append(findings, checkOptions(p)...)
+	findings = append(findings, checkEnums(p)...)
 	return findings
 }
 
-// hasSymbol reports whether the package exports name.
-func hasSymbol(p pkg, name string) bool {
-	for _, s := range p.symbols {
-		if s.name == name && s.recv == "" {
-			return true
-		}
-	}
-	return false
-}
-
-// hasConstructorFor reports whether some New function is plausibly the
-// constructor of the named builder, which covers the builders whose type and
-// constructor were named before the convention settled.
-func hasConstructorFor(p pkg, name string) bool {
-	for _, s := range p.symbols {
-		if s.kind == "func" && s.recv == "" && strings.HasPrefix(s.name, "New") {
-			return true
-		}
-	}
-	_ = name
-	return false
-}
-
-// returnsOption reports whether the named function returns one of the package's
-// option types.
+// checkBuilders reports a builder without the three methods every one of them
+// has, or without a constructor taking a writer and its options.
 //
-// The option constructors in this library are all named WithXxx already, so
-// this only ever fires on something new. It matches by name rather than by
-// type, which is enough here: a function returning an Option is the only reason
-// a package declares one.
-func returnsOption(p pkg, name string) bool {
+// A builder is a type with a Build method; the small value types that only have
+// String are not one and are not held to this.
+func checkBuilders(p pkg) []string {
+	methods := map[string]map[string]bool{}
 	for _, s := range p.symbols {
-		if s.kind == "type" && strings.HasSuffix(s.name, "Option") && strings.Contains(name, s.name) {
-			return true
+		if s.kind != "method" || s.recv == "" {
+			continue
+		}
+		if methods[s.recv] == nil {
+			methods[s.recv] = map[string]bool{}
+		}
+		methods[s.recv][s.name] = true
+	}
+
+	findings := []string{}
+	for _, name := range sortedKeys(methods) {
+		if !methods[name]["Build"] {
+			continue
+		}
+		for _, want := range []string{"Build", "Error", "String"} {
+			if !methods[name][want] {
+				findings = append(findings, fmt.Sprintf("`%s` has no `%s`", name, want))
+			}
+		}
+		findings = append(findings, checkConstructor(p, name)...)
+	}
+	return findings
+}
+
+// checkConstructor reports a builder whose constructor is missing, is not named
+// for it, or does not take a writer and a run of options.
+func checkConstructor(p pkg, builder string) []string {
+	for _, s := range p.symbols {
+		if s.kind != "func" || s.recv != "" || len(s.results) != 1 {
+			continue
+		}
+		if s.results[0] != "*"+builder {
+			continue
+		}
+
+		findings := []string{}
+		if s.name != "New"+builder {
+			findings = append(findings,
+				fmt.Sprintf("`%s` returns `*%s` but is not named `New%s`", s.name, builder, builder))
+		}
+		if len(s.params) != 2 || s.params[0] != "io.Writer" || !strings.HasPrefix(s.params[1], "...") {
+			findings = append(findings,
+				fmt.Sprintf("`%s` does not take `(io.Writer, ...Option)`", s.name))
+		}
+		return findings
+	}
+	return []string{fmt.Sprintf("`%s` has no constructor returning `*%s`", builder, builder)}
+}
+
+// checkOptions reports a function that returns one of the package's option
+// types without being named for it.
+//
+// The result type is what decides, rather than the name, so a new option
+// constructor called something else is caught rather than skipped.
+func checkOptions(p pkg) []string {
+	optionTypes := map[string]bool{}
+	findings := make([]string, 0, len(p.symbols))
+	for _, s := range p.symbols {
+		if s.kind == "type" && strings.HasSuffix(s.name, "Option") {
+			optionTypes[s.name] = true
 		}
 	}
-	return false
+
+	for _, s := range p.symbols {
+		if s.kind != "func" || s.recv != "" || len(s.results) != 1 {
+			continue
+		}
+		if optionTypes[s.results[0]] && !strings.HasPrefix(s.name, "With") {
+			findings = append(findings,
+				fmt.Sprintf("`%s` returns `%s` but is not named `WithXxx`", s.name, s.results[0]))
+		}
+	}
+	return findings
+}
+
+// checkEnums reports the constants of a named type that share neither a prefix
+// nor a suffix.
+//
+// A shared affix is what makes an enumeration readable at the call site: a
+// reader seeing RiskHigh or ZeroToOneRelationship knows what it is for, and a
+// reader seeing High does not. Which of the two a group uses is not worth a
+// finding, so a group sharing either passes; where the affix is not the name of
+// the type, the summary says so, because that is worth knowing when reading the
+// package rather than something to fix.
+func checkEnums(p pkg) []string {
+	groups := map[string][]string{}
+	for _, s := range p.symbols {
+		if s.kind == "const" && s.typeName != "" {
+			groups[s.typeName] = append(groups[s.typeName], s.name)
+		}
+	}
+
+	types := make([]string, 0, len(groups))
+	for name := range groups {
+		types = append(types, name)
+	}
+	sort.Strings(types)
+
+	findings := []string{}
+	for _, typeName := range types {
+		names := groups[typeName]
+		// One constant of a type shares an affix with nothing, so there is
+		// nothing to check.
+		if len(names) < 2 { //nolint:mnd // "fewer than two" is the condition, not a magic number.
+			continue
+		}
+
+		prefix := commonPrefix(names)
+		suffix := commonSuffix(names)
+		switch {
+		case strings.HasPrefix(prefix, typeName):
+			// The usual case: RiskLow, RiskMedium, RiskHigh.
+		case prefix == "" && suffix == "":
+			findings = append(findings,
+				fmt.Sprintf("the `%s` constants share neither a prefix nor a suffix", typeName))
+		case prefix != "":
+			findings = append(findings,
+				fmt.Sprintf("the `%s` constants are prefixed `%s` rather than with the type name",
+					typeName, atWordBoundary(prefix)))
+		default:
+			findings = append(findings,
+				fmt.Sprintf("the `%s` constants are suffixed `%s` rather than prefixed",
+					typeName, fromWordBoundary(suffix)))
+		}
+	}
+	return findings
+}
+
+// commonPrefix returns the longest prefix every name shares.
+func commonPrefix(names []string) string {
+	shared := names[0]
+	for _, name := range names[1:] {
+		for !strings.HasPrefix(name, shared) {
+			shared = shared[:len(shared)-1]
+			if shared == "" {
+				return ""
+			}
+		}
+	}
+	return shared
+}
+
+// commonSuffix returns the longest suffix every name shares.
+func commonSuffix(names []string) string {
+	shared := names[0]
+	for _, name := range names[1:] {
+		for !strings.HasSuffix(name, shared) {
+			shared = shared[1:]
+			if shared == "" {
+				return ""
+			}
+		}
+	}
+	return shared
+}
+
+// atWordBoundary cuts a prefix back to the last word it starts, so a partial
+// word is not reported as the shared one: three names agreeing on "AlignL" are
+// sharing "Align".
+func atWordBoundary(affix string) string {
+	for i := len(affix) - 1; i > 0; i-- {
+		if affix[i] >= 'A' && affix[i] <= 'Z' {
+			return affix[:i]
+		}
+	}
+	return affix
+}
+
+// fromWordBoundary cuts a suffix forward to the word it starts, for the same
+// reason: names agreeing on "eRelationship" are sharing "Relationship".
+func fromWordBoundary(affix string) string {
+	for i := 0; i < len(affix); i++ {
+		if affix[i] >= 'A' && affix[i] <= 'Z' {
+			return affix[i:]
+		}
+	}
+	return affix
+}
+
+// sortedKeys returns the keys of m in order, so the findings do not move about
+// between runs.
+func sortedKeys(m map[string]map[string]bool) []string {
+	keys := make([]string, 0, len(m))
+	for key := range m {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+	return keys
 }
 
 // writer collects the first write error so the many Fprintf calls below do not
@@ -341,7 +562,12 @@ other builder in the library did. Adding one is additive, so it was done here
 rather than written down as a wart to live with forever. That is what this audit
 was for.
 
-What is left is naming, and naming cannot be fixed without breaking callers:
+What is left is naming, and naming cannot be fixed without breaking callers.
+Two of the deviations above are enumerations: `+"`markdown.TableAlignment`"+`'s
+constants are prefixed `+"`Align`"+` rather than with the type name, and
+`+"`er.Relationship`"+`'s are suffixed rather than prefixed. Both still share an
+affix, which is what makes them readable at a call site, so neither is worth
+breaking a caller over. The rest are types and methods:
 `+"`arch.Architecture`"+` is the one builder not called `+"`Diagram`"+`, `+"`gantt.Chart`"+` and
 `+"`quadrant.Chart`"+` and `+"`piechart.PieChart`"+` and `+"`flowchart.Flowchart`"+` follow what
 mermaid calls them rather than the convention, and
