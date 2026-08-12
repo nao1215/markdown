@@ -20,10 +20,11 @@ stale without the build saying so.
 Each package was put through the same checklist, by the generator rather than
 by hand:
 
-- every builder has `Build() error`, `Error() error` and `String() string`
-- every builder has a constructor
-- functional options are named `WithXxx`
-- enum-like constants share a prefix
+- every builder has `Build() error`, `Error() error` and `String() string`,
+  with those exact signatures
+- every builder has a constructor named for it, taking `(io.Writer, ...Option)`
+- every function returning one of the package's option types is named `WithXxx`
+- enum-like constants share a prefix or a suffix
 
 It passes everywhere now, but it did not when it was first run: `er.Diagram`,
 `flowchart.Flowchart` and `piechart.PieChart` had no `Error` method, while every
@@ -46,31 +47,35 @@ thing in the API forever, which is worse than the typo.
 
 ## Summary
 
-| Package | Symbols | Deviations |
-| --- | ---: | --- |
-| `github.com/nao1215/markdown` | 153 | the `TableAlignment` constants are prefixed `Align` rather than with the type name |
-| `github.com/nao1215/markdown/mermaid/arch` | 34 | none |
-| `github.com/nao1215/markdown/mermaid/block` | 60 | none |
-| `github.com/nao1215/markdown/mermaid/c4` | 26 | none |
-| `github.com/nao1215/markdown/mermaid/class` | 96 | none |
-| `github.com/nao1215/markdown/mermaid/er` | 27 | the `Identify` constants are suffixed `Identifying` rather than prefixed; the `Relationship` constants are suffixed `Relationship` rather than prefixed |
-| `github.com/nao1215/markdown/mermaid/flowchart` | 39 | none |
-| `github.com/nao1215/markdown/mermaid/gantt` | 32 | none |
-| `github.com/nao1215/markdown/mermaid/gitgraph` | 26 | none |
-| `github.com/nao1215/markdown/mermaid/kanban` | 24 | none |
-| `github.com/nao1215/markdown/mermaid/mindmap` | 13 | none |
-| `github.com/nao1215/markdown/mermaid/packet` | 11 | none |
-| `github.com/nao1215/markdown/mermaid/piechart` | 11 | none |
-| `github.com/nao1215/markdown/mermaid/quadrant` | 33 | none |
-| `github.com/nao1215/markdown/mermaid/radar` | 12 | none |
-| `github.com/nao1215/markdown/mermaid/requirement` | 84 | none |
-| `github.com/nao1215/markdown/mermaid/sankey` | 9 | none |
-| `github.com/nao1215/markdown/mermaid/sequence` | 72 | none |
-| `github.com/nao1215/markdown/mermaid/state` | 37 | none |
-| `github.com/nao1215/markdown/mermaid/timeline` | 11 | none |
-| `github.com/nao1215/markdown/mermaid/treemap` | 11 | none |
-| `github.com/nao1215/markdown/mermaid/userjourney` | 17 | none |
-| `github.com/nao1215/markdown/mermaid/xychart` | 21 | none |
+Everything in the last column is **accepted for v1**. The checklist findings
+come from the generator; the noted symbols are the ones carrying a note in
+the tables below, which is where the reason for each of them is.
+
+| Package | Symbols | Checklist findings | Noted symbols |
+| --- | ---: | --- | --- |
+| `github.com/nao1215/markdown` | 153 | the `TableAlignment` constants are prefixed `Align` rather than with the type name | `Highlight`, `Index`, `Markdown.LF`, `Markdown.RedBadge` |
+| `github.com/nao1215/markdown/mermaid/arch` | 34 | none | `Architecture`, `Architecture.EdgesInAnothorGroup`, `NewArchitecture` |
+| `github.com/nao1215/markdown/mermaid/block` | 60 | none | none |
+| `github.com/nao1215/markdown/mermaid/c4` | 26 | none | none |
+| `github.com/nao1215/markdown/mermaid/class` | 96 | none | `Diagram.CSSClass` |
+| `github.com/nao1215/markdown/mermaid/er` | 27 | the `Identify` constants are suffixed `Identifying` rather than prefixed; the `Relationship` constants are suffixed `Relationship` rather than prefixed | `Diagram.Relationship` |
+| `github.com/nao1215/markdown/mermaid/flowchart` | 39 | none | `Flowchart` |
+| `github.com/nao1215/markdown/mermaid/gantt` | 32 | none | `Chart` |
+| `github.com/nao1215/markdown/mermaid/gitgraph` | 26 | none | none |
+| `github.com/nao1215/markdown/mermaid/kanban` | 24 | none | none |
+| `github.com/nao1215/markdown/mermaid/mindmap` | 13 | none | none |
+| `github.com/nao1215/markdown/mermaid/packet` | 11 | none | none |
+| `github.com/nao1215/markdown/mermaid/piechart` | 11 | none | `PieChart` |
+| `github.com/nao1215/markdown/mermaid/quadrant` | 33 | none | `Chart` |
+| `github.com/nao1215/markdown/mermaid/radar` | 12 | none | none |
+| `github.com/nao1215/markdown/mermaid/requirement` | 84 | none | none |
+| `github.com/nao1215/markdown/mermaid/sankey` | 9 | none | none |
+| `github.com/nao1215/markdown/mermaid/sequence` | 72 | none | `Diagram.CriticalOption` |
+| `github.com/nao1215/markdown/mermaid/state` | 37 | none | none |
+| `github.com/nao1215/markdown/mermaid/timeline` | 11 | none | none |
+| `github.com/nao1215/markdown/mermaid/treemap` | 11 | none | none |
+| `github.com/nao1215/markdown/mermaid/userjourney` | 17 | none | none |
+| `github.com/nao1215/markdown/mermaid/xychart` | 21 | none | none |
 
 ## github.com/nao1215/markdown
 
@@ -204,13 +209,13 @@ Accepted for v1: the `TableAlignment` constants are prefixed `Align` rather than
 | `Markdown.HorizontalRule` | method | keep |  |
 | `Markdown.Important` | method | keep |  |
 | `Markdown.Importantf` | method | keep |  |
-| `Markdown.LF` | method | keep |  |
+| `Markdown.LF` | method | keep | Older name for BlankLine, doing the same thing. Kept and not deprecated: both names are in use downstream and neither is wrong. |
 | `Markdown.Note` | method | keep |  |
 | `Markdown.Notef` | method | keep |  |
 | `Markdown.OrderedList` | method | keep |  |
 | `Markdown.PlainText` | method | keep |  |
 | `Markdown.PlainTextf` | method | keep |  |
-| `Markdown.RedBadge` | method | keep |  |
+| `Markdown.RedBadge` | method | keep | The badge helpers point at img.shields.io. Kept: the markdown they emit is plain GFM and the dependency is the reader's browser, not this library. |
 | `Markdown.RedBadgef` | method | keep |  |
 | `Markdown.String` | method | keep |  |
 | `Markdown.Table` | method | keep |  |

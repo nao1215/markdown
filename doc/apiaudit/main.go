@@ -41,10 +41,10 @@ import (
 //
 //nolint:gochecknoglobals // data about this repository's API; a function
 var notes = map[string]string{
-	"markdown.Highlight": "Emits `==text==`, which GitHub does not render. Kept: it has always been exported, it costs nothing, and SPEC.md already says it is outside the GFM target.",
-	"markdown.RedBadge":  "The badge helpers point at img.shields.io. Kept: the markdown they emit is plain GFM and the dependency is the reader's browser, not this library.",
-	"markdown.LF":        "Older name for BlankLine, doing the same thing. Kept and not deprecated: both names are in use downstream and neither is wrong.",
-	"markdown.Index":     "Carries what GenerateIndex collected and exposes nothing. Kept: it is the return shape of an exported function, so it cannot be unexported.",
+	"markdown.Highlight":         "Emits `==text==`, which GitHub does not render. Kept: it has always been exported, it costs nothing, and SPEC.md already says it is outside the GFM target.",
+	"markdown.Markdown.RedBadge": "The badge helpers point at img.shields.io. Kept: the markdown they emit is plain GFM and the dependency is the reader's browser, not this library.",
+	"markdown.Markdown.LF":       "Older name for BlankLine, doing the same thing. Kept and not deprecated: both names are in use downstream and neither is wrong.",
+	"markdown.Index":             "Carries what GenerateIndex collected and exposes nothing. Kept: it is the return shape of an exported function, so it cannot be unexported.",
 
 	"er.Diagram.Relationship": "The last parameter is spelled `identidy`. Accepted for v1: a parameter name is not part of the type, so fixing it breaks nobody, but it is also not worth a release note. Left alone.",
 
@@ -218,7 +218,10 @@ func members(spec *ast.TypeSpec) []symbol {
 		}
 	case *ast.InterfaceType:
 		for _, method := range fieldNames(t.Methods) {
-			symbols = append(symbols, symbol{name: method, kind: "method", recv: spec.Name.Name})
+			// A distinct kind, so that an interface declaring Build is not
+			// mistaken for a builder and asked for a constructor.
+			symbols = append(symbols,
+				symbol{name: method, kind: "interface method", recv: spec.Name.Name})
 		}
 	}
 	return symbols
@@ -316,25 +319,39 @@ func check(p pkg) []string {
 // A builder is a type with a Build method; the small value types that only have
 // String are not one and are not held to this.
 func checkBuilders(p pkg) []string {
-	methods := map[string]map[string]bool{}
+	methods := map[string]map[string]symbol{}
 	for _, s := range p.symbols {
 		if s.kind != "method" || s.recv == "" {
 			continue
 		}
 		if methods[s.recv] == nil {
-			methods[s.recv] = map[string]bool{}
+			methods[s.recv] = map[string]symbol{}
 		}
-		methods[s.recv][s.name] = true
+		methods[s.recv][s.name] = s
 	}
 
-	findings := []string{}
+	wanted := []struct {
+		name   string
+		result string
+	}{
+		{"Build", "error"},
+		{"Error", "error"},
+		{"String", "string"},
+	}
+
+	findings := make([]string, 0, len(methods))
 	for _, name := range sortedKeys(methods) {
-		if !methods[name]["Build"] {
+		if _, ok := methods[name]["Build"]; !ok {
 			continue
 		}
-		for _, want := range []string{"Build", "Error", "String"} {
-			if !methods[name][want] {
-				findings = append(findings, fmt.Sprintf("`%s` has no `%s`", name, want))
+		for _, want := range wanted {
+			method, ok := methods[name][want.name]
+			switch {
+			case !ok:
+				findings = append(findings, fmt.Sprintf("`%s` has no `%s`", name, want.name))
+			case len(method.params) != 0 || len(method.results) != 1 || method.results[0] != want.result:
+				findings = append(findings,
+					fmt.Sprintf("`%s.%s` is not `%s() %s`", name, want.name, want.name, want.result))
 			}
 		}
 		findings = append(findings, checkConstructor(p, name)...)
@@ -358,13 +375,28 @@ func checkConstructor(p pkg, builder string) []string {
 			findings = append(findings,
 				fmt.Sprintf("`%s` returns `*%s` but is not named `New%s`", s.name, builder, builder))
 		}
-		if len(s.params) != 2 || s.params[0] != "io.Writer" || !strings.HasPrefix(s.params[1], "...") {
+		if len(s.params) != 2 || s.params[0] != "io.Writer" || !isOptionVariadic(p, s.params[1]) {
 			findings = append(findings,
 				fmt.Sprintf("`%s` does not take `(io.Writer, ...Option)`", s.name))
 		}
 		return findings
 	}
 	return []string{fmt.Sprintf("`%s` has no constructor returning `*%s`", builder, builder)}
+}
+
+// isOptionVariadic reports whether the parameter is a run of one of the
+// package's own option types, rather than a run of anything at all.
+func isOptionVariadic(p pkg, param string) bool {
+	named, ok := strings.CutPrefix(param, "...")
+	if !ok {
+		return false
+	}
+	for _, s := range p.symbols {
+		if s.kind == "type" && s.name == named && strings.HasSuffix(named, "Option") {
+			return true
+		}
+	}
+	return false
 }
 
 // checkOptions reports a function that returns one of the package's option
@@ -499,7 +531,7 @@ func fromWordBoundary(affix string) string {
 
 // sortedKeys returns the keys of m in order, so the findings do not move about
 // between runs.
-func sortedKeys(m map[string]map[string]bool) []string {
+func sortedKeys(m map[string]map[string]symbol) []string {
 	keys := make([]string, 0, len(m))
 	for key := range m {
 		keys = append(keys, key)
@@ -551,10 +583,11 @@ stale without the build saying so.
 Each package was put through the same checklist, by the generator rather than
 by hand:
 
-- every builder has `+"`Build() error`, `Error() error` and `String() string`"+`
-- every builder has a constructor
-- functional options are named `+"`WithXxx`"+`
-- enum-like constants share a prefix
+- every builder has `+"`Build() error`, `Error() error` and `String() string`"+`,
+  with those exact signatures
+- every builder has a constructor named for it, taking `+"`(io.Writer, ...Option)`"+`
+- every function returning one of the package's option types is named `+"`WithXxx`"+`
+- enum-like constants share a prefix or a suffix
 
 It passes everywhere now, but it did not when it was first run: `+"`er.Diagram`"+`,
 `+"`flowchart.Flowchart`"+` and `+"`piechart.PieChart`"+` had no `+"`Error`"+` method, while every
@@ -577,13 +610,22 @@ thing in the API forever, which is worse than the typo.
 
 `, total, len(packages))
 
-	w.printf("## Summary\n\n| Package | Symbols | Deviations |\n| --- | ---: | --- |\n")
+	w.printf("## Summary\n\n" +
+		"Everything in the last column is **accepted for v1**. The checklist findings\n" +
+		"come from the generator; the noted symbols are the ones carrying a note in\n" +
+		"the tables below, which is where the reason for each of them is.\n\n" +
+		"| Package | Symbols | Checklist findings | Noted symbols |\n" +
+		"| --- | ---: | --- | --- |\n")
 	for _, p := range packages {
 		deviations := "none"
 		if len(p.findings) > 0 {
 			deviations = strings.Join(p.findings, "; ")
 		}
-		w.printf("| `%s` | %d | %s |\n", importPath(p), len(p.symbols), deviations)
+		noted := "none"
+		if names := notedSymbols(p); len(names) > 0 {
+			noted = "`" + strings.Join(names, "`, `") + "`"
+		}
+		w.printf("| `%s` | %d | %s | %s |\n", importPath(p), len(p.symbols), deviations, noted)
 	}
 
 	for _, p := range packages {
@@ -602,6 +644,25 @@ thing in the API forever, which is worse than the typo.
 			w.printf("| `%s` | %s | keep | %s |\n", name, s.kind, notes[key])
 		}
 	}
+}
+
+// notedSymbols returns the symbols of a package that carry a note, so the
+// summary and the tables below cannot disagree about what was accepted.
+func notedSymbols(p pkg) []string {
+	names := []string{}
+	for _, s := range p.symbols {
+		name := s.name
+		key := p.name + "." + s.name
+		if s.recv != "" {
+			name = s.recv + "." + s.name
+			key = p.name + "." + s.recv + "." + s.name
+		}
+		if notes[key] != "" {
+			names = append(names, name)
+		}
+	}
+	sort.Strings(names)
+	return names
 }
 
 // importPath returns the import path a package is known by.
