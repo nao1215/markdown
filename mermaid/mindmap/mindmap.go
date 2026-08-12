@@ -137,7 +137,7 @@ func (d *Diagram) Node(level int, text string) *Diagram {
 		}
 	}
 
-	line := fmt.Sprintf("%s%s", strings.Repeat("    ", level+1), trimmedText)
+	line := fmt.Sprintf("%s%s", strings.Repeat("    ", level+1), escapeText(trimmedText))
 	d.body = append(d.body, line)
 	d.currentLevel = level
 	if level == 0 {

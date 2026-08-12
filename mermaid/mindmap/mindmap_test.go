@@ -387,3 +387,57 @@ func TestBuildReportsWriteFailure(t *testing.T) {
 		t.Errorf("Build lost the destination error: %v", err)
 	}
 }
+
+// TestNodeTextEscapesTheShapeDelimiters names the characters this escaping
+// buys. A mindmap node is unquoted text and mermaid reads a bracket, a
+// parenthesis or a brace in it as the shape around the node, so a node saying
+// "Deploy (staging)" lost the whole diagram: the reader got an error box rather
+// than a picture.
+func TestNodeTextEscapesTheShapeDelimiters(t *testing.T) {
+	t.Parallel()
+
+	tests := map[string]struct {
+		build func(io.Writer) *Diagram
+		want  string
+	}{
+		"parentheses in a root": {
+			build: func(w io.Writer) *Diagram { return NewDiagram(w).Root("Deploy (staging)") },
+			want:  "    Deploy #40;staging#41;",
+		},
+		"square brackets in a child": {
+			build: func(w io.Writer) *Diagram { return NewDiagram(w).Root("r").Child("a[b") },
+			want:  "        a#91;b",
+		},
+		"braces in a sibling": {
+			build: func(w io.Writer) *Diagram {
+				return NewDiagram(w).Root("r").Child("a").Sibling("{x}")
+			},
+			want: "        #123;x#125;",
+		},
+		"a closing bracket alone is left as it is": {
+			// mermaid takes one on its own, since nothing opened, so escaping
+			// it would change output that already reaches the drawing.
+			build: func(w io.Writer) *Diagram { return NewDiagram(w).Root("a]b") },
+			want:  "    a]b",
+		},
+		"a named entity is escaped": {
+			build: func(w io.Writer) *Diagram { return NewDiagram(w).Root("a#40;b") },
+			want:  "    a#35;40;b",
+		},
+		"a plain hash is left alone": {
+			build: func(w io.Writer) *Diagram { return NewDiagram(w).Root("PR #123 merged") },
+			want:  "    PR #123 merged",
+		},
+	}
+
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := tt.build(io.Discard).String()
+			if !strings.Contains(got, tt.want) {
+				t.Errorf("diagram =\n%s\nwant it to contain\n%s", got, tt.want)
+			}
+		})
+	}
+}
