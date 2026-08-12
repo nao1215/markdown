@@ -1,0 +1,13 @@
+# A C4 title broken across lines is lost
+
+"<br/>" breaks the line in a C4 title, and the drawing then no longer carries
+the text that was asked for. Decoding the escapes must not stop the checker
+noticing that.
+
+```mermaid
+C4Context
+    title Ledger<br/>v2
+    Person(customer, "Customer")
+    System(ledger, "Ledger")
+    Rel(customer, ledger, "Reads")
+```

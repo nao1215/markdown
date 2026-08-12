@@ -146,6 +146,29 @@ function unquote(value) {
   return trimmed;
 }
 
+// decodeEntities resolves the "#name;" and "#123;" escapes mermaid decodes
+// before it draws text.
+//
+// The escape is how a diagram writes a character its own grammar has taken: a
+// C4 title cannot hold a "#" or a ";" literally, so they arrive as "#35;" and
+// "#59;" and are drawn as themselves. The title comparison below is against the
+// drawing, so it has to read the escape the same way mermaid does or it reports
+// a title that is present as missing.
+//
+// mermaid resolves the numeric form itself, as a character code, and hands the
+// named form to the browser as "&name;", so an unknown name is drawn as that
+// literal text rather than as the escape it looks like.
+function decodeEntities(value) {
+  return value.replace(/#(\w+);/g, (whole, body) => {
+    if (/^\+?\d+$/.test(body)) {
+      return String.fromCharCode(parseInt(body, 10));
+    }
+    const el = dom.window.document.createElement("div");
+    el.innerHTML = `&${body};`;
+    return el.textContent;
+  });
+}
+
 // declaredTitle returns the title a diagram asks for: front matter first, then
 // the `title` statement the flat diagram types use.
 //
@@ -176,7 +199,7 @@ function declaredTitle(source) {
   for (const line of rest) {
     const m = line.match(/^\s*title\s+(\S.*)$/);
     if (m) {
-      return { text: unquote(m[1]), frontMatter: false };
+      return { text: decodeEntities(unquote(m[1])), frontMatter: false };
     }
   }
   return null;

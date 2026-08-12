@@ -37,7 +37,15 @@ const cases = [
     expect: "YAML reads its value as nothing",
   },
   {
+    file: "c4-title-line-break.mdfixture",
+    expect: "does not appear in the rendered diagram",
+  },
+  {
     file: "valid.mdfixture",
+    expect: null,
+  },
+  {
+    file: "c4-escaped-title.mdfixture",
     expect: null,
   },
 ];

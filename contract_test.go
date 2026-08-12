@@ -15,6 +15,7 @@ import (
 	"github.com/nao1215/markdown/internal/golden"
 	"github.com/nao1215/markdown/mermaid/arch"
 	"github.com/nao1215/markdown/mermaid/block"
+	"github.com/nao1215/markdown/mermaid/c4"
 	"github.com/nao1215/markdown/mermaid/class"
 	"github.com/nao1215/markdown/mermaid/er"
 	"github.com/nao1215/markdown/mermaid/flowchart"
@@ -1377,6 +1378,16 @@ func mermaidBuilders() []mermaidBuilder {
 			build: func() string {
 				return block.NewDiagram(io.Discard).
 					Row(block.Node("a", block.WithNodeLabel("A"))).
+					String()
+			},
+		},
+		{
+			name: "c4",
+			build: func() string {
+				return c4.NewDiagram(io.Discard).
+					Person("customer", "Customer").
+					System("ledger", "Ledger").
+					Rel("customer", "ledger", "Uses").
 					String()
 			},
 		},

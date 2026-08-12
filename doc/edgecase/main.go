@@ -23,6 +23,7 @@ import (
 	"github.com/nao1215/markdown"
 	"github.com/nao1215/markdown/mermaid/arch"
 	"github.com/nao1215/markdown/mermaid/block"
+	"github.com/nao1215/markdown/mermaid/c4"
 	"github.com/nao1215/markdown/mermaid/class"
 	"github.com/nao1215/markdown/mermaid/er"
 	"github.com/nao1215/markdown/mermaid/flowchart"
@@ -70,6 +71,11 @@ func supported(diagram string) string {
 		// plain emoji and Japanese text.
 		"architecture": "",
 		"block":        `"'#;[](){}<br/>` + emoji + japanese + `:,*-|%%`,
+		// c4 escapes a quote and a "#" in a label as the entity form mermaid
+		// decodes, and a "#" and a ";" in the unquoted title the same way, so
+		// every character below survives both. Only a line break is left out:
+		// one macro is one line, and "<br/>" is how a label breaks one.
+		"c4": `"'#;[](){}<br/>` + emoji + japanese + `:,*-|%%\`,
 		// class: ";" and ":" end a relation label.
 		"class": `"'#[](){}` + emoji + japanese + `,*-|%%`,
 		// er: a double quote ends the comment it is written in.
@@ -212,6 +218,7 @@ func diagrams() []diagram {
 	return []diagram{
 		{name: "Architecture", file: "architecture", build: architecture},
 		{name: "Block", file: "block", build: blockDiagram},
+		{name: "C4 context", file: "c4", build: c4Context},
 		{name: "Class", file: "class", build: classDiagram},
 		{name: "Entity relationship", file: "er", build: entityRelationship},
 		{name: "Flowchart", file: "flowchart", build: flowchartDiagram},
@@ -253,6 +260,26 @@ func blockDiagram(diagram string) string {
 			block.Node("b", block.WithNodeLabel(shortLabel(diagram)), block.WithNodeShape(block.ShapeRhombus)),
 		).
 		LinkWithLabel("a", shortLabel(diagram), "b").
+		String()
+}
+
+// c4Context is the C4 context diagram's edge case document.
+func c4Context(diagram string) string {
+	return c4.NewDiagram(io.Discard, c4.WithTitle(title(diagram))).
+		EnterpriseBoundary("enterprise", shortLabel(diagram)).
+		Person("person", shortLabel(diagram), c4.WithDescription(label(diagram))).
+		SystemBoundary("systems", shortLabel(diagram)+" nested").
+		System("system", shortLabel(diagram), c4.WithDescription(label(diagram))).
+		BoundaryEnd().
+		BoundaryEnd().
+		Boundary("outside", shortLabel(diagram), c4.WithBoundaryType(shortLabel(diagram))).
+		SystemExt("external", shortLabel(diagram)).
+		BoundaryEnd().
+		PersonExt("auditor", shortLabel(diagram)).
+		SystemDb("db", shortLabel(diagram)).
+		SystemQueue("queue", shortLabel(diagram)).
+		Rel("person", "system", label(diagram), c4.WithTechnology(shortLabel(diagram))).
+		BiRel("system", "db", label(diagram)).
 		String()
 }
 

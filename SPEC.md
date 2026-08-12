@@ -18,7 +18,7 @@ Two helpers fall outside GFM and are documented here so their behavior is not mi
 - `Highlight` emits `==text==`. GitHub does not render this; Obsidian, Bear, and several static site generators do. It is kept because it has always been part of the API and it costs nothing, but it is not part of the GFM target.
 - The badge helpers (`RedBadge` and friends) emit an image link pointing at `img.shields.io`. The markdown is plain GFM; what the image looks like is up to that external service.
 
-Mermaid diagram bodies follow [the mermaid syntax](https://mermaid.js.org/intro/syntax-reference.html) rather than GFM, since a markdown parser treats them as opaque code block content. Diagram titles are emitted as a YAML front matter block inside the diagram, which is how mermaid itself expects them.
+Mermaid diagram bodies follow [the mermaid syntax](https://mermaid.js.org/intro/syntax-reference.html) rather than GFM, since a markdown parser treats them as opaque code block content. Diagram titles are emitted as a YAML front matter block inside the diagram, which is how mermaid itself expects them; the exception is the C4 diagram, which draws a `title` statement and ignores the front matter.
 
 ## Out of scope
 
