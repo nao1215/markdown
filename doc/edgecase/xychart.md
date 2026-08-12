@@ -4,9 +4,9 @@ Every label below holds the punctuation this diagram type can carry. Generated b
 
 ```mermaid
 xychart
-    title "title &quot;'#;[](){}🎉日本語:,*-|%%"
-    x-axis "x&quot;'#;[](){}🎉日本語:,*-|%%x" ["x&quot;'#;[](){}🎉日本語:,*-|%%x", "x&quot;'#;[](){}🎉日本語:,*-|%%x two"]
-    y-axis "x&quot;'#;[](){}🎉日本語:,*-|%%x" 0 --> 100
+    title "title &quot;'#;[](){}🎉日本語:,*-|%%&#92;"
+    x-axis "x&quot;'#;[](){}<br/>🎉日本語:,*-|%%&#92;x" ["x&quot;'#;[](){}<br/>🎉日本語:,*-|%%&#92;x", "x&quot;'#;[](){}<br/>🎉日本語:,*-|%%&#92;x two"]
+    y-axis "x&quot;'#;[](){}<br/>🎉日本語:,*-|%%&#92;x" 0 --> 100
     bar [10, 20]
     line [30, 40]
 ```

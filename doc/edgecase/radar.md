@@ -4,12 +4,12 @@ Every label below holds the punctuation this diagram type can carry. Generated b
 
 ```mermaid
 ---
-title: "title \"'#;[](){}🎉日本語:,*-|%%"
+title: "title \"'#;[](){}🎉日本語:,*-|%%\\"
 ---
 radar-beta
-  axis a1["x\"'#;[](){}🎉日本語:,*-|%%x"], a2["x\"'#;[](){}🎉日本語:,*-|%%x two"], a3["before \"'#;[](){}🎉日本語:,*-|%% after"]
-  curve c1["x\"'#;[](){}🎉日本語:,*-|%%x"]{85, 90, 80}
-  curve c2["before \"'#;[](){}🎉日本語:,*-|%% after"]{70, 75, 85}
+  axis a1["x\"'#;[](){}<br/>🎉日本語:,*-|%%\\x"], a2["x\"'#;[](){}<br/>🎉日本語:,*-|%%\\x two"], a3["before \"'#;[](){}<br/>🎉日本語:,*-|%%\\ after"]
+  curve c1["x\"'#;[](){}<br/>🎉日本語:,*-|%%\\x"]{85, 90, 80}
+  curve c2["before \"'#;[](){}<br/>🎉日本語:,*-|%%\\ after"]{70, 75, 85}
   max 100
   min 0
 ```

@@ -53,18 +53,38 @@ const (
 	japanese = "日本語"
 )
 
+// probe is the set of characters a label is measured against, and the type of
+// the entries in supported below.
+//
+// It reads as a set rather than a string so that an entry can say what it
+// leaves out and why, in the same breath. Twenty of the twenty one types below
+// take the whole thing; writing "everything" and "everything.without(emoji)"
+// keeps the exceptions where a reader will see them, instead of asking anyone
+// to diff two long strings of punctuation to find the one that is missing.
+type probe string
+
+// everything is every character a mermaid label is measured against: the
+// punctuation that means something to at least one diagram type, a line break,
+// an emoji and a word of Japanese.
+const everything probe = `"'#;[](){}<br/>` + emoji + japanese + `:,*-|%%\`
+
+// without returns the probe set with each occurrence of s removed.
+func (p probe) without(s string) probe {
+	return probe(strings.ReplaceAll(string(p), s, ""))
+}
+
 // supported returns the punctuation the given diagram type can carry today.
 //
 // Every entry was measured rather than guessed: each character was put through
 // its diagram type on its own and rendered, and the ones that survived are
-// here. What is missing from an entry is either a quoting gap in this library
-// or a limit of the mermaid syntax, and each is recorded with its evidence in
-// the tracking issue for mermaid label quoting.
+// here. Twenty of the twenty one take the whole probe set. The three that do
+// not each name the mermaid limitation that keeps a character out, because a
+// gap with no reason beside it reads as unfinished work when it is not.
 //
 // A gap closed by a fix belongs in its entry the moment the fix lands, which is
 // what keeps this file honest: the labels only ever get harder.
 func supported(diagram string) string {
-	return map[string]string{
+	return string(map[string]probe{
 		// architecture writes service and group labels between square brackets,
 		// and mermaid's architecture-beta grammar accepts only [A-Za-z0-9_ ]
 		// there. Every character probed fails, including a plain emoji and
@@ -73,84 +93,37 @@ func supported(diagram string) string {
 		// nothing to escape to, which is why this entry stays empty rather than
 		// waiting on a fix. SPEC.md records the limit.
 		"architecture": "",
-		"block":        `"'#;[](){}<br/>` + emoji + japanese + `:,*-|%%`,
-		// c4 escapes a quote and a "#" in a label as the entity form mermaid
-		// decodes, and a "#" and a ";" in the unquoted title the same way, so
-		// every character below survives both. Only a line break is left out:
-		// one macro is one line, and "<br/>" is how a label breaks one.
-		"c4": `"'#;[](){}<br/>` + emoji + japanese + `:,*-|%%\`,
-		// class writes the ";" and the ":" that would end a relation label as
-		// the entity form mermaid decodes, so the punctuation is all safe.
-		"class": `"'#;[](){}` + emoji + japanese + `:,*-|%%`,
-		// er writes a comment as the entity form mermaid decodes, so the
-		// punctuation is all safe.
-		"er": `"'#;[](){}<br/>` + emoji + japanese + `:,*-|%%`,
-		// flowchart quotes every label and writes a double quote as the entity
-		// form mermaid decodes, so the punctuation is all safe. What is left
-		// out is a line break: the renderer honours "<br/>" inside a label,
-		// which is what a caller wanting one should pass.
-		"flowchart": `"'#;[](){}` + emoji + japanese + `:,*-|%%\`,
-		// gantt writes the colon that separates a task name from its data as
-		// the entity form mermaid decodes, so the punctuation is all safe.
-		"gantt":    `"'#;[](){}<br/>` + emoji + japanese + `:,*-|%%`,
-		"gitgraph": `"'#;[](){}` + emoji + japanese + `:,*-|%%`,
-		// kanban writes the punctuation that would end a card label, and the
-		// punctuation the kanban lexer takes out of a metadata value before
-		// YAML sees it, as the entity form mermaid decodes. A single quote in
-		// metadata is doubled instead, because that is YAML's own escape.
-		"kanban": `"'#;[](){}<br/>` + emoji + japanese + `:,*-|%%`,
-		// mindmap writes the brackets, parentheses and braces that delimit a
-		// node shape as the entity form mermaid decodes, so the punctuation is
-		// all safe.
-		"mindmap": `"'#;[](){}<br/>` + emoji + japanese + `:,*-|%%`,
-		// packet and piechart put the title in YAML front matter, and mermaid
-		// strips a "%%" comment from that before the YAML is read.
-		"packet": `"'#;[](){}<br/>` + emoji + japanese + `:,*-|`,
-		// piechart quotes a slice label and writes a double quote as the entity
-		// form mermaid decodes. Its title is unquoted, so a "%%" there would
-		// open a comment and cut the title short; that pair is written as an
-		// entity too.
-		"piechart": `"'#;[](){}<br/>` + emoji + japanese + `:,*-|%%`,
-		// radar quotes every label, so the punctuation is all safe. A line
-		// break is the only thing left out, since one label is one line.
-		"radar": `"'#;[](){}` + emoji + japanese + `:,*-|%%`,
-		// quadrant writes an axis label, a quadrant label and a point name
-		// unquoted, so each writes the punctuation mermaid's grammar would
-		// otherwise take as the entity form it decodes. "<br/>" is a line
-		// break in most diagram types and not accepted here at all, so it goes
-		// out as text.
-		"quadrant":    `"'#;[](){}<br/>` + emoji + japanese + `:,*-|%%`,
-		"requirement": `"'#;[](){}` + emoji + japanese + `:,*-|%%`,
-		// sankey quotes a node name that needs it, so the punctuation is all
-		// safe. What it cannot take is non-ASCII text: mermaid's sankey parser
-		// refuses an emoji or Japanese in a node name, the same way its xy
-		// chart parser does.
-		"sankey": `"'#;[](){}<br/>:,*-|%%`,
-		// sequence takes no quoted text at all, so each construct writes the
-		// punctuation it would otherwise lose as the entity form mermaid
-		// decodes. A line break is left out because the renderer honors
-		// "<br/>" inside a message.
-		"sequence": `"'#;[](){}` + emoji + japanese + `:,*-|%%`,
-		// state writes the colon that would end a one line note as the entity
-		// form mermaid decodes, and every other construct here takes the
-		// punctuation as it is.
-		"state": `"'#;[](){}<br/>` + emoji + japanese + `:,*-|%%`,
-		// treemap doubles a quote in a name and everything else, a backslash
-		// included, is text inside the quotes, so only a line break is left
-		// out: the hierarchy is indentation, and a name spanning lines would
-		// read as another node. It is the only type here whose labels carry a
-		// backslash, because it is the only one whose quoting was proven to
-		// leave one alone.
-		"treemap": `"'#;[](){}<br/>` + emoji + japanese + `:,*-|%%\`,
-		// userjourney writes the punctuation each of its unquoted fields would
-		// otherwise lose as the entity form mermaid decodes, so the
-		// punctuation is all safe.
-		"userjourney": `"'#;[](){}<br/>` + emoji + japanese + `:,*-|%%`,
-		// xychart quotes any label that is not an ASCII word, and a quoted one
-		// takes non-ASCII text as readily as ASCII. A line break is left out
-		// because the renderer honors "<br/>" inside a label.
-		"xychart": `"'#;[](){}` + emoji + japanese + `:,*-|%%`,
-	}[diagram]
+		"block":        everything,
+		"c4":           everything,
+		"class":        everything,
+		"er":           everything,
+		"flowchart":    everything,
+		"gantt":        everything,
+		"gitgraph":     everything,
+		"kanban":       everything,
+		"mindmap":      everything,
+		// packet puts its title in YAML front matter, and mermaid strips a "%%"
+		// comment out of that before the YAML is read, so a title holding one
+		// comes back cut short. Nothing the builder writes can prevent it: the
+		// stripping happens before the quoting is looked at.
+		"packet":   everything.without("%%"),
+		"piechart": everything,
+		"quadrant": everything,
+		"radar":    everything,
+		// requirement is the one type whose labels carry everything and whose
+		// title still cannot: see the note on title below.
+		"requirement": everything,
+		// sankey refuses non-ASCII text in a node name. Its parser takes the
+		// name apart character by character and an emoji or a word of Japanese
+		// is not among the characters it knows, so there is nothing to quote
+		// around it.
+		"sankey":      everything.without(emoji).without(japanese),
+		"sequence":    everything,
+		"state":       everything,
+		"treemap":     everything,
+		"userjourney": everything,
+		"xychart":     everything,
+	}[diagram])
 }
 
 // punctuation is the hard part of a diagram's labels.

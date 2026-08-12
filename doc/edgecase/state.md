@@ -4,12 +4,12 @@ Every label below holds the punctuation this diagram type can carry. Generated b
 
 ```mermaid
 ---
-title: "title \"'#;[](){}🎉日本語:,*-|%%"
+title: "title \"'#;[](){}🎉日本語:,*-|%%\\"
 ---
 stateDiagram-v2
-    Draft : before "'##59;[](){}<br/>🎉日本語:,*-|%% after
-    Placed : x"'##59;[](){}<br/>🎉日本語:,*-|%%x
+    Draft : before "'##59;[](){}<br/>🎉日本語:,*-|%%\ after
+    Placed : x"'##59;[](){}<br/>🎉日本語:,*-|%%\x
     Draft --> Placed
-    Placed --> Draft : x"'##59;[](){}<br/>🎉日本語:,*-|%%x
-    note right of Draft : before "'##59;[](){}<br/>🎉日本語#58;,*-|%% after
+    Placed --> Draft : x"'##59;[](){}<br/>🎉日本語:,*-|%%\x
+    note right of Draft : before "'##59;[](){}<br/>🎉日本語#58;,*-|%%\ after
 ```
