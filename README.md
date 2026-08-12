@@ -11,7 +11,7 @@
 
 The markdown package is a simple markdown builder in golang. The markdown package assembles Markdown using method chaining, not uses a template engine like [html/template](https://pkg.go.dev/html/template). The syntax of Markdown follows GitHub Markdown.
 
-It covers the GitHub Markdown syntax: headings, lists, checkbox lists, tables, code blocks, blockquotes, horizontal rules, text formatting, links, images, details, footnotes, math expressions, and alerts. It also builds 24 kinds of mermaid diagram, from sequence and flowchart to Gantt, C4 context, and Wardley map; each one has an example below. Two helpers go beyond Markdown syntax: status badges, and an index for a directory full of markdown files.
+It covers the GitHub Markdown syntax: headings, lists, checkbox lists, tables, code blocks, blockquotes, horizontal rules, text formatting, links, images, details, footnotes, math expressions, and alerts. It also builds 24 mermaid diagram types, from sequence and flowchart to Gantt, C4 context, and Wardley map; each one has an example below. Two helpers go beyond Markdown syntax: status badges and an index for a directory full of markdown files.
 
 Complex code that increases the complexity of the library, such as generating nested lists, will not be added. I want to keep this library as simple as possible.
 
