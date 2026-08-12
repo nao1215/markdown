@@ -1571,7 +1571,10 @@ func TestReadmeShowsWhatTheGeneratorsProduce(t *testing.T) {
 		t.Fatalf("read README.md: %v", err)
 	}
 
-	sections := readmeSamples(t, string(readme))
+	// Normalized because git checks this file out with CRLF line endings on
+	// Windows, where every line would otherwise end in a carriage return that
+	// neither the pattern below nor the comparison expects.
+	sections := readmeSamples(t, strings.ReplaceAll(string(readme), "\r\n", "\n"))
 	if len(sections) == 0 {
 		t.Fatal("found no linked samples in README.md; has the link wording changed?")
 	}
