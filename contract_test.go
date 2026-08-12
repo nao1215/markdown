@@ -4,6 +4,9 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	goast "go/ast"
+	"go/parser"
+	"go/token"
 	"io"
 	"os"
 	"path/filepath"
@@ -1602,6 +1605,45 @@ func TestReadmeShowsWhatTheGeneratorsProduce(t *testing.T) {
 	}
 }
 
+// TestEveryExportedSymbolHasAnExample walks this module's packages and reports
+// any exported function, or method on an exported type, that godoc would show
+// without a runnable example beside it.
+//
+// The examples are the documentation this library ships: pkg.go.dev puts one
+// under the symbol it is named for, and a reader deciding how to call something
+// looks there first. Counting them here is what keeps a new API from arriving
+// without one, since nothing else notices.
+//
+// Names have to match Go's rules exactly or godoc silently attaches the example
+// to nothing: ExampleMarkdown_H1 for method H1 on Markdown, ExampleBold for the
+// function Bold. A suffix after another underscore, ExampleMarkdown_H1_second,
+// is a second example of the same symbol and counts for it.
+func TestEveryExportedSymbolHasAnExample(t *testing.T) {
+	t.Parallel()
+
+	// The mermaid subpackages are not in this list yet. Each has an
+	// examples_test.go covering its builder, and filling the gaps in all
+	// twenty one is its own piece of work; this list grows to "mermaid/*" when
+	// that lands.
+	packages := []string{"."}
+
+	for _, dir := range packages {
+		t.Run(dir, func(t *testing.T) {
+			t.Parallel()
+
+			symbols, examples := exportedSymbols(t, dir)
+			for _, symbol := range symbols {
+				if !examples[symbol] {
+					t.Errorf(
+						"%s has no example. Add func %s() to %s/examples_test.go, with an // Output: block.",
+						symbol, symbol, dir,
+					)
+				}
+			}
+		})
+	}
+}
+
 // readmeSamples returns the document each "Plain text output" link is followed
 // by, keyed by the directory under doc/ that it links to.
 func readmeSamples(t *testing.T, readme string) map[string]string {
@@ -1638,4 +1680,74 @@ func readmeSamples(t *testing.T, readme string) map[string]string {
 		samples[m[1]] = strings.Join(body, "\n")
 	}
 	return samples
+}
+
+// exportedSymbols returns the example name every exported symbol of the package
+// in dir would be documented under, and the example names the package defines.
+func exportedSymbols(t *testing.T, dir string) ([]string, map[string]bool) {
+	t.Helper()
+
+	fset := token.NewFileSet()
+	pkgs, err := parser.ParseDir(fset, dir, nil, 0)
+	if err != nil {
+		t.Fatalf("parse %s: %v", dir, err)
+	}
+
+	want := []string{}
+	examples := map[string]bool{}
+	for _, pkg := range pkgs {
+		for name, file := range pkg.Files {
+			for _, decl := range file.Decls {
+				fn, ok := decl.(*goast.FuncDecl)
+				if !ok || !fn.Name.IsExported() {
+					continue
+				}
+
+				if strings.HasSuffix(name, "_test.go") {
+					if base, found := exampleSymbol(fn.Name.Name); found {
+						examples[base] = true
+					}
+					continue
+				}
+				if symbol, ok := documentedAs(fn); ok {
+					want = append(want, symbol)
+				}
+			}
+		}
+	}
+	return want, examples
+}
+
+// documentedAs returns the example name godoc attaches to fn.
+func documentedAs(fn *goast.FuncDecl) (string, bool) {
+	if fn.Recv == nil {
+		return "Example" + fn.Name.Name, true
+	}
+	if len(fn.Recv.List) != 1 {
+		return "", false
+	}
+
+	receiver := fn.Recv.List[0].Type
+	if star, ok := receiver.(*goast.StarExpr); ok {
+		receiver = star.X
+	}
+	ident, ok := receiver.(*goast.Ident)
+	if !ok || !ident.IsExported() {
+		return "", false
+	}
+	return "Example" + ident.Name + "_" + fn.Name.Name, true
+}
+
+// exampleSymbol returns the symbol an example name documents, dropping the
+// lowercase suffix that marks a second example of the same symbol.
+func exampleSymbol(name string) (string, bool) {
+	if !strings.HasPrefix(name, "Example") {
+		return "", false
+	}
+
+	parts := strings.Split(name, "_")
+	if len(parts) > 1 && parts[len(parts)-1] != "" && unicode.IsLower(rune(parts[len(parts)-1][0])) {
+		parts = parts[:len(parts)-1]
+	}
+	return strings.Join(parts, "_"), true
 }
