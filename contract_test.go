@@ -38,6 +38,7 @@ import (
 	"github.com/nao1215/markdown/mermaid/sequence"
 	"github.com/nao1215/markdown/mermaid/state"
 	"github.com/nao1215/markdown/mermaid/userjourney"
+	"github.com/nao1215/markdown/mermaid/venn"
 	"github.com/nao1215/markdown/mermaid/xychart"
 	"github.com/yuin/goldmark"
 	"github.com/yuin/goldmark/ast"
@@ -1543,6 +1544,15 @@ func mermaidBuilders() []mermaidBuilder {
 				return userjourney.NewDiagram(io.Discard).
 					Section("Discovery").
 					Task("Find the site", userjourney.ScoreSatisfied, "Visitor").
+					String()
+			},
+		},
+		{
+			name: "venn",
+			build: func() string {
+				return venn.NewDiagram(io.Discard).
+					SetWithLabel("go", "Go").
+					SetWithLabel("rust", "Rust").
 					String()
 			},
 		},

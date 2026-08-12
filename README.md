@@ -71,6 +71,7 @@ The **mermaid** side is not finished, and is not meant to be: mermaid keeps ship
 - [x] mermaid radar chart
 - [x] mermaid sankey diagram
 - [x] mermaid C4 context diagram (experimental feature)
+- [x] mermaid Venn diagram (beta feature)
 
 ### Features not in Markdown syntax
 - Generate badges; RedBadge(), YellowBadge(), GreenBadge().
@@ -2289,6 +2290,69 @@ C4Context
     Rel(customer, web, "Views balances", "HTTPS")
     BiRel(web, accounts, "Reads from and writes to", "SQL/TCP")
     Rel(web, mail, "Sends e-mail using", "SMTP")
+```
+
+### Venn syntax
+
+```go
+package main
+
+import (
+	"io"
+	"os"
+
+	"github.com/nao1215/markdown"
+	"github.com/nao1215/markdown/mermaid/venn"
+)
+
+//go:generate go run main.go
+
+func main() {
+	f, err := os.Create("generated.md")
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+
+	diagram := venn.NewDiagram(io.Discard, venn.WithTitle("What the languages share")).
+		SetWithLabel("go", "Go").
+		SetWithLabel("rust", "Rust").
+		SetWithLabel("compiled", "Compiled and statically typed").
+		String()
+
+	err = markdown.NewMarkdown(f, markdown.WithBlockSpacing()).
+		H2("Venn").
+		CodeBlocks(markdown.SyntaxHighlightMermaid, diagram).
+		Build()
+
+	if err != nil {
+		panic(err)
+	}
+}
+```
+
+A Venn diagram is the sets and nothing else: where they overlap is worked out by mermaid rather than declared, so there is no call for an intersection. A set name is written unquoted and mermaid reads only letters, digits, underscores and hyphens there, so `Set` reports a name outside that rather than mangling it; a label has no such limit, which is what `SetWithLabel` is for.
+
+Plain text output: [markdown is here](./doc/venn/generated.md)
+````
+## Venn
+
+```mermaid
+venn-beta
+    title What the languages share
+    set go["Go"]
+    set rust["Rust"]
+    set compiled["Compiled and statically typed"]
+```
+````
+
+Mermaid output:
+```mermaid
+venn-beta
+    title What the languages share
+    set go["Go"]
+    set rust["Rust"]
+    set compiled["Compiled and statically typed"]
 ```
 
 ## Creating an index for a directory full of markdown files
