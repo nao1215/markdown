@@ -531,3 +531,81 @@ func TestBuildReportsWriteFailure(t *testing.T) {
 		t.Errorf("Build lost the destination error: %v", err)
 	}
 }
+
+// TestLabelsEscapeWhatQuadrantCannotRead names the characters this escaping
+// buys. A quadrant chart writes every axis label, quadrant label and point name
+// unquoted, and mermaid's grammar takes almost no punctuation there: each one
+// below lost the whole chart, so the reader got an error box rather than a
+// picture.
+func TestLabelsEscapeWhatQuadrantCannotRead(t *testing.T) {
+	t.Parallel()
+
+	tests := map[string]struct {
+		build func(io.Writer) *Chart
+		want  string
+	}{
+		"a quote in an x axis label": {
+			build: func(w io.Writer) *Chart { return NewChart(w).XAxis(`the "core"`) },
+			want:  `    x-axis the #quot;core#quot;`,
+		},
+		"a colon in a y axis label": {
+			build: func(w io.Writer) *Chart { return NewChart(w).YAxis("Reach: low", "Reach: high") },
+			want:  "    y-axis Reach#58; low --> Reach#58; high",
+		},
+		"parentheses in a quadrant label": {
+			build: func(w io.Writer) *Chart { return NewChart(w).Quadrant1("Do (now)") },
+			want:  "    quadrant-1 Do #40;now#41;",
+		},
+		"brackets in a point name": {
+			build: func(w io.Writer) *Chart { return NewChart(w).Point("a[b]", 0.5, 0.5) },
+			want:  "    a#91;b#93;: [0.50, 0.50]",
+		},
+		"a line break is text here": {
+			// "<br/>" reads as a line break in most diagram types and is not
+			// accepted at all in this one, so it goes out as the text it is.
+			build: func(w io.Writer) *Chart { return NewChart(w).Quadrant2("a<br/>b") },
+			want:  "    quadrant-2 a#60;br/#62;b",
+		},
+		"a percent pair is escaped": {
+			build: func(w io.Writer) *Chart { return NewChart(w).Quadrant3("100%% sure") },
+			want:  "    quadrant-3 100#37;#37; sure",
+		},
+		"a lone percent is left alone": {
+			build: func(w io.Writer) *Chart { return NewChart(w).Quadrant4("50% sure") },
+			want:  "    quadrant-4 50% sure",
+		},
+		"a hash is left alone": {
+			build: func(w io.Writer) *Chart { return NewChart(w).Quadrant1("PR #12") },
+			want:  "    quadrant-1 PR #12",
+		},
+		"a named entity is escaped": {
+			build: func(w io.Writer) *Chart { return NewChart(w).Quadrant1("a#58;b") },
+			want:  "    quadrant-1 a#35;58#59;b",
+		},
+	}
+
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := tt.build(io.Discard).String()
+			if !strings.Contains(got, tt.want) {
+				t.Errorf("chart =\n%s\nwant it to contain\n%s", got, tt.want)
+			}
+		})
+	}
+}
+
+// TestTitleKeepsItsPunctuation pins the other half: the title is the one
+// construct in a quadrant chart that mermaid reads as the rest of its line, and
+// it already takes every character probed. Escaping there would change output
+// that is correct today.
+func TestTitleKeepsItsPunctuation(t *testing.T) {
+	t.Parallel()
+
+	got := NewChart(io.Discard, WithTitle(`Reach: "now" (100%%) [urgent]`)).String()
+
+	if want := `    title Reach: "now" (100%%) [urgent]`; !strings.Contains(got, want) {
+		t.Errorf("chart =\n%s\nwant it to contain\n%s", got, want)
+	}
+}
