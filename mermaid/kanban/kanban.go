@@ -263,13 +263,13 @@ func (d *Diagram) Task(name string, opts ...TaskOption) *Diagram {
 	line := formatCard(trimmedID, trimmedName)
 	metadata := make([]string, 0, taskMetadataCap)
 	if trimmedTicket != "" {
-		metadata = append(metadata, fmt.Sprintf("ticket: %s", quoteMetadata(trimmedTicket)))
+		metadata = append(metadata, fmt.Sprintf("ticket: %s", escapeMetadata(trimmedTicket)))
 	}
 	if trimmedAssigned != "" {
-		metadata = append(metadata, fmt.Sprintf("assigned: %s", quoteMetadata(trimmedAssigned)))
+		metadata = append(metadata, fmt.Sprintf("assigned: %s", escapeMetadata(trimmedAssigned)))
 	}
 	if normalizedPriority != "" {
-		metadata = append(metadata, fmt.Sprintf("priority: %s", quoteMetadata(normalizedPriority)))
+		metadata = append(metadata, fmt.Sprintf("priority: %s", escapeMetadata(normalizedPriority)))
 	}
 	if len(metadata) > 0 {
 		line += fmt.Sprintf("@{ %s }", strings.Join(metadata, ", "))
@@ -341,9 +341,6 @@ func validateCardLabel(fieldName, value string) (string, error) {
 	if normalized == "" {
 		return "", fmt.Errorf("%s must not be empty", fieldName)
 	}
-	if strings.ContainsAny(normalized, "[]") {
-		return "", fmt.Errorf("%s must not contain '[' or ']'", fieldName)
-	}
 	return normalized, nil
 }
 
@@ -387,9 +384,9 @@ func validateText(fieldName, value string) (string, error) {
 
 func formatCard(id, label string) string {
 	if id == "" {
-		return fmt.Sprintf("[%s]", label)
+		return fmt.Sprintf("[%s]", escapeLabel(label))
 	}
-	return fmt.Sprintf("%s[%s]", id, label)
+	return fmt.Sprintf("%s[%s]", id, escapeLabel(label))
 }
 
 func normalizeBracketed(value string) string {
@@ -402,15 +399,6 @@ func normalizeBracketed(value string) string {
 
 func containsNewline(value string) bool {
 	return strings.ContainsAny(value, "\n\r")
-}
-
-func quoteMetadata(value string) string {
-	escaped := strings.ReplaceAll(value, `\`, `\\`)
-	escaped = strings.ReplaceAll(escaped, `'`, `\'`)
-	escaped = strings.ReplaceAll(escaped, "\r", `\r`)
-	escaped = strings.ReplaceAll(escaped, "\n", `\n`)
-	escaped = strings.ReplaceAll(escaped, "\t", `\t`)
-	return "'" + escaped + "'"
 }
 
 func quoteYAML(value string) string {
