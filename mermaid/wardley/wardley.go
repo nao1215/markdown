@@ -219,7 +219,7 @@ func (m *Map) setError(err error) {
 //
 // An ampersand is left out although "a&b" renders: "a & b" does not, so it
 // works only while nobody puts a space around it. A character that depends on
-// its neighbours is worse to hand a caller than one that is simply refused.
+// its neighbors is worse to hand a caller than one that is simply refused.
 func validateName(value string) (string, error) {
 	trimmed := strings.TrimSpace(value)
 	if trimmed == "" {
