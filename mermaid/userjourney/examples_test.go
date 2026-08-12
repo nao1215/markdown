@@ -175,7 +175,7 @@ func ExampleWithTitle() {
 func ExampleDiagram_Section() {
 	_ = userjourney.NewDiagram(os.Stdout).
 		Section("Browse").
-		Task("Search the catalogue", userjourney.ScoreSatisfied, "Customer").
+		Task("Search the catalog", userjourney.ScoreSatisfied, "Customer").
 		Section("Checkout").
 		Task("Pay", userjourney.ScoreNeutral, "Customer", "Payment Service").
 		Build()
@@ -183,7 +183,7 @@ func ExampleDiagram_Section() {
 	// Output:
 	// journey
 	//     section Browse
-	//         Search the catalogue: 4: Customer
+	//         Search the catalog: 4: Customer
 	//     section Checkout
 	//         Pay: 3: Customer, Payment Service
 }
@@ -213,7 +213,7 @@ func ExampleDiagram_TaskIn() {
 	_ = userjourney.NewDiagram(os.Stdout).
 		Section("Browse").
 		Section("Checkout").
-		TaskIn("Browse", "Search the catalogue", userjourney.ScoreSatisfied, "Customer").
+		TaskIn("Browse", "Search the catalog", userjourney.ScoreSatisfied, "Customer").
 		TaskIn("Checkout", "Pay", userjourney.ScoreNeutral, "Customer").
 		Build()
 
@@ -222,7 +222,7 @@ func ExampleDiagram_TaskIn() {
 	//     section Browse
 	//     section Checkout
 	//     section Browse
-	//         Search the catalogue: 4: Customer
+	//         Search the catalog: 4: Customer
 	//     section Checkout
 	//         Pay: 3: Customer
 }
