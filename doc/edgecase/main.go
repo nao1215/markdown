@@ -42,6 +42,7 @@ import (
 	"github.com/nao1215/markdown/mermaid/treemap"
 	"github.com/nao1215/markdown/mermaid/userjourney"
 	"github.com/nao1215/markdown/mermaid/venn"
+	"github.com/nao1215/markdown/mermaid/wardley"
 	"github.com/nao1215/markdown/mermaid/xychart"
 )
 
@@ -243,6 +244,7 @@ func diagrams() []diagram {
 		{name: "Treemap", file: "treemap", build: treemapDiagram},
 		{name: "User journey", file: "userjourney", build: userJourney},
 		{name: "Venn", file: "venn", build: vennDiagram},
+		{name: "Wardley map", file: "wardley", build: wardleyMap},
 		{name: "XY chart", file: "xychart", build: xyChart},
 	}
 }
@@ -462,6 +464,20 @@ func vennDiagram(diagram string) string {
 	return venn.NewDiagram(io.Discard, venn.WithTitle(title(diagram))).
 		SetWithLabel("a", label(diagram)).
 		SetWithLabel("b", shortLabel(diagram)).
+		String()
+}
+
+// wardleyMap is the Wardley map's edge case document.
+//
+// Only the title carries the punctuation: a component name cannot hold any of
+// it, and there is nothing to escape to, so the names here are the plain ones
+// mermaid reads.
+func wardleyMap(diagram string) string {
+	return wardley.NewMap(io.Discard, wardley.WithTitle(title(diagram))).
+		Anchor("Customer", 0.95, 0.95).        //nolint:mnd
+		Component("Checkout (web)", 0.6, 0.8). //nolint:mnd
+		Link("Customer", "Checkout (web)").
+		Evolve("Checkout (web)", 0.9). //nolint:mnd
 		String()
 }
 

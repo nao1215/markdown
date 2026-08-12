@@ -5,7 +5,7 @@ each of it for v1.0.0. From that release the exported API and the bytes it
 produces are frozen: see the API stability and output stability sections of
 [SPEC.md](../SPEC.md).
 
-The audit covers **882 exported symbols** across **24 packages**. The verdict on
+The audit covers **894 exported symbols** across **25 packages**. The verdict on
 every one of them is **keep**. Nothing is removed, nothing is renamed, no
 signature changes, and nothing is deprecated: this library is used in production
 and backward compatibility outranks tidiness.
@@ -76,6 +76,7 @@ the tables below, which is where the reason for each of them is.
 | `github.com/nao1215/markdown/mermaid/treemap` | 11 | none | none |
 | `github.com/nao1215/markdown/mermaid/userjourney` | 17 | none | none |
 | `github.com/nao1215/markdown/mermaid/venn` | 10 | none | none |
+| `github.com/nao1215/markdown/mermaid/wardley` | 12 | none | none |
 | `github.com/nao1215/markdown/mermaid/xychart` | 21 | none | none |
 
 ## github.com/nao1215/markdown
@@ -1057,6 +1058,23 @@ Accepted for v1: the `Identify` constants are suffixed `Identifying` rather than
 | `Diagram.Set` | method | keep |  |
 | `Diagram.SetWithLabel` | method | keep |  |
 | `Diagram.String` | method | keep |  |
+
+## github.com/nao1215/markdown/mermaid/wardley
+
+| Symbol | Kind | Verdict | Note |
+| --- | --- | --- | --- |
+| `Map` | type | keep |  |
+| `NewMap` | func | keep |  |
+| `Option` | type | keep |  |
+| `WithTitle` | func | keep |  |
+| `Map.Anchor` | method | keep |  |
+| `Map.Build` | method | keep |  |
+| `Map.Component` | method | keep |  |
+| `Map.Error` | method | keep |  |
+| `Map.Evolve` | method | keep |  |
+| `Map.LF` | method | keep |  |
+| `Map.Link` | method | keep |  |
+| `Map.String` | method | keep |  |
 
 ## github.com/nao1215/markdown/mermaid/xychart
 

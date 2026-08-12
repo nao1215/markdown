@@ -39,6 +39,7 @@ import (
 	"github.com/nao1215/markdown/mermaid/state"
 	"github.com/nao1215/markdown/mermaid/userjourney"
 	"github.com/nao1215/markdown/mermaid/venn"
+	"github.com/nao1215/markdown/mermaid/wardley"
 	"github.com/nao1215/markdown/mermaid/xychart"
 	"github.com/yuin/goldmark"
 	"github.com/yuin/goldmark/ast"
@@ -1553,6 +1554,16 @@ func mermaidBuilders() []mermaidBuilder {
 				return venn.NewDiagram(io.Discard).
 					SetWithLabel("go", "Go").
 					SetWithLabel("rust", "Rust").
+					String()
+			},
+		},
+		{
+			name: "wardley",
+			build: func() string {
+				return wardley.NewMap(io.Discard).
+					Anchor("Customer", 0.95, 0.95).
+					Component("Checkout", 0.6, 0.8).
+					Link("Customer", "Checkout").
 					String()
 			},
 		},
