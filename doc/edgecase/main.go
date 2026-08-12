@@ -80,8 +80,11 @@ func supported(diagram string) string {
 		"class": `"'#[](){}` + emoji + japanese + `,*-|%%`,
 		// er: a double quote ends the comment it is written in.
 		"er": `'#;[](){}<br/>` + emoji + japanese + `:,*-|%%`,
-		// flowchart: a double quote ends the node text it is written in.
-		"flowchart": `'#;[](){}` + emoji + japanese + `:,*-|%%`,
+		// flowchart quotes every label and writes a double quote as the entity
+		// form mermaid decodes, so the punctuation is all safe. What is left
+		// out is a line break: the renderer honours "<br/>" inside a label,
+		// which is what a caller wanting one should pass.
+		"flowchart": `"'#;[](){}` + emoji + japanese + `:,*-|%%\`,
 		// gantt: a colon separates a task name from its data.
 		"gantt":    `"'#;[](){}<br/>` + emoji + japanese + `,*-|%%`,
 		"gitgraph": `"'#;[](){}` + emoji + japanese + `:,*-|%%`,

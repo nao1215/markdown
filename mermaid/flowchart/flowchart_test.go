@@ -402,3 +402,79 @@ func TestBuildReportsWriteFailure(t *testing.T) {
 		t.Errorf("Build lost the destination error: %v", err)
 	}
 }
+
+// TestNodeTextEscapesTheQuoteThatEndsIt names the character this escaping
+// buys. A double quote in a node label used to reach mermaid unescaped and lose
+// the whole diagram: the reader got an error box rather than a picture.
+func TestNodeTextEscapesTheQuoteThatEndsIt(t *testing.T) {
+	t.Parallel()
+
+	tests := map[string]struct {
+		build func(*Flowchart) *Flowchart
+		want  string
+	}{
+		"a quote in node text": {
+			build: func(f *Flowchart) *Flowchart { return f.NodeWithText("A", `say "hi"`) },
+			want:  `    A["say #quot;hi#quot;"]`,
+		},
+		"a quote in a markdown node": {
+			build: func(f *Flowchart) *Flowchart { return f.NodeWithMarkdown("A", `say "hi"`) },
+			want:  "    A[\"`say #quot;hi#quot;`\"]",
+		},
+		"a quote in every other node shape": {
+			build: func(f *Flowchart) *Flowchart { return f.HexagonNode("A", `"`) },
+			want:  `    A{{"#quot;"}}`,
+		},
+		"a quote in link text": {
+			build: func(f *Flowchart) *Flowchart { return f.LinkWithArrowHeadAndText("A", "B", `"`) },
+			want:  `    A-->|"#quot;"|B`,
+		},
+		"a quote in dotted link text": {
+			build: func(f *Flowchart) *Flowchart { return f.DottedLinkWithText("A", "B", `"`) },
+			want:  `    A-. "#quot;" .-> B`,
+		},
+	}
+
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := tt.build(NewFlowchart(io.Discard)).String()
+			if !strings.Contains(got, tt.want) {
+				t.Errorf("diagram =\n%s\nwant it to contain\n%s", got, tt.want)
+			}
+		})
+	}
+}
+
+// TestNodeTextEscapesOnlyTheHashThatStartsAnEntity pins the other half of the
+// escaping. mermaid reads "#quot;" and "#123;" as the characters they name, so
+// a label holding one has to be escaped or it would draw the same diagram as a
+// label holding a quotation mark. A "#" anywhere else is ordinary text, and its
+// output is left exactly as it was.
+func TestNodeTextEscapesOnlyTheHashThatStartsAnEntity(t *testing.T) {
+	t.Parallel()
+
+	tests := map[string]struct {
+		text string
+		want string
+	}{
+		"a plain hash is left alone":            {text: "PR #123 merged", want: `    A["PR #123 merged"]`},
+		"a hash at the end is left alone":       {text: "issue #", want: `    A["issue #"]`},
+		"a hash before a semicolon is left too": {text: "a#;b", want: `    A["a#;b"]`},
+		"a named entity is escaped":             {text: "a#quot;b", want: `    A["a#35;quot;b"]`},
+		"a numeric entity is escaped":           {text: "a#123;b", want: `    A["a#35;123;b"]`},
+		"a quote and an entity together":        {text: `#39;"`, want: `    A["#35;39;#quot;"]`},
+	}
+
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := NewFlowchart(io.Discard).NodeWithText("A", tt.text).String()
+			if !strings.Contains(got, tt.want) {
+				t.Errorf("diagram =\n%s\nwant it to contain\n%s", got, tt.want)
+			}
+		})
+	}
+}
