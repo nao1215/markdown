@@ -347,7 +347,7 @@ func main() {
 		SyncResponse("David", "Sophia", "wake up, wake up").
 		String()
 
-	markdown.NewMarkdown(os.Stdout).
+	markdown.NewMarkdown(os.Stdout, markdown.WithBlockSpacing()).
 		H2("Sequence Diagram").
 		CodeBlocks(markdown.SyntaxHighlightMermaid, diagram).
 		Build()
@@ -357,6 +357,7 @@ func main() {
 Plain text output: [markdown is here](./doc/sequence/generated.md)
 ````
 ## Sequence Diagram
+
 ```mermaid
 sequenceDiagram
     participant Sophia
@@ -430,7 +431,7 @@ func main() {
 		Task("Complete payment", userjourney.ScoreSatisfied, "Customer", "Payment Service").
 		String()
 
-	if err := markdown.NewMarkdown(os.Stdout).
+	if err := markdown.NewMarkdown(os.Stdout, markdown.WithBlockSpacing()).
 		H2("User Journey Diagram").
 		CodeBlocks(markdown.SyntaxHighlightMermaid, diagram).
 		Build(); err != nil {
@@ -442,6 +443,7 @@ func main() {
 Plain text output: [markdown is here](./doc/userjourney/generated.md)
 ````text
 ## User Journey Diagram
+
 ```mermaid
 journey
     title Checkout Journey
@@ -496,7 +498,7 @@ func main() {
 		Merge("develop", gitgraph.WithCommitTag("v1.0.0")).
 		String()
 
-	if err := markdown.NewMarkdown(os.Stdout).
+	if err := markdown.NewMarkdown(os.Stdout, markdown.WithBlockSpacing()).
 		H2("Git Graph").
 		CodeBlocks(markdown.SyntaxHighlightMermaid, diagram).
 		Build(); err != nil {
@@ -508,6 +510,7 @@ func main() {
 Plain text output: [markdown is here](./doc/gitgraph/generated.md)
 ````text
 ## Git Graph
+
 ```mermaid
 ---
 title: "Release Flow"
@@ -566,7 +569,7 @@ func main() {
 		Sibling("Q2").
 		String()
 
-	if err := markdown.NewMarkdown(os.Stdout).
+	if err := markdown.NewMarkdown(os.Stdout, markdown.WithBlockSpacing()).
 		H2("Mindmap").
 		CodeBlocks(markdown.SyntaxHighlightMermaid, diagram).
 		Build(); err != nil {
@@ -578,6 +581,7 @@ func main() {
 Plain text output: [markdown is here](./doc/mindmap/generated.md)
 ````text
 ## Mindmap
+
 ```mermaid
 ---
 title: "Product Strategy Mindmap"
@@ -660,7 +664,7 @@ func main() {
 		).
 		String()
 
-	if err := markdown.NewMarkdown(os.Stdout).
+	if err := markdown.NewMarkdown(os.Stdout, markdown.WithBlockSpacing()).
 		H2("Requirement Diagram").
 		CodeBlocks(markdown.SyntaxHighlightMermaid, diagram).
 		Build(); err != nil {
@@ -672,6 +676,7 @@ func main() {
 Plain text output: [markdown is here](./doc/requirement/generated.md)
 ````text
 ## Requirement Diagram
+
 ```mermaid
 ---
 title: "Checkout Requirements"
@@ -756,7 +761,7 @@ func main() {
 		Line(30, 50, 70, 85, 75, 95).
 		String()
 
-	if err := markdown.NewMarkdown(os.Stdout).
+	if err := markdown.NewMarkdown(os.Stdout, markdown.WithBlockSpacing()).
 		H2("XY Chart").
 		CodeBlocks(markdown.SyntaxHighlightMermaid, diagram).
 		Build(); err != nil {
@@ -768,6 +773,7 @@ func main() {
 Plain text output: [markdown is here](./doc/xychart/generated.md)
 ````text
 ## XY Chart
+
 ```mermaid
 xychart
     title "Sales Revenue"
@@ -815,7 +821,7 @@ func main() {
 		Field(64, 95, "Data (variable length)").
 		String()
 
-	if err := markdown.NewMarkdown(os.Stdout).
+	if err := markdown.NewMarkdown(os.Stdout, markdown.WithBlockSpacing()).
 		H2("Packet").
 		CodeBlocks(markdown.SyntaxHighlightMermaid, diagram).
 		Build(); err != nil {
@@ -827,6 +833,7 @@ func main() {
 Plain text output: [markdown is here](./doc/packet/generated.md)
 ````text
 ## Packet
+
 ```mermaid
 packet
     title UDP Packet
@@ -888,7 +895,7 @@ func main() {
 		LinkWithLabel("Backend", "reads from", "Cache").
 		String()
 
-	if err := markdown.NewMarkdown(os.Stdout).
+	if err := markdown.NewMarkdown(os.Stdout, markdown.WithBlockSpacing()).
 		H2("Block Diagram").
 		CodeBlocks(markdown.SyntaxHighlightMermaid, diagram).
 		Build(); err != nil {
@@ -900,6 +907,7 @@ func main() {
 Plain text output: [markdown is here](./doc/block/generated.md)
 ````text
 ## Block Diagram
+
 ```mermaid
 ---
 title: "Checkout Architecture"
@@ -961,7 +969,7 @@ func main() {
 		Task("Review API", kanban.WithTaskPriority(kanban.PriorityVeryHigh)).
 		String()
 
-	if err := markdown.NewMarkdown(os.Stdout).
+	if err := markdown.NewMarkdown(os.Stdout, markdown.WithBlockSpacing()).
 		H2("Kanban Diagram").
 		CodeBlocks(markdown.SyntaxHighlightMermaid, diagram).
 		Build(); err != nil {
@@ -973,6 +981,7 @@ func main() {
 Plain text output: [markdown is here](./doc/kanban/generated.md)
 ````text
 ## Kanban Diagram
+
 ```mermaid
 ---
 title: "Sprint Board"
@@ -1125,7 +1134,7 @@ func main() {
 		).
 		String()
 
-	err = markdown.NewMarkdown(f).
+	err = markdown.NewMarkdown(f, markdown.WithBlockSpacing()).
 		H2("Entity Relationship Diagram").
 		CodeBlocks(markdown.SyntaxHighlightMermaid, erString).
 		Build()
@@ -1139,24 +1148,25 @@ func main() {
 Plain text output: [markdown is here](./doc/er/generated.md)
 ````
 ## Entity Relationship Diagram
+
 ```mermaid
 erDiagram
-	teachers ||--o{ students : "Teacher has many students"
-	teachers }|..|| schools : "School has many teachers"
-	schools {
-		int id PK,UK "School ID"
-		string name  "School Name"
-		int teacher_id FK,UK "Teacher ID"
-	}
-	students {
-		int id PK,UK "Student ID"
-		string name  "Student Name"
-		int teacher_id FK,UK "Teacher ID"
-	}
-	teachers {
-		int id PK,UK "Teacher ID"
-		string name  "Teacher Name"
-	}
+    teachers ||--o{ students : "Teacher has many students"
+    teachers }|..|| schools : "School has many teachers"
+    schools {
+        int id PK,UK "School ID"
+        string name  "School Name"
+        int teacher_id FK,UK "Teacher ID"
+    }
+    students {
+        int id PK,UK "Student ID"
+        string name  "Student Name"
+        int teacher_id FK,UK "Teacher ID"
+    }
+    teachers {
+        int id PK,UK "Teacher ID"
+        string name  "Teacher Name"
+    }
 
 ```
 ````
@@ -1219,7 +1229,7 @@ func main() {
 		DottedLinkWithText("C", "D", "send filtered data").
 		String()
 
-	err = markdown.NewMarkdown(f).
+	err = markdown.NewMarkdown(f, markdown.WithBlockSpacing()).
 		H2("Flowchart").
 		CodeBlocks(markdown.SyntaxHighlightMermaid, fc).
 		Build()
@@ -1233,19 +1243,20 @@ func main() {
 Plain text output: [markdown is here](./doc/flowchart/generated.md)
 ````
 ## Flowchart
+
 ```mermaid
 ---
 title: "mermaid flowchart builder"
 ---
 flowchart TB
-	A["Node A"]
-	B(["Node B"])
-	C[["Node C"]]
-	D[("Database")]
-	A-->B
-	B-->|"send original data"|D
-	B-->C
-	C-. "send filtered data" .-> D
+    A["Node A"]
+    B(["Node B"])
+    C[["Node C"]]
+    D[("Database")]
+    A-->B
+    B-->|"send original data"|D
+    B-->C
+    C-. "send filtered data" .-> D
 ```
 ````
 
@@ -1294,7 +1305,7 @@ func main() {
 		LabelAndIntValue("C", 30).
 		String()
 
-	err = markdown.NewMarkdown(f).
+	err = markdown.NewMarkdown(f, markdown.WithBlockSpacing()).
 		H2("Pie Chart").
 		CodeBlocks(markdown.SyntaxHighlightMermaid, chart).
 		Build()
@@ -1308,6 +1319,7 @@ func main() {
 Plain text output: [markdown is here](./doc/piechart/generated.md)
 ````
 ## Pie Chart
+
 ```mermaid
 %%{init: {"pie": {"textPosition": 0.75}, "themeVariables": {"pieOuterStrokeWidth": "5px"}} }%%
 pie showData
@@ -1428,7 +1440,7 @@ func main() {
 				Arrow:     arch.ArrowNone,
 			}).String() //nolint
 
-	err = markdown.NewMarkdown(f).
+	err = markdown.NewMarkdown(f, markdown.WithBlockSpacing()).
 		H2("Architecture Diagram").
 		CodeBlocks(markdown.SyntaxHighlightMermaid, diagram).
 		Build()
@@ -1441,6 +1453,7 @@ func main() {
 Plain text output: [markdown is here](./doc/architecture/generated.md)
 ````
 ## Architecture Diagram
+
 ```mermaid
 architecture-beta
     service left_disk(disk)[Disk]
@@ -1501,7 +1514,7 @@ func main() {
 		EndTransition("Delivered").
 		String()
 
-	err = markdown.NewMarkdown(f).
+	err = markdown.NewMarkdown(f, markdown.WithBlockSpacing()).
 		H2("State Diagram").
 		CodeBlocks(markdown.SyntaxHighlightMermaid, diagram).
 		Build()
@@ -1515,6 +1528,7 @@ func main() {
 Plain text output: [markdown is here](./doc/state/generated.md)
 ````
 ## State Diagram
+
 ```mermaid
 ---
 title: "Order State Machine"
@@ -1608,7 +1622,7 @@ func main() {
 		NoteFor("Order", "Aggregate Root").
 		String()
 
-	err = markdown.NewMarkdown(f).
+	err = markdown.NewMarkdown(f, markdown.WithBlockSpacing()).
 		H2("Class Diagram").
 		CodeBlocks(markdown.SyntaxHighlightMermaid, diagramString).
 		Build()
@@ -1622,6 +1636,7 @@ func main() {
 Plain text output: [markdown is here](./doc/class/generated.md)
 ````text
 ## Class Diagram
+
 ```mermaid
 ---
 title: "Checkout Domain"
@@ -1709,7 +1724,7 @@ func main() {
 		Point("Feature D", 0.80, 0.15).
 		String()
 
-	err = markdown.NewMarkdown(f).
+	err = markdown.NewMarkdown(f, markdown.WithBlockSpacing()).
 		H2("Quadrant Chart").
 		CodeBlocks(markdown.SyntaxHighlightMermaid, chart).
 		Build()
@@ -1723,6 +1738,7 @@ func main() {
 Plain text output: [markdown is here](./doc/quadrant/generated.md)
 ````
 ## Quadrant Chart
+
 ```mermaid
 quadrantChart
     title Product Prioritization
@@ -1796,7 +1812,7 @@ func main() {
 		MilestoneWithID("Launch", "launch", "2024-01-26").
 		String()
 
-	err = markdown.NewMarkdown(f).
+	err = markdown.NewMarkdown(f, markdown.WithBlockSpacing()).
 		H2("Gantt Chart").
 		CodeBlocks(markdown.SyntaxHighlightMermaid, chart).
 		Build()
@@ -1810,18 +1826,28 @@ func main() {
 Plain text output: [markdown is here](./doc/gantt/generated.md)
 ````
 ## Gantt Chart
+
 ```mermaid
 gantt
-    title Project Schedule
+    title Software Development Schedule
     dateFormat YYYY-MM-DD
     section Planning
-    Requirements :done, req, 2024-01-01, 5d
-    Design :done, design, 2024-01-08, 3d
+    Requirements Analysis :done, req, 2024-01-01, 7d
+    System Design :done, design, 2024-01-08, 5d
+
     section Development
-    Coding :crit, active, code, 2024-01-12, 10d
-    Review :review, after code, 2d
-    section Release
-    Launch :milestone, launch, 2024-01-26, 0d
+    Backend Development :crit, active, backend, 2024-01-15, 14d
+    Frontend Development :active, frontend, 2024-01-15, 14d
+    Integration :integrate, after backend, 5d
+
+    section Testing
+    Unit Testing :unit, after integrate, 3d
+    Integration Testing :inttest, after unit, 4d
+    UAT :uat, after inttest, 5d
+
+    section Deployment
+    Staging Deploy :after uat, 2d
+    Production Release :crit, milestone, 2024-03-01, 0d
 ```
 ````
 
@@ -1875,7 +1901,7 @@ func main() {
 		Event("Reddit").
 		String()
 
-	err = markdown.NewMarkdown(f).
+	err = markdown.NewMarkdown(f, markdown.WithBlockSpacing()).
 		H2("Timeline").
 		CodeBlocks(markdown.SyntaxHighlightMermaid, diagram).
 		Build()
@@ -1891,6 +1917,7 @@ A period holds as many events as you give it, and `Event` adds one more to the p
 Plain text output: [markdown is here](./doc/timeline/generated.md)
 ````
 ## Timeline
+
 ```mermaid
 timeline
     title History of Social Media
@@ -1945,7 +1972,7 @@ func main() {
 		Link("Bio-conversion", "Gas", 81.144).
 		String()
 
-	err = markdown.NewMarkdown(f).
+	err = markdown.NewMarkdown(f, markdown.WithBlockSpacing()).
 		H2("Sankey").
 		CodeBlocks(markdown.SyntaxHighlightMermaid, diagram).
 		Build()
@@ -1961,6 +1988,7 @@ Nodes are never declared: a node exists because a flow names it, and two flows n
 Plain text output: [markdown is here](./doc/sankey/generated.md)
 ````
 ## Sankey
+
 ```mermaid
 sankey-beta
 
@@ -2014,7 +2042,7 @@ func main() {
 		Min(0).
 		String()
 
-	err = markdown.NewMarkdown(f).
+	err = markdown.NewMarkdown(f, markdown.WithBlockSpacing()).
 		H2("Radar").
 		CodeBlocks(markdown.SyntaxHighlightMermaid, chart).
 		Build()
@@ -2030,6 +2058,7 @@ Axes are declared once, in order, and every curve gives its values in that same 
 Plain text output: [markdown is here](./doc/radar/generated.md)
 ````
 ## Radar
+
 ```mermaid
 ---
 title: "Grades"
@@ -2092,7 +2121,7 @@ func main() {
 		Leaf("Ads", 800).
 		String()
 
-	err = markdown.NewMarkdown(f).
+	err = markdown.NewMarkdown(f, markdown.WithBlockSpacing()).
 		H2("Treemap").
 		CodeBlocks(markdown.SyntaxHighlightMermaid, diagram).
 		Build()
@@ -2108,6 +2137,7 @@ mermaid expresses the hierarchy with indentation, and the builder walks it rathe
 Plain text output: [markdown is here](./doc/treemap/generated.md)
 ````
 ## Treemap
+
 ```mermaid
 ---
 title: "Budget"
@@ -2176,7 +2206,7 @@ func main() {
 		Rel("web", "mail", "Sends e-mail using", c4.WithTechnology("SMTP")).
 		String()
 
-	err = markdown.NewMarkdown(f).
+	err = markdown.NewMarkdown(f, markdown.WithBlockSpacing()).
 		H2("C4 Context").
 		CodeBlocks(markdown.SyntaxHighlightMermaid, diagram).
 		Build()
@@ -2194,6 +2224,7 @@ Labels are escaped with the entity form mermaid decodes, so a quotation mark or 
 Plain text output: [markdown is here](./doc/c4/generated.md)
 ````
 ## C4 Context
+
 ```mermaid
 C4Context
     title System Context: Internet Banking
