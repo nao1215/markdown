@@ -16,8 +16,8 @@
 // lexer before any decoding happens, so "#quot;" fails exactly as a quotation
 // mark does. This package therefore passes a title through as it was given
 // rather than mangling it into something that renders but says something else,
-// and the limit is recorded in SPEC.md. It is a limit of mermaid's beta
-// grammar, and it will lift when that grammar does.
+// It is a limit of mermaid's beta grammar, and it will lift when that grammar
+// does.
 //
 // Errors are recorded rather than returned from every call: the chain runs to
 // the end and the error surfaces from Build. A nil writer and a writer that

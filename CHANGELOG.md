@@ -4,9 +4,8 @@
 v1.x nothing exported is removed, renamed or re-signatured, and every builder
 keeps producing byte-for-byte identical output; the only exception is output
 that is objectively wrong, which is fixed in a patch release with the reasoning
-recorded here. [SPEC.md](SPEC.md) states both promises in full and
-[doc/v1-api-audit.md](doc/v1-api-audit.md) is the inventory of the 859 exported
-symbols they cover.
+recorded here. [doc/v1-api-audit.md](doc/v1-api-audit.md) is the inventory of
+the exported symbols they cover.
 
 ### Added: mermaid diagram types
 
@@ -43,8 +42,8 @@ are untouched, which the golden files enforce.
 
 `mermaid/arch` is the one place a label still cannot carry punctuation:
 mermaid's `architecture-beta` grammar accepts only `[A-Za-z0-9_ ]` and refuses
-its own escape form, so there is nothing to encode to. The package says so and
-SPEC.md records it [#171](https://github.com/nao1215/markdown/pull/171).
+its own escape form, so there is nothing to encode to. The package documentation
+says so [#171](https://github.com/nao1215/markdown/pull/171).
 
 A mermaid title that is not valid UTF-8 is reinterpreted rather than mangled,
 which is documented rather than changed [#155](https://github.com/nao1215/markdown/pull/155).
@@ -52,7 +51,6 @@ which is documented rather than changed [#155](https://github.com/nao1215/markdo
 ### Documentation
 
 * A godoc example for every exported symbol, 673 of them, each output-verified [#174](https://github.com/nao1215/markdown/pull/174) [#175](https://github.com/nao1215/markdown/pull/175)
-* [SPEC.md](SPEC.md): the target markdown specification and the compatibility policy [#137](https://github.com/nao1215/markdown/pull/137)
 * [doc/v1-api-audit.md](doc/v1-api-audit.md): every exported symbol and its verdict [#176](https://github.com/nao1215/markdown/pull/176)
 * Every README example reproduces the file it links to, and a test keeps it that way [#173](https://github.com/nao1215/markdown/pull/173)
 

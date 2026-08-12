@@ -41,7 +41,7 @@ import (
 //
 //nolint:gochecknoglobals // data about this repository's API; a function
 var notes = map[string]string{
-	"markdown.Highlight":         "Emits `==text==`, which GitHub does not render. Kept: it has always been exported, it costs nothing, and SPEC.md already says it is outside the GFM target.",
+	"markdown.Highlight":         "Emits `==text==`, which GitHub does not render. Kept: it has always been exported and it costs nothing.",
 	"markdown.Markdown.RedBadge": "The badge helpers point at img.shields.io. Kept: the markdown they emit is plain GFM and the dependency is the reader's browser, not this library.",
 	"markdown.Markdown.LF":       "Older name for BlankLine, doing the same thing. Kept and not deprecated: both names are in use downstream and neither is wrong.",
 	"markdown.Index":             "Carries what GenerateIndex collected and exposes nothing. Kept: it is the return shape of an exported function, so it cannot be unexported.",
@@ -565,8 +565,9 @@ func write(f *os.File, packages []pkg) {
 
 This is the inventory of everything this library exports, and the verdict on
 each of it for v1.0.0. From that release the exported API and the bytes it
-produces are frozen: see the API stability and output stability sections of
-[SPEC.md](../SPEC.md).
+produces are frozen: within v1.x nothing exported is removed, renamed or
+re-signatured, and every builder keeps producing byte-for-byte identical
+output.
 
 The audit covers **%d exported symbols** across **%d packages**. The verdict on
 every one of them is **keep**. Nothing is removed, nothing is renamed, no

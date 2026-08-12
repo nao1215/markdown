@@ -93,7 +93,7 @@ func supported(diagram string) string {
 		// Japanese text, and so does the "#name;" entity form: this lexer
 		// refuses the "#" before anything gets a chance to decode it. There is
 		// nothing to escape to, which is why this entry stays empty rather than
-		// waiting on a fix. SPEC.md records the limit.
+		// waiting on a fix. The package documentation records the limit.
 		"architecture": "",
 		"block":        everything,
 		"c4":           everything,

@@ -1124,7 +1124,7 @@ func FuzzFrontMatterTitle(f *testing.F) {
 //
 // It is the identity for every title that is valid UTF-8, which is every title
 // a caller has. Below that the two disagree in one specific way, documented in
-// SPEC.md: strconv.Quote writes a byte no valid UTF-8 sequence covers as \xNN,
+// internal/frontmatter.go: strconv.Quote writes a byte no valid UTF-8 sequence covers as \xNN,
 // meaning that byte, and YAML reads \xNN as the code point U+00NN. Spelling the
 // disagreement out here rather than skipping those inputs is what keeps the
 // fuzzer able to find a second one.
@@ -1793,9 +1793,9 @@ func documentedAs(fn *goast.FuncDecl) (string, bool) {
 	return "Example" + ident.Name + "_" + fn.Name.Name, true
 }
 
-// TestABuilderBelongsToOneGoroutine pins the concurrency contract SPEC.md
-// states: a builder is not safe for concurrent use, and the way to build two
-// documents at once is to build two builders.
+// TestABuilderBelongsToOneGoroutine pins the concurrency contract the package
+// documentation states: a builder is not safe for concurrent use, and the way
+// to build two documents at once is to build two builders.
 //
 // There is no test here that shares one builder between goroutines, because
 // such a test is a data race: it would pass or fail depending on the scheduler,
