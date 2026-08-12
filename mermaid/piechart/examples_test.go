@@ -173,3 +173,16 @@ func ExampleOption() {
 	//     title Languages
 	//     "Go" : 60
 }
+
+// ExamplePieChart_Error reports the same error Build does, for code that wants
+// to look before writing anything.
+func ExamplePieChart_Error() {
+	p := piechart.NewPieChart(nil).LabelAndIntValue("Go", 60)
+	fmt.Println("before Build:", p.Error())
+	_ = p.Build()
+	fmt.Println("after Build:", p.Error())
+
+	// Output:
+	// before Build: <nil>
+	// after Build: output writer must not be nil
+}

@@ -478,3 +478,24 @@ func TestNodeTextEscapesOnlyTheHashThatStartsAnEntity(t *testing.T) {
 		})
 	}
 }
+
+// TestErrorReportsWhatBuildWould pins the method the v1.0.0 API audit found
+// missing. Every other builder in this library reports its recorded error from
+// Error as well as from Build, and this one did not.
+func TestErrorReportsWhatBuildWould(t *testing.T) {
+	t.Parallel()
+
+	f := NewFlowchart(nil).NodeWithText("A", "Start")
+
+	if err := f.Error(); err != nil {
+		t.Errorf("Error() = %v before Build, want nil", err)
+	}
+
+	fromBuild := f.Build()
+	if fromBuild == nil {
+		t.Fatal("Build() = nil with a nil writer, want an error")
+	}
+	if f.Error() == nil || f.Error().Error() != fromBuild.Error() {
+		t.Errorf("Error() = %v, want the error Build returned, %v", f.Error(), fromBuild)
+	}
+}

@@ -360,3 +360,18 @@ func ExampleOption() {
 	//         int id  "Primary key"
 	//     }
 }
+
+// ExampleDiagram_Error reports the same error Build does, for code that wants
+// to look before writing anything.
+func ExampleDiagram_Error() {
+	d := er.NewDiagram(nil).NoRelationship(er.NewEntity("teachers", []*er.Attribute{
+		{Type: "int", Name: "id", Comment: "Primary key"},
+	}))
+	fmt.Println("before Build:", d.Error())
+	_ = d.Build()
+	fmt.Println("after Build:", d.Error())
+
+	// Output:
+	// before Build: <nil>
+	// after Build: output writer must not be nil
+}

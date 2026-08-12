@@ -539,3 +539,16 @@ func ExampleOption() {
 	// flowchart LR
 	//     A["Start"]
 }
+
+// ExampleFlowchart_Error reports the same error Build does, for code that wants
+// to look before writing anything.
+func ExampleFlowchart_Error() {
+	f := flowchart.NewFlowchart(nil).NodeWithText("A", "Start")
+	fmt.Println("before Build:", f.Error())
+	_ = f.Build()
+	fmt.Println("after Build:", f.Error())
+
+	// Output:
+	// before Build: <nil>
+	// after Build: output writer must not be nil
+}

@@ -304,3 +304,24 @@ func TestTitleEscapesThePercentPairThatCommentsItOut(t *testing.T) {
 		})
 	}
 }
+
+// TestErrorReportsWhatBuildWould pins the method the v1.0.0 API audit found
+// missing. Every other builder in this library reports its recorded error from
+// Error as well as from Build, and this one did not.
+func TestErrorReportsWhatBuildWould(t *testing.T) {
+	t.Parallel()
+
+	p := NewPieChart(nil).LabelAndIntValue("Go", 60)
+
+	if err := p.Error(); err != nil {
+		t.Errorf("Error() = %v before Build, want nil", err)
+	}
+
+	fromBuild := p.Build()
+	if fromBuild == nil {
+		t.Fatal("Build() = nil with a nil writer, want an error")
+	}
+	if p.Error() == nil || p.Error().Error() != fromBuild.Error() {
+		t.Errorf("Error() = %v, want the error Build returned, %v", p.Error(), fromBuild)
+	}
+}
