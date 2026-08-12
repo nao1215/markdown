@@ -4,7 +4,7 @@ Every label below holds the punctuation this diagram type can carry. Generated b
 
 ```mermaid
 journey
-    title title "'[](){}🎉日本語,*-|%%
-    section x"'[](){}<br/>🎉日本語,*-|%%x
-        x"'[](){}<br/>🎉日本語,*-|%%x: 4: x"'[](){}<br/>🎉日本語,*-|%%x
+    title title "'#35;#59;[](){}🎉日本語:,*-|%%
+    section x"'##59;[](){}<br/>🎉日本語#58;,*-|%%x
+        x"'#35;#59;[](){}<br/>🎉日本語#58;,*-|%%x: 4: x"'##59;[](){}<br/>🎉日本語#58;#44;*-|%%x
 ```

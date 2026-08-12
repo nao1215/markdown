@@ -57,7 +57,7 @@ func NewDiagram(w io.Writer, opts ...Option) *Diagram {
 
 	lines := []string{"journey"}
 	if c.title != noTitle {
-		lines = append(lines, fmt.Sprintf("    title %s", c.title))
+		lines = append(lines, fmt.Sprintf("    title %s", escapeField(c.title, titleUnsafe)))
 	}
 
 	return &Diagram{
@@ -113,7 +113,7 @@ func (d *Diagram) Section(name string) *Diagram {
 	}
 
 	d.currentSection = trimmed
-	d.body = append(d.body, fmt.Sprintf("    section %s", trimmed))
+	d.body = append(d.body, fmt.Sprintf("    section %s", escapeField(trimmed, sectionUnsafe)))
 	return d
 }
 
@@ -158,9 +158,9 @@ func (d *Diagram) Task(name string, score Score, actors ...string) *Diagram {
 		return d
 	}
 
-	taskLine := fmt.Sprintf("        %s: %d", trimmedName, score)
+	taskLine := fmt.Sprintf("        %s: %d", escapeField(trimmedName, taskUnsafe), score)
 	if len(trimmedActors) > 0 {
-		taskLine = fmt.Sprintf("%s: %s", taskLine, strings.Join(trimmedActors, ", "))
+		taskLine = fmt.Sprintf("%s: %s", taskLine, strings.Join(escapeActors(trimmedActors), ", "))
 	}
 
 	d.body = append(d.body, taskLine)

@@ -400,3 +400,72 @@ func TestBuildReportsWriteFailure(t *testing.T) {
 		t.Errorf("Build lost the destination error: %v", err)
 	}
 }
+
+// TestFieldsEscapeTheirOwnPunctuation names the characters this escaping buys.
+// A user journey is written entirely in unquoted text, so each of its four
+// fields loses a different set of characters, and each set below was measured
+// by rendering one character at a time.
+func TestFieldsEscapeTheirOwnPunctuation(t *testing.T) {
+	t.Parallel()
+
+	tests := map[string]struct {
+		build func(io.Writer) *Diagram
+		want  string
+	}{
+		"a semicolon in a title loses the diagram": {
+			build: func(w io.Writer) *Diagram { return NewDiagram(w, WithTitle("a;b")) },
+			want:  "    title a#59;b",
+		},
+		"a hash in a title cuts it short": {
+			build: func(w io.Writer) *Diagram { return NewDiagram(w, WithTitle("PR #12")) },
+			want:  "    title PR #35;12",
+		},
+		"a semicolon and a colon in a section": {
+			build: func(w io.Writer) *Diagram { return NewDiagram(w).Section("a;b:c") },
+			want:  "    section a#59;b#58;c",
+		},
+		"a hash in a section is left alone": {
+			build: func(w io.Writer) *Diagram { return NewDiagram(w).Section("PR #12") },
+			want:  "    section PR #12",
+		},
+		"a hash, a semicolon and a colon in a task name": {
+			build: func(w io.Writer) *Diagram {
+				return NewDiagram(w).Section("S").Task("a#b;c:d", ScoreSatisfied)
+			},
+			want: "        a#35;b#59;c#58;d: 4",
+		},
+		"a comma in an actor splits it in two": {
+			build: func(w io.Writer) *Diagram {
+				return NewDiagram(w).Section("S").Task("t", ScoreSatisfied, "Ops, EU")
+			},
+			want: "        t: 4: Ops#44; EU",
+		},
+		"actors are still separated by a comma": {
+			build: func(w io.Writer) *Diagram {
+				return NewDiagram(w).Section("S").Task("t", ScoreSatisfied, "Ops", "EU")
+			},
+			want: "        t: 4: Ops, EU",
+		},
+		"a comma in a task name is left alone": {
+			build: func(w io.Writer) *Diagram {
+				return NewDiagram(w).Section("S").Task("a,b", ScoreSatisfied)
+			},
+			want: "        a,b: 4",
+		},
+		"a named entity is escaped wherever entities are written": {
+			build: func(w io.Writer) *Diagram { return NewDiagram(w).Section("a#59;b") },
+			want:  "    section a#35;59#59;b",
+		},
+	}
+
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := tt.build(io.Discard).String()
+			if !strings.Contains(got, tt.want) {
+				t.Errorf("diagram =\n%s\nwant it to contain\n%s", got, tt.want)
+			}
+		})
+	}
+}

@@ -131,9 +131,10 @@ func supported(diagram string) string {
 		// backslash, because it is the only one whose quoting was proven to
 		// leave one alone.
 		"treemap": `"'#;[](){}<br/>` + emoji + japanese + `:,*-|%%\`,
-		// userjourney: "#" and ";" end a statement, and ":" separates the
-		// fields of a task.
-		"userjourney": `"'[](){}<br/>` + emoji + japanese + `,*-|%%`,
+		// userjourney writes the punctuation each of its unquoted fields would
+		// otherwise lose as the entity form mermaid decodes, so the
+		// punctuation is all safe.
+		"userjourney": `"'#;[](){}<br/>` + emoji + japanese + `:,*-|%%`,
 		// xychart: an axis label is written unquoted, so non-ASCII breaks it.
 		"xychart": `"'#;[](){}` + emoji + `:,*-|%%`,
 	}[diagram]
