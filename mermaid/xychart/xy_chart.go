@@ -14,7 +14,6 @@ import (
 	"io"
 	"strconv"
 	"strings"
-	"unicode"
 
 	"github.com/nao1215/markdown/internal"
 )
@@ -341,8 +340,17 @@ func shouldQuote(value string) bool {
 	return false
 }
 
+// isIdentifierChar reports whether r may appear in a token this package leaves
+// unquoted.
+//
+// The set is ASCII on purpose. mermaid's xy chart grammar takes only ASCII word
+// characters in an unquoted token, so a label of Japanese text written without
+// quotes made it refuse the whole chart. unicode.IsLetter said such a label
+// needed no quotes, which is why an emoji reached the drawing and a word of
+// Japanese did not: the emoji is not a letter and was quoted anyway.
 func isIdentifierChar(r rune) bool {
-	return unicode.IsLetter(r) || unicode.IsDigit(r) || r == '_' || r == '-' || r == '.'
+	return (r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') || (r >= '0' && r <= '9') ||
+		r == '_' || r == '-' || r == '.'
 }
 
 func isKeyword(value string) bool {

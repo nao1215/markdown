@@ -472,3 +472,61 @@ func TestBuildReportsWriteFailure(t *testing.T) {
 		t.Errorf("Build lost the destination error: %v", err)
 	}
 }
+
+// TestQuotedLabelsCarryNonASCII pins what the edge case document now claims.
+// The measurement in doc/edgecase/main.go used to say an xy chart loses the
+// diagram on Japanese text; it does not, because every label and the title go
+// out quoted and a quoted label takes non-ASCII as readily as ASCII. This test
+// is the fast half of the check and the rendered document is the real one.
+func TestQuotedLabelsCarryNonASCII(t *testing.T) {
+	t.Parallel()
+
+	got := NewDiagram(io.Discard, WithTitle("日本語 🎉")).
+		XAxisLabelsWithTitle("日本語", "日本語", "🎉").
+		YAxisRangeWithTitle("日本語 🎉", 0, 100).
+		Bar(10, 20).
+		String()
+
+	want := []string{
+		`    title "日本語 🎉"`,
+		`    x-axis "日本語" ["日本語", "🎉"]`,
+		`    y-axis "日本語 🎉" 0 --> 100`,
+	}
+	for _, w := range want {
+		if !strings.Contains(got, w) {
+			t.Errorf("chart =\n%s\nwant it to contain\n%s", got, w)
+		}
+	}
+}
+
+// TestNonASCIILabelsAreQuoted names what this buys. mermaid's xy chart grammar
+// takes only ASCII word characters in an unquoted token, and a plain word of
+// Japanese used to be written without quotes because unicode.IsLetter said it
+// needed none. mermaid then refused the whole chart. An emoji was quoted all
+// along, which is why one reached the drawing and the other did not.
+func TestNonASCIILabelsAreQuoted(t *testing.T) {
+	t.Parallel()
+
+	tests := map[string]struct {
+		label string
+		want  string
+	}{
+		"an ASCII word stays unquoted":     {label: "Sales", want: `    x-axis Sales [a]`},
+		"a word with a dot stays unquoted": {label: "v1.2-rc_3", want: `    x-axis v1.2-rc_3 [a]`},
+		"Japanese is quoted":               {label: "日本語", want: `    x-axis "日本語" [a]`},
+		"an emoji is quoted":               {label: "🎉", want: `    x-axis "🎉" [a]`},
+		"a Cyrillic word is quoted":        {label: "Продажи", want: `    x-axis "Продажи" [a]`},
+		"an accented word is quoted":       {label: "Café", want: `    x-axis "Café" [a]`},
+	}
+
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := NewDiagram(io.Discard).XAxisLabelsWithTitle(tt.label, "a").String()
+			if !strings.Contains(got, tt.want) {
+				t.Errorf("chart =\n%s\nwant it to contain\n%s", got, tt.want)
+			}
+		})
+	}
+}
