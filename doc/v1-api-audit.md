@@ -5,7 +5,7 @@ each of it for v1.0.0. From that release the exported API and the bytes it
 produces are frozen: see the API stability and output stability sections of
 [SPEC.md](../SPEC.md).
 
-The audit covers **859 exported symbols** across **23 packages**. The verdict on
+The audit covers **872 exported symbols** across **23 packages**. The verdict on
 every one of them is **keep**. Nothing is removed, nothing is renamed, no
 signature changes, and nothing is deprecated: this library is used in production
 and backward compatibility outranks tidiness.
@@ -59,7 +59,7 @@ the tables below, which is where the reason for each of them is.
 | `github.com/nao1215/markdown/mermaid/c4` | 26 | none | none |
 | `github.com/nao1215/markdown/mermaid/class` | 96 | none | `Diagram.CSSClass` |
 | `github.com/nao1215/markdown/mermaid/er` | 27 | the `Identify` constants are suffixed `Identifying` rather than prefixed; the `Relationship` constants are suffixed `Relationship` rather than prefixed | `Diagram.Relationship` |
-| `github.com/nao1215/markdown/mermaid/flowchart` | 39 | none | `Flowchart` |
+| `github.com/nao1215/markdown/mermaid/flowchart` | 52 | none | `Flowchart` |
 | `github.com/nao1215/markdown/mermaid/gantt` | 32 | none | `Chart` |
 | `github.com/nao1215/markdown/mermaid/gitgraph` | 26 | none | none |
 | `github.com/nao1215/markdown/mermaid/kanban` | 24 | none | none |
@@ -511,6 +511,11 @@ Accepted for v1: the `Identify` constants are suffixed `Identifying` rather than
 
 | Symbol | Kind | Verdict | Note |
 | --- | --- | --- | --- |
+| `Direction` | type | keep |  |
+| `DirectionBT` | const | keep |  |
+| `DirectionLR` | const | keep |  |
+| `DirectionRL` | const | keep |  |
+| `DirectionTB` | const | keep |  |
 | `Flowchart` | type | keep | Named Flowchart rather than Diagram, and its constructor NewFlowchart. Accepted for v1. |
 | `NewFlowchart` | func | keep |  |
 | `Option` | type | keep |  |
@@ -523,6 +528,10 @@ Accepted for v1: the `Identify` constants are suffixed `Identifying` rather than
 | `Flowchart.AsymmetricNode` | method | keep |  |
 | `Flowchart.Build` | method | keep |  |
 | `Flowchart.CircleNode` | method | keep |  |
+| `Flowchart.Class` | method | keep |  |
+| `Flowchart.ClassDef` | method | keep |  |
+| `Flowchart.ClickCall` | method | keep |  |
+| `Flowchart.ClickHref` | method | keep |  |
 | `Flowchart.CylindricalNode` | method | keep |  |
 | `Flowchart.DatabaseNode` | method | keep |  |
 | `Flowchart.DottedLink` | method | keep |  |
@@ -545,6 +554,10 @@ Accepted for v1: the `Identify` constants are suffixed `Identifying` rather than
 | `Flowchart.RoundEdgesNode` | method | keep |  |
 | `Flowchart.StadiumNode` | method | keep |  |
 | `Flowchart.String` | method | keep |  |
+| `Flowchart.Style` | method | keep |  |
+| `Flowchart.Subgraph` | method | keep |  |
+| `Flowchart.SubgraphDirection` | method | keep |  |
+| `Flowchart.SubgraphEnd` | method | keep |  |
 | `Flowchart.SubroutineNode` | method | keep |  |
 | `Flowchart.ThickLink` | method | keep |  |
 | `Flowchart.ThickLinkWithText` | method | keep |  |

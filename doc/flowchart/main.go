@@ -29,14 +29,21 @@ func main() {
 		flowchart.WithTitle("mermaid flowchart builder"),
 		flowchart.WithOrientalTopToBottom(),
 	).
+		Subgraph("ingest", "Ingest").
+		SubgraphDirection(flowchart.DirectionLR).
 		NodeWithText("A", "Node A").
 		StadiumNode("B", "Node B").
+		LinkWithArrowHead("A", "B").
+		SubgraphEnd().
 		SubroutineNode("C", "Node C").
 		DatabaseNode("D", "Database").
-		LinkWithArrowHead("A", "B").
 		LinkWithArrowHeadAndText("B", "D", "send original data").
 		LinkWithArrowHead("B", "C").
 		DottedLinkWithText("C", "D", "send filtered data").
+		ClassDef("stored", "fill:#d4f7d4,stroke:#2b8a3e").
+		Class("D", "stored").
+		Style("C", "fill:#fff3bf,stroke:#e67700").
+		ClickHref("D", "https://example.com/database", "The database").
 		String()
 
 	err = markdown.NewMarkdown(f, markdown.WithBlockSpacing()).

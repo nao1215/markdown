@@ -25,7 +25,12 @@ type Flowchart struct {
 	err error
 	// config is the configuration for the flowchart.
 	config *config
+	// depth is how many subgraphs are open, counted in indentUnits.
+	depth int
 }
+
+// indentUnit is one level of subgraph nesting.
+const indentUnit = "    "
 
 // NewFlowchart returns a new Flowchart.
 func NewFlowchart(w io.Writer, opts ...Option) *Flowchart {
@@ -50,6 +55,23 @@ func NewFlowchart(w io.Writer, opts ...Option) *Flowchart {
 	}
 }
 
+// indent returns the prefix of a line at the current nesting.
+//
+// A flowchart with no subgraph in it indents by one unit, which is what every
+// line of every flowchart written before subgraphs existed used, so the output
+// of a chain that opens none is unchanged.
+func (f *Flowchart) indent() string {
+	return indentUnit + strings.Repeat(indentUnit, f.depth)
+}
+
+// setError records the first error and leaves any later one alone, because the
+// first is the one that explains the rest.
+func (f *Flowchart) setError(err error) {
+	if f.err == nil {
+		f.err = err
+	}
+}
+
 // String returns the flowchart body.
 func (f *Flowchart) String() string {
 	return strings.Join(f.body, internal.LineFeed())
@@ -69,7 +91,21 @@ func (f *Flowchart) Error() error {
 }
 
 // Build writes the flowchart body to the output destination.
+//
+// A subgraph left open is reported here rather than written out: mermaid
+// refuses a flowchart whose subgraph never ends, which loses the whole drawing.
+// So is any error the chain recorded, which is what every other builder in this
+// library does.
 func (f *Flowchart) Build() error {
+	if f.depth != 0 {
+		f.setError(fmt.Errorf("%d subgraph must be closed with SubgraphEnd before Build", f.depth))
+	}
+	// A recorded error stops the write, the way it does in every other builder
+	// here. Nothing recorded one before subgraphs existed, so no chain written
+	// against an earlier release reaches this.
+	if f.err != nil {
+		return f.err
+	}
 	if f.dest == nil {
 		if f.err == nil {
 			f.err = errors.New("output writer must not be nil")

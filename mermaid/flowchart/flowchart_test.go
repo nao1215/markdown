@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/nao1215/markdown/internal"
 	"github.com/nao1215/markdown/internal/buildertest"
 	"github.com/nao1215/markdown/internal/golden"
 )
@@ -499,4 +500,169 @@ func TestErrorReportsTheRecordedError(t *testing.T) {
 	if f.Error() == nil || f.Error().Error() != fromBuild.Error() {
 		t.Errorf("Error() = %v, want the error Build returned, %v", f.Error(), fromBuild)
 	}
+}
+
+// TestSubgraphGroupsWhatFollowsIt covers the construct a flowchart of more than
+// a handful of nodes needs. Subgraphs nest, what they hold is indented, and the
+// title goes through the same escaping a node label does.
+func TestSubgraphGroupsWhatFollowsIt(t *testing.T) {
+	t.Parallel()
+
+	got := NewFlowchart(io.Discard).
+		Subgraph("ingest", `Ingest "raw"`).
+		SubgraphDirection(DirectionLR).
+		NodeWithText("a", "Fetch").
+		Subgraph("inner", "Retry").
+		NodeWithText("b", "Backoff").
+		SubgraphEnd().
+		SubgraphEnd().
+		NodeWithText("c", "Store").
+		String()
+
+	want := []string{
+		`    subgraph ingest["Ingest #quot;raw#quot;"]`,
+		`        direction LR`,
+		`        a["Fetch"]`,
+		`        subgraph inner["Retry"]`,
+		`            b["Backoff"]`,
+		`        end`,
+		`    end`,
+		`    c["Store"]`,
+	}
+	for _, w := range want {
+		if !strings.Contains(got, w) {
+			t.Errorf("diagram =\n%s\nwant it to contain\n%s", got, w)
+		}
+	}
+}
+
+// TestAChartWithNoSubgraphIndentsAsItAlwaysDid pins that the indentation the
+// subgraphs brought does not move the output of a chain that opens none. Every
+// flowchart written before this existed has to come out byte for byte the same.
+func TestAChartWithNoSubgraphIndentsAsItAlwaysDid(t *testing.T) {
+	t.Parallel()
+
+	got := NewFlowchart(io.Discard).
+		NodeWithText("a", "Start").
+		NodeWithText("b", "End").
+		LinkWithArrowHead("a", "b").
+		String()
+
+	want := "flowchart TB" + internal.LineFeed() +
+		`    a["Start"]` + internal.LineFeed() +
+		`    b["End"]` + internal.LineFeed() +
+		"    a-->b"
+	if got != want {
+		t.Errorf("diagram =\n%q\nwant\n%q", got, want)
+	}
+}
+
+// TestSubgraphErrorsAreRecordedRatherThanWritten covers the two ways a caller
+// can get the pairing wrong. An unclosed subgraph loses the whole diagram, so
+// neither is written out and hoped for.
+func TestSubgraphErrorsAreRecordedRatherThanWritten(t *testing.T) {
+	t.Parallel()
+
+	tests := map[string]struct {
+		build func(io.Writer) *Flowchart
+		want  string
+	}{
+		"closing one that was never opened": {
+			build: func(w io.Writer) *Flowchart { return NewFlowchart(w).SubgraphEnd() },
+			want:  "SubgraphEnd was called outside a subgraph",
+		},
+		"setting a direction outside one": {
+			build: func(w io.Writer) *Flowchart {
+				return NewFlowchart(w).SubgraphDirection(DirectionLR)
+			},
+			want: "SubgraphDirection was called outside a subgraph",
+		},
+		"leaving one open": {
+			build: func(w io.Writer) *Flowchart {
+				return NewFlowchart(w).Subgraph("a", "A").NodeWithText("b", "B")
+			},
+			want: "1 subgraph must be closed with SubgraphEnd before Build",
+		},
+	}
+
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			err := tt.build(io.Discard).Build()
+			if err == nil {
+				t.Fatalf("Build() = nil, want an error mentioning %q", tt.want)
+			}
+			if !strings.Contains(err.Error(), tt.want) {
+				t.Errorf("Build() = %v, want it to mention %q", err, tt.want)
+			}
+		})
+	}
+}
+
+// TestStylingWritesWhatMermaidReads covers the styling constructs the other
+// diagram builders in this library already had and this one did not.
+func TestStylingWritesWhatMermaidReads(t *testing.T) {
+	t.Parallel()
+
+	tests := map[string]struct {
+		build func(*Flowchart) *Flowchart
+		want  string
+	}{
+		"style one node": {
+			build: func(f *Flowchart) *Flowchart { return f.Style("a", "fill:#f9f") },
+			want:  "    style a fill:#f9f",
+		},
+		"name a style": {
+			build: func(f *Flowchart) *Flowchart { return f.ClassDef("urgent", "fill:#f96") },
+			want:  "    classDef urgent fill:#f96",
+		},
+		"apply it to several nodes": {
+			build: func(f *Flowchart) *Flowchart { return f.Class("a,b", "urgent") },
+			want:  "    class a,b urgent",
+		},
+		"link a node": {
+			build: func(f *Flowchart) *Flowchart {
+				return f.ClickHref("a", "https://example.com", "Tooltip")
+			},
+			want: `    click a "https://example.com" "Tooltip"`,
+		},
+		"a tooltip is escaped like a label": {
+			build: func(f *Flowchart) *Flowchart {
+				return f.ClickHref("a", "https://example.com", `the "core"`)
+			},
+			want: `    click a "https://example.com" "the #quot;core#quot;"`,
+		},
+		"call a function": {
+			build: func(f *Flowchart) *Flowchart { return f.ClickCall("a", "showOrder", "Tooltip") },
+			want:  `    click a call showOrder() "Tooltip"`,
+		},
+		"a callback that already has its parentheses": {
+			build: func(f *Flowchart) *Flowchart { return f.ClickCall("a", "showOrder()", "Tooltip") },
+			want:  `    click a call showOrder() "Tooltip"`,
+		},
+	}
+
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := tt.build(NewFlowchart(io.Discard)).String()
+			if !strings.Contains(got, tt.want) {
+				t.Errorf("diagram =\n%s\nwant it to contain\n%s", got, tt.want)
+			}
+		})
+	}
+}
+
+// TestRecordedErrorContract asserts that an error the chain recorded surfaces
+// from Build, which is the contract every builder in this module shares. This
+// package could not record one until subgraphs arrived, so it did not run this
+// before.
+func TestRecordedErrorContract(t *testing.T) {
+	t.Parallel()
+
+	buildertest.RunRecordedErrorContract(t, func(w io.Writer) buildertest.Builder {
+		return NewFlowchart(w).SubgraphEnd()
+	})
 }
