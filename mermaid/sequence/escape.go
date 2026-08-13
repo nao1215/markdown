@@ -11,8 +11,10 @@ const (
 	//
 	// A semicolon ends the statement and loses the whole diagram. A "#" opens a
 	// comment, and the text is then quietly cut short at it: "deploy #2 of 3"
-	// reached the drawing as "deploy" and nothing said so.
-	textUnsafe = "#;"
+	// reached the drawing as "deploy" and nothing said so. A line break splits
+	// the statement in two and loses the diagram; its entity form was measured
+	// to decode back into a real line break in the drawing.
+	textUnsafe = "#;\n"
 	// participantUnsafe is what a participant's name cannot carry.
 	//
 	// A semicolon ends the statement here too. A colon separates a name from
@@ -23,8 +25,12 @@ const (
 	// followed it without a word. A parenthesis is safe on its own and a pair
 	// is not, so both are written out: an unmatched one is not a name anybody
 	// writes, and the matched pair is what a name like "Deploy (prod)" has. A
-	// "#" is safe in a name, unlike in the text above.
-	participantUnsafe = ";:,<>-%()"
+	// "#" is safe in a name, unlike in the text above. The plus, the at sign
+	// and the line break joined the set when the probe grew past the first
+	// measurement: a name holding a plus can be declared but never sent a
+	// message, an at sign cannot even be declared, and a line break splits the
+	// statement, each measured by rendering.
+	participantUnsafe = ";:,<>-%()+@\n"
 	// noteParticipantUnsafe is what the participant a note is placed over
 	// cannot carry.
 	//
@@ -32,7 +38,7 @@ const (
 	// over two participants at once and the comma between them is the syntax
 	// that says so. A caller passing "Alice,Bob" there means both, and this
 	// package has no way to tell that apart from one name holding a comma.
-	noteParticipantUnsafe = ";:<>-%()"
+	noteParticipantUnsafe = ";:<>-%()+@\n"
 )
 
 // escape returns text ready to be written into a construct that cannot carry
@@ -46,6 +52,10 @@ const (
 // left alone wherever it reaches the drawing, which is what keeps output that
 // already renders unchanged.
 func escape(text, unsafe string) string {
+	// A CRLF pair and a lone CR are line breaks as much as a lone LF, and the
+	// byte loop below knows only the LF, so they are folded into one first.
+	text = strings.ReplaceAll(text, "\r\n", "\n")
+	text = strings.ReplaceAll(text, "\r", "\n")
 	if !strings.ContainsAny(text, unsafe+"#") {
 		return text
 	}

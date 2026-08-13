@@ -39,21 +39,25 @@ func escapeLabel(label string) string {
 // The title is the one place a Venn diagram takes unquoted text, so a quotation
 // mark needs nothing here. What the unquoted lexer refuses is "#", which starts
 // a comment, and ";", which ends the statement; both are written as the entity
-// form mermaid decodes back into them. Everything else probed reaches the
-// drawing, including an emoji and Japanese.
+// form mermaid decodes back into them. A "<" that does not open a "<br/>" is
+// eaten by the renderer's sanitizer instead of the lexer, and gets the same
+// treatment. Everything else probed reaches the drawing, including an emoji
+// and Japanese.
 func escapeTitle(title string) string {
-	if !strings.ContainsAny(title, "#;") {
+	if !strings.ContainsAny(title, "#;<") {
 		return title
 	}
 
 	var b strings.Builder
 	b.Grow(len(title))
-	for _, r := range title {
-		switch r {
-		case '#':
+	for i, r := range title {
+		switch {
+		case r == '#':
 			b.WriteString(internal.EntityEscape('#'))
-		case ';':
+		case r == ';':
 			b.WriteString(internal.EntityEscape(';'))
+		case r == '<' && !strings.HasPrefix(title[i:], "<br/>"):
+			b.WriteString(internal.EntityEscape('<'))
 		default:
 			b.WriteRune(r)
 		}

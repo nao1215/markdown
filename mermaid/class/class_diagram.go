@@ -40,7 +40,7 @@ func NewDiagram(w io.Writer, opts ...Option) *Diagram {
 	lines := []string{}
 	if c.title != noTitle {
 		lines = append(lines, "---")
-		lines = append(lines, internal.FrontMatterTitle(c.title))
+		lines = append(lines, internal.FrontMatterTitle(internal.FoldFrontMatterTitleCR(c.title)))
 		lines = append(lines, "---")
 	}
 	lines = append(lines, "classDiagram")
@@ -633,11 +633,23 @@ func (d *Diagram) ClassShorthand(className, classDefName string) *Diagram {
 	return d
 }
 
+// quote returns s as the double quoted string a class diagram takes.
+//
+// A backslash is written as "#92;", mermaid's own entity form: the HTML form
+// "&#92;" this package wrote before v1.0.0 was only half decoded, so a
+// caller's backslash was drawn as "&\". A line break is written as "<br/>",
+// which the drawing honors as one; raw it would end the quoted string and
+// lose the diagram. A tab keeps the visible "\t" spelling, now without the
+// stray "&" in front of it. A "#" that would start an entity is escaped
+// first, which is what keeps a caller's literal "#92;" distinct from a
+// caller's backslash.
 func quote(s string) string {
-	escaped := strings.ReplaceAll(s, `\`, "&#92;")
-	escaped = strings.ReplaceAll(escaped, "\r", "&#92;r")
-	escaped = strings.ReplaceAll(escaped, "\n", "&#92;n")
-	escaped = strings.ReplaceAll(escaped, "\t", "&#92;t")
+	escaped := internal.EscapeEntityOpeners(s)
+	escaped = strings.ReplaceAll(escaped, `\`, "#92;")
+	escaped = strings.ReplaceAll(escaped, "\r\n", "<br/>")
+	escaped = strings.ReplaceAll(escaped, "\r", "<br/>")
+	escaped = strings.ReplaceAll(escaped, "\n", "<br/>")
+	escaped = strings.ReplaceAll(escaped, "\t", "#92;t")
 	escaped = strings.ReplaceAll(escaped, `"`, "&quot;")
 	return `"` + escaped + `"`
 }

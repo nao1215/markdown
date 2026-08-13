@@ -38,6 +38,14 @@ func TestNewDiagram(t *testing.T) {
 			want:    "packet",
 			wantErr: true,
 		},
+		{
+			// The sanitizer eats a bare "<" with the rest of the title;
+			// "#60;" decodes to the character.
+			name: "new diagram with a bare angle in the title",
+			opts: []Option{WithTitle("len < 64")},
+			want: `packet
+    title len #60; 64`,
+		},
 	}
 
 	for _, tt := range tests {
@@ -94,7 +102,7 @@ func TestQuoteEscapesSpecialChars(t *testing.T) {
 	t.Parallel()
 
 	got := quote("a\\b\rc\nd\te\"f")
-	want := `"a&#92;b&#92;rc&#92;nd&#92;te&quot;f"`
+	want := `"a#92;b<br/>c<br/>d#92;te&quot;f"`
 	if diff := cmp.Diff(want, got); diff != "" {
 		t.Errorf("value is mismatch (-want +got):\n%s", diff)
 	}

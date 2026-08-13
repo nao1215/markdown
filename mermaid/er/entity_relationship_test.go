@@ -391,6 +391,15 @@ func TestCommentEscapesTheQuoteThatEndsIt(t *testing.T) {
 			},
 			want: `"PR #123 merged"`,
 		},
+		"a line break in a comment becomes the break mermaid draws": {
+			// Raw it was swallowed and "first\nsecond" drew "firstsecond".
+			build: func(w io.Writer) *Diagram {
+				return NewDiagram(w).NoRelationship(NewEntity("teachers", []*Attribute{
+					{Type: "int", Name: "id", Comment: "first\nsecond"},
+				}))
+			},
+			want: `"first<br/>second"`,
+		},
 	}
 
 	for name, tt := range tests {

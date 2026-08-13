@@ -17,9 +17,10 @@ import (
 // Each "%" of such a run is written as the entity form mermaid decodes back
 // into it. A lone "%" is left alone, so "50% done" comes out as it was given,
 // and a "#" is escaped only where it would otherwise start an entity, which
-// keeps "PR #12" unchanged too.
+// keeps "PR #12" unchanged too. A "<" that does not open a "<br/>" is eaten by
+// the renderer's sanitizer and is written as its entity for the same reason.
 func escapeTitle(title string) string {
-	if !strings.ContainsAny(title, "%#") {
+	if !strings.ContainsAny(title, "%#<") {
 		return title
 	}
 
@@ -29,6 +30,8 @@ func escapeTitle(title string) string {
 		switch {
 		case title[i] == '%' && adjacentPercent(title, i):
 			b.WriteString(internal.EntityEscape('%'))
+		case title[i] == '<' && !strings.HasPrefix(title[i:], "<br/>"):
+			b.WriteString(internal.EntityEscape('<'))
 		case title[i] == '#' && internal.StartsEntity(title[i+1:]):
 			b.WriteString(internal.EntityEscape('#'))
 		default:

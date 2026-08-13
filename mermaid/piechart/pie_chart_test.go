@@ -291,6 +291,17 @@ func TestTitleEscapesThePercentPairThatCommentsItOut(t *testing.T) {
 		"a plain hash is left alone":         {title: "PR #123 merged", want: "    title PR #123 merged"},
 		"a quote needs nothing when bare":    {title: `the "core"`, want: `    title the "core"`},
 		"text with neither is left as it is": {title: "Sales", want: "    title Sales"},
+		"a bare angle becomes the entity": {
+			// The sanitizer eats a bare "<" with the rest of the title;
+			// "#60;" decodes to the character.
+			title: "cost < 10", want: "    title cost #60; 10",
+		},
+		"a br is left as the break it draws": {title: "a<br/>b", want: "    title a<br/>b"},
+		"a line break becomes the entity": {
+			// Raw it split the statement and lost the chart; "#10;" decodes to
+			// a real line break in a title.
+			title: "a\nb", want: "    title a#10;b",
+		},
 	}
 
 	for name, tt := range tests {
@@ -302,6 +313,19 @@ func TestTitleEscapesThePercentPairThatCommentsItOut(t *testing.T) {
 				t.Errorf("chart =\n%s\nwant it to contain\n%s", got, tt.want)
 			}
 		})
+	}
+}
+
+// TestLabelCarriesALineBreakAsBr covers the slice label: a raw line break
+// ended the quoted label early and the lexer refused the whole chart, and
+// "<br/>" is the line break mermaid draws inside one.
+func TestLabelCarriesALineBreakAsBr(t *testing.T) {
+	t.Parallel()
+
+	got := NewPieChart(io.Discard).LabelAndIntValue("first\nsecond", 10).String()
+
+	if want := `    "first<br/>second" : 10`; !strings.Contains(got, want) {
+		t.Errorf("chart =\n%s\nwant it to contain\n%s", got, want)
 	}
 }
 

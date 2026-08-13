@@ -4,7 +4,7 @@ Every label below holds the punctuation this diagram type can carry. Generated b
 
 ```mermaid
 venn-beta
-    title title "'#35;#59;[](){}🎉日本語:,*-|%%\
-    set a["before #quot;'#;[](){}<br/>🎉日本語:,*-|%%\ after"]
-    set b["x#quot;'#;[](){}<br/>🎉日本語:,*-|%%\x"]
+    title title "'#35;#59;[](){}🎉日本語:,*-|`~&=+.?@$^_>#60;%%\
+    set a["before #quot;'#;[](){}<br/>🎉日本語:,*-|`~&=+.?@$^_><%%\ after"]
+    set b["x#quot;'#;[](){}<br/>🎉日本語:,*-|`~&=+.?@$^_><%%\x"]
 ```

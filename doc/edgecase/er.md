@@ -4,12 +4,12 @@ Every label below holds the punctuation this diagram type can carry. Generated b
 
 ```mermaid
 erDiagram
-    teachers ||--o{ students : "before #quot;'#;[](){}<br/>🎉日本語:,*-|%%\ after"
+    teachers ||--o{ students : "before <br/>#quot;'#;[](){}<br/>🎉日本語:,*-|`~&=+.?@$^_><%%\ after"
     students {
-        int teacher_id FK "before #quot;'#;[](){}<br/>🎉日本語:,*-|%%\ after"
+        int teacher_id FK "before <br/>#quot;'#;[](){}<br/>🎉日本語:,*-|`~&=+.?@$^_><%%\ after"
     }
     teachers {
-        int id PK "before #quot;'#;[](){}<br/>🎉日本語:,*-|%%\ after"
+        int id PK "before <br/>#quot;'#;[](){}<br/>🎉日本語:,*-|`~&=+.?@$^_><%%\ after"
     }
 
 ```

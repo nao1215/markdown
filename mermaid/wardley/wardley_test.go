@@ -92,6 +92,14 @@ func TestMap(t *testing.T) {
 			},
 			want: lines("wardley-beta", "    title 100#37;#37; done"),
 		},
+		"a bare angle in a title becomes the entity": {
+			// The sanitizer eats a bare "<" with the rest of the title;
+			// "#60;" decodes to the character, and "<br/>" is left alone.
+			build: func(w io.Writer) *wardley.Map {
+				return wardley.NewMap(w, wardley.WithTitle("cost < 10, a<br/>b"))
+			},
+			want: lines("wardley-beta", "    title cost #60; 10, a<br/>b"),
+		},
 		"a lone percent in a title is left alone": {
 			build: func(w io.Writer) *wardley.Map {
 				return wardley.NewMap(w, wardley.WithTitle("50% done"))

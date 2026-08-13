@@ -1876,7 +1876,7 @@ func main() {
 }
 ```
 
-A period holds as many events as you give it, and `Event` adds one more to the period written last. A colon in any text is emitted as `&#58;`, because a colon is what separates a period from its events; it reaches the reader as a colon either way, so `Period("09:00", "Stand up")` says what it looks like.
+A period holds as many events as you give it, and `Event` adds one more to the period written last. A colon in any text is emitted as `#58;`, because a colon is what separates a period from its events; it reaches the reader as a colon either way, so `Period("09:00", "Stand up")` says what it looks like.
 
 Plain text output: [markdown is here](./doc/timeline/generated.md)
 ````

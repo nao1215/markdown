@@ -4,9 +4,9 @@ Every label below holds the punctuation this diagram type can carry. Generated b
 
 ```mermaid
 gantt
-    title title "'#;[](){}🎉日本語:,*-|%%\
+    title title "'#;[](){}🎉日本語:,*-|`~&=+.?@$^_>#60;%%\
     dateFormat YYYY-MM-DD
-    section x"'#;[](){}<br/>🎉日本語:,*-|%%\x
-    x"'#;[](){}<br/>🎉日本語#58;,*-|%%\x :2024-01-01, 2d
-    x"'#;[](){}<br/>🎉日本語#58;,*-|%%\x :milestone, milestone, 2024-01-03, 0d
+    section x<br/>"'#;[](){}<br/>🎉日本語:,*-|`~&=+.?@$^_><%%\x
+    x<br/>"'#;[](){}<br/>🎉日本語#58;,*-|`~&=+.?@$^_><%%\x :2024-01-01, 2d
+    x<br/>"'#;[](){}<br/>🎉日本語#58;,*-|`~&=+.?@$^_><%%\x :milestone, milestone, 2024-01-03, 0d
 ```

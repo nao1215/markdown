@@ -78,7 +78,11 @@ func NewDiagram(w io.Writer, opts ...Option) *Diagram {
 				err:  errors.New("title must not contain newline characters"),
 			}
 		}
-		lines = append(lines, fmt.Sprintf("    title %s", quote(trimmedTitle)))
+		// The quoting keeps the parser happy, but a bare "<" is still eaten by
+		// the renderer's sanitizer inside the quotes; its entity form is drawn
+		// as the character. EscapeTitleAngle also escapes the entity-opening
+		// hashes, so the title skips quote's own first pass.
+		lines = append(lines, fmt.Sprintf("    title %s", quoteEscaped(internal.EscapeTitleAngle(normalizeQuoted(trimmedTitle)))))
 	}
 
 	return &Diagram{
@@ -366,12 +370,26 @@ func formatNumber(value float64) string {
 	return strconv.FormatFloat(value, 'f', -1, 64)
 }
 
+// quote returns value as the double quoted string an xy chart takes.
+//
+// A "#" that would start an entity is escaped first, which is what keeps a
+// caller's literal "#92;" distinct from a caller's backslash. The title goes
+// through quoteEscaped directly instead, because EscapeTitleAngle has already
+// done that half for it.
 func quote(value string) string {
-	escaped := normalizeQuoted(value)
-	escaped = strings.ReplaceAll(escaped, `\`, "&#92;")
-	escaped = strings.ReplaceAll(escaped, "\r", "&#92;r")
-	escaped = strings.ReplaceAll(escaped, "\n", "&#92;n")
-	escaped = strings.ReplaceAll(escaped, "\t", "&#92;t")
+	return quoteEscaped(internal.EscapeEntityOpeners(normalizeQuoted(value)))
+}
+
+// quoteEscaped wraps text whose entity-opening hashes are already escaped.
+//
+// A backslash is written as "#92;", mermaid's own entity form: the HTML form
+// "&#92;" this package wrote before v1.0.0 was only half decoded, so a
+// caller's backslash was drawn as "&\". A tab keeps the visible "\t" spelling,
+// now without the stray "&" in front of it; a line break never reaches this
+// function, because every text field rejects one with an error.
+func quoteEscaped(escaped string) string {
+	escaped = strings.ReplaceAll(escaped, `\`, "#92;")
+	escaped = strings.ReplaceAll(escaped, "\t", "#92;t")
 	escaped = strings.ReplaceAll(escaped, `"`, "&quot;")
 	return `"` + escaped + `"`
 }

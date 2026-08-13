@@ -7,4 +7,4 @@ timeline
 
     section Third wave
         2006 : Twitter
-        09&#58;00 stand up
+        09#58;00 stand up

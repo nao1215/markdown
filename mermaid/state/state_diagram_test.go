@@ -640,6 +640,12 @@ func TestStatementTextEscapesTheSemicolonThatEndsIt(t *testing.T) {
 			build: func(w io.Writer) *Diagram { return NewDiagram(w).State("s1", "PR #123") },
 			want:  "    s1 : PR #123",
 		},
+		"a line break in a description becomes the break mermaid draws": {
+			// Raw it split the statement and the second line drew as a stray
+			// state.
+			build: func(w io.Writer) *Diagram { return NewDiagram(w).State("s1", "first\nsecond") },
+			want:  "    s1 : first<br/>second",
+		},
 	}
 
 	for name, tt := range tests {

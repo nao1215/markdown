@@ -38,7 +38,7 @@ func NewDiagram(w io.Writer, opts ...Option) *Diagram {
 	lines := []string{}
 	if c.title != noTitle {
 		lines = append(lines, "---")
-		lines = append(lines, internal.FrontMatterTitle(c.title))
+		lines = append(lines, internal.FrontMatterTitle(internal.FoldFrontMatterTitleCR(c.title)))
 		lines = append(lines, "---")
 	}
 	lines = append(lines, "stateDiagram-v2")

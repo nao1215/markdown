@@ -29,12 +29,6 @@ const (
 	statementIndent = "    "
 	// sectionIndent is the indent of a period inside a section.
 	sectionIndent = "        "
-	// colonEntity is the HTML entity for a colon.
-	//
-	// A colon separates a period from its events, and mermaid's timeline syntax
-	// has no escape for one in the text. It renders the text as HTML, so the
-	// entity reaches the reader as a colon while the parser never sees one.
-	colonEntity = "&#58;"
 )
 
 // Diagram is a timeline diagram builder.
@@ -72,9 +66,11 @@ func NewDiagram(w io.Writer, opts ...Option) *Diagram {
 	lines := make([]string, 0, timelineLinesCap)
 	lines = append(lines, "timeline")
 	if trimmedTitle != noTitle {
-		// A title statement reads to the end of the line, so the text goes in
-		// as it is; the newline that would end it early is refused above.
-		lines = append(lines, statementIndent+"title "+trimmedTitle)
+		// A title statement reads to the end of the line, so almost every
+		// character goes in as it is; the newline that would end it early is
+		// refused above, and a "<" is escaped because the renderer's sanitizer
+		// otherwise draws it as "&lt;".
+		lines = append(lines, statementIndent+"title "+internal.EscapeTitleAngle(trimmedTitle))
 	}
 
 	return &Diagram{
@@ -136,7 +132,7 @@ func (d *Diagram) Section(name string) *Diagram {
 
 	d.inSection = true
 	d.hasPeriod = false
-	d.body = append(d.body, statementIndent+"section "+text)
+	d.body = append(d.body, statementIndent+"section "+escapeSection(text))
 	return d
 }
 
@@ -158,7 +154,7 @@ func (d *Diagram) Period(period string, events ...string) *Diagram {
 
 	var line strings.Builder
 	line.WriteString(d.periodIndent())
-	line.WriteString(text)
+	line.WriteString(escapeText(text))
 	for i, event := range events {
 		eventText, err := validateText(fmt.Sprintf("event %d of period %q", i+1, period), event)
 		if err != nil {
@@ -166,7 +162,7 @@ func (d *Diagram) Period(period string, events ...string) *Diagram {
 			return d
 		}
 		line.WriteString(" : ")
-		line.WriteString(eventText)
+		line.WriteString(escapeText(eventText))
 	}
 
 	d.hasPeriod = true
@@ -193,7 +189,7 @@ func (d *Diagram) Event(event string) *Diagram {
 		return d
 	}
 
-	d.body[len(d.body)-1] += " : " + text
+	d.body[len(d.body)-1] += " : " + escapeText(text)
 	return d
 }
 
@@ -214,13 +210,14 @@ func (d *Diagram) setError(err error) {
 	}
 }
 
-// validateText returns value ready to be written into the diagram.
+// validateText returns value trimmed and checked, ready for the escaping its
+// field needs.
 //
-// A newline ends a statement and a colon separates a period from its events, so
-// neither can be carried through as it is. The newline is rejected, because a
-// timeline entry is a single line by construction and silently joining the
-// lines would say something the caller did not. The colon becomes an entity,
-// which reaches the reader unchanged.
+// A newline ends a statement, so it cannot be carried through as it is. It is
+// rejected rather than encoded, because a timeline entry is a single line by
+// construction and silently joining the lines would say something the caller
+// did not. The punctuation a field cannot carry is escaped by the caller,
+// because a section and a period lose a different set: see escape.go.
 func validateText(fieldName, value string) (string, error) {
 	trimmed := strings.TrimSpace(value)
 	if trimmed == "" {
@@ -229,7 +226,7 @@ func validateText(fieldName, value string) (string, error) {
 	if containsNewline(trimmed) {
 		return "", fmt.Errorf("%s must not contain newline characters", fieldName)
 	}
-	return strings.ReplaceAll(trimmed, ":", colonEntity), nil
+	return trimmed, nil
 }
 
 // containsNewline reports whether value holds a line ending of either kind.

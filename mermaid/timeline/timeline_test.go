@@ -92,20 +92,68 @@ func TestDiagram(t *testing.T) {
 				return timeline.NewDiagram(w).Period("09:00", "Stand up")
 			},
 			// The parser would read a bare colon as the separator, so the period
-			// would silently become an event of an empty period.
-			want: []string{"timeline", "    09&#58;00 : Stand up"},
+			// would silently become an event of an empty period. The mermaid
+			// form "#58;" is drawn as a colon; the HTML form "&#58;" written
+			// before v1.0.0 was drawn as "&:", which is why it went.
+			want: []string{"timeline", "    09#58;00 : Stand up"},
 		},
 		"a colon in an event becomes an entity": {
 			build: func(w io.Writer) *timeline.Diagram {
 				return timeline.NewDiagram(w).Period("2004", "Launch: phase one").Event("Review: phase two")
 			},
-			want: []string{"timeline", "    2004 : Launch&#58; phase one : Review&#58; phase two"},
+			want: []string{"timeline", "    2004 : Launch#58; phase one : Review#58; phase two"},
 		},
 		"a colon in a section name becomes an entity": {
 			build: func(w io.Writer) *timeline.Diagram {
 				return timeline.NewDiagram(w).Section("Phase: one")
 			},
-			want: []string{"timeline", "    section Phase&#58; one"},
+			want: []string{"timeline", "    section Phase#58; one"},
+		},
+		"a hash in a period becomes an entity": {
+			build: func(w io.Writer) *timeline.Diagram {
+				return timeline.NewDiagram(w).Period("deploy #2", "Ship")
+			},
+			// A bare "#" opens a comment and the drawing showed "deploy" with
+			// no word about the rest, measured by rendering.
+			want: []string{"timeline", "    deploy #35;2 : Ship"},
+		},
+		"a percent run in an event becomes entities": {
+			build: func(w io.Writer) *timeline.Diagram {
+				return timeline.NewDiagram(w).Period("2004", "coverage 100%% now")
+			},
+			// A "%%" run opens a comment and loses the whole line; a lone "%"
+			// reaches the drawing and is left alone.
+			want: []string{"timeline", "    2004 : coverage 100#37;#37; now"},
+		},
+		"a lone percent is left alone": {
+			build: func(w io.Writer) *timeline.Diagram {
+				return timeline.NewDiagram(w).Period("2004", "50% of traffic")
+			},
+			want: []string{"timeline", "    2004 : 50% of traffic"},
+		},
+		"a hash in a section is left alone": {
+			build: func(w io.Writer) *timeline.Diagram {
+				return timeline.NewDiagram(w).Section("phase #2")
+			},
+			// A section name carries a bare "#" to the drawing, measured by
+			// rendering, so it is not touched.
+			want: []string{"timeline", "    section phase #2"},
+		},
+		"a literal entity in a section stays literal": {
+			build: func(w io.Writer) *timeline.Diagram {
+				return timeline.NewDiagram(w).Section("a#58;b")
+			},
+			// The "#" would otherwise decode as this package's own escape, and
+			// a caller's literal "#58;" has to stay distinct from a colon.
+			want: []string{"timeline", "    section a#35;58;b"},
+		},
+		"an angle in the title becomes an entity": {
+			build: func(w io.Writer) *timeline.Diagram {
+				return timeline.NewDiagram(w, timeline.WithTitle("cost < 10"))
+			},
+			// The sanitizer draws a bare "<" as "&lt;"; the entity form is
+			// drawn as the character.
+			want: []string{"timeline", "    title cost #60; 10"},
 		},
 		"text is trimmed": {
 			build: func(w io.Writer) *timeline.Diagram {

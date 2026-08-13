@@ -37,7 +37,10 @@ func NewChart(w io.Writer, opts ...Option) *Chart {
 
 	lines := []string{"gantt"}
 	if c.title != noTitle {
-		lines = append(lines, fmt.Sprintf("    title %s", c.title))
+		// The title takes every character a task name cannot, so only the "<"
+		// the sanitizer eats and the line break the grammar cannot cross are
+		// escaped.
+		lines = append(lines, fmt.Sprintf("    title %s", internal.EscapeTitle(c.title)))
 	}
 	if c.dateFormat != "" {
 		lines = append(lines, fmt.Sprintf("    dateFormat %s", c.dateFormat))
@@ -92,7 +95,10 @@ func (c *Chart) Build() error {
 
 // Section adds a section to the Gantt chart.
 func (c *Chart) Section(name string) *Chart {
-	c.body = append(c.body, fmt.Sprintf("    section %s", name))
+	// A raw line break would end the section statement early and hand the rest
+	// of the name to the parser as a line of its own; "<br/>" is the line
+	// break this chart draws.
+	c.body = append(c.body, fmt.Sprintf("    section %s", internal.LineBreaksToBr(name)))
 	return c
 }
 

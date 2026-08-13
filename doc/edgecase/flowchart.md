@@ -4,15 +4,15 @@ Every label below holds the punctuation this diagram type can carry. Generated b
 
 ```mermaid
 ---
-title: "title \"'#;[](){}🎉日本語:,*-|%%\\"
+title: "title \"'#;[](){}🎉日本語:,*-|`~&=+.?@$^_>%%\\"
 ---
 flowchart TB
-    subgraph group["x#quot;'#;[](){}<br/>🎉日本語:,*-|%%\x"]
+    subgraph group["x<br/>#quot;'#;[](){}<br/>🎉日本語:,*-|`~&=+.?@$^_><%%\x"]
     end
-    click A "https://example.com" "before #quot;'#;[](){}<br/>🎉日本語:,*-|%%\ after"
-    A["before #quot;'#;[](){}<br/>🎉日本語:,*-|%%\ after"]
-    B{"x#quot;'#;[](){}<br/>🎉日本語:,*-|%%\x"}
-    C(("x#quot;'#;[](){}<br/>🎉日本語:,*-|%%\x"))
-    A-->|"x#quot;'#;[](){}<br/>🎉日本語:,*-|%%\x"|B
-    B-. "x#quot;'#;[](){}<br/>🎉日本語:,*-|%%\x" .-> C
+    click A "https://example.com" "before <br/>#quot;'#;[](){}<br/>🎉日本語:,*-|`~&=+.?@$^_><%%\ after"
+    A["before <br/>#quot;'#;[](){}<br/>🎉日本語:,*-|`~&=+.?@$^_><%%\ after"]
+    B{"x<br/>#quot;'#;[](){}<br/>🎉日本語:,*-|`~&=+.?@$^_><%%\x"}
+    C(("x<br/>#quot;'#;[](){}<br/>🎉日本語:,*-|`~&=+.?@$^_><%%\x"))
+    A-->|"x<br/>#quot;'#;[](){}<br/>🎉日本語:,*-|`~&=+.?@$^_><%%\x"|B
+    B-. "x<br/>#quot;'#;[](){}<br/>🎉日本語:,*-|`~&=+.?@$^_><%%\x" .-> C
 ```

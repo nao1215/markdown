@@ -59,7 +59,7 @@ func NewDiagram(w io.Writer, opts ...Option) *Diagram {
 			}
 		}
 		lines = append(lines, "---")
-		lines = append(lines, internal.FrontMatterTitle(c.title))
+		lines = append(lines, internal.FrontMatterTitle(internal.FoldFrontMatterTitleCR(c.title)))
 		lines = append(lines, "---")
 	}
 	lines = append(lines, "gitGraph")
@@ -392,12 +392,22 @@ func formatRefName(name string) string {
 	return name
 }
 
+// quote returns v as the double quoted string a git graph takes.
+//
+// A backslash is written as "#92;", mermaid's own entity form, measured to be
+// drawn as the character: the HTML form "&#92;" written before v1.0.0 was only
+// half decoded, so a caller's backslash was drawn as "&\". A tab keeps the
+// visible "\t" spelling without the stray "&". A line break is written as
+// "<br/>" defensively: every text field rejects one before it gets here. A "#" that
+// would start an entity is escaped first, which keeps a caller's literal
+// "#92;" distinct from a caller's backslash.
 func quote(v string) string {
-	s := normalizeQuoted(v)
-	escaped := strings.ReplaceAll(s, `\`, "&#92;")
-	escaped = strings.ReplaceAll(escaped, "\r", "&#92;r")
-	escaped = strings.ReplaceAll(escaped, "\n", "&#92;n")
-	escaped = strings.ReplaceAll(escaped, "\t", "&#92;t")
+	escaped := internal.EscapeEntityOpeners(normalizeQuoted(v))
+	escaped = strings.ReplaceAll(escaped, `\`, "#92;")
+	escaped = strings.ReplaceAll(escaped, "\r\n", "<br/>")
+	escaped = strings.ReplaceAll(escaped, "\r", "<br/>")
+	escaped = strings.ReplaceAll(escaped, "\n", "<br/>")
+	escaped = strings.ReplaceAll(escaped, "\t", "#92;t")
 	escaped = strings.ReplaceAll(escaped, `"`, "&quot;")
 	return `"` + escaped + `"`
 }

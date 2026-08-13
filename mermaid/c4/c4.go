@@ -435,16 +435,20 @@ func quote(value string) string {
 // escaping above does not apply: a "#quot;" would be read as an entity but a
 // plain quotation mark is drawn as itself. What the unquoted lexer refuses is
 // "#", which starts a comment, and ";", which ends the statement; both are
-// written as the entity form mermaid decodes back into them.
+// written as the entity form mermaid decodes back into them. A "<" that does
+// not open a "<br/>" passes the lexer and is then eaten by the renderer's
+// sanitizer, so it is written the same way.
 func escapeStatement(value string) string {
 	var b strings.Builder
 	b.Grow(len(value))
-	for _, r := range value {
-		switch r {
-		case '#':
+	for i, r := range value {
+		switch {
+		case r == '#':
 			b.WriteString("#35;")
-		case ';':
+		case r == ';':
 			b.WriteString("#59;")
+		case r == '<' && !strings.HasPrefix(value[i:], "<br/>"):
+			b.WriteString("#60;")
 		default:
 			b.WriteRune(r)
 		}

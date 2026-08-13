@@ -4,7 +4,7 @@ Every label below holds the punctuation this diagram type can carry. Generated b
 
 ```mermaid
 wardley-beta
-    title title "'#;[](){}🎉日本語:,*-|#37;#37;\
+    title title "'#;[](){}🎉日本語:,*-|`~&=+.?@$^_>#60;#37;#37;\
     anchor Customer [0.95, 0.95]
     component Checkout (web) [0.6, 0.8]
     Customer -> Checkout (web)

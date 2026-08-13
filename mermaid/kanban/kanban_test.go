@@ -520,6 +520,11 @@ func TestMetadataEscapingMeetsThreeReaders(t *testing.T) {
 		"a plain hash is left alone":    {value: "PR #123", want: "ticket: 'PR #123'"},
 		"a named entity gets escaped":   {value: "a#125;b", want: "ticket: 'a#35;125;b'"},
 		"ordinary text is left as text": {value: "KB-1", want: "ticket: 'KB-1'"},
+		"a caret is an entity": {
+			// The kanban lexer refuses a bare caret before YAML sees the line,
+			// measured by rendering: "assigned: 'x^x'" lost the whole board.
+			value: "a^b", want: "ticket: 'a#94;b'",
+		},
 	}
 
 	for name, tt := range tests {

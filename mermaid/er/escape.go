@@ -23,7 +23,12 @@ import (
 // without this a comment holding "#quot;" and a comment holding a quotation
 // mark would produce the same diagram. A "#" anywhere else is ordinary text and
 // comes out unchanged, which is what keeps the golden files as they are.
+//
+// A raw line break inside the quoted string is swallowed by the parser and the
+// two lines are joined into one word, so "first\nsecond" drew "firstsecond";
+// it is written as "<br/>", the line break mermaid draws inside a comment.
 func escapeComment(comment string) string {
+	comment = internal.LineBreaksToBr(comment)
 	if !strings.ContainsAny(comment, `"#`) {
 		return comment
 	}

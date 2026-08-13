@@ -15,8 +15,12 @@ import (
 const (
 	// titleUnsafe is what a title cannot carry. A semicolon ends the statement
 	// and loses the whole diagram; a "#" starts a comment, and the title is
-	// then quietly cut short at it rather than the diagram failing.
-	titleUnsafe = "#;"
+	// then quietly cut short at it rather than the diagram failing. A "<" that
+	// does not open a "<br/>" passes the parser and is then eaten by the
+	// renderer's sanitizer, taking the rest of the title with it. A raw line
+	// break splits the statement — the other fields reject one, but a title
+	// carries it as the entity a title decodes into a real line break.
+	titleUnsafe = "#;<\n"
 	// sectionUnsafe is what a section name cannot carry. A colon loses the
 	// diagram here, unlike in a title, and a "#" is safe here, unlike in one.
 	sectionUnsafe = ";:"
@@ -38,6 +42,11 @@ const (
 // left alone in the fields that can hold one, which is what keeps output that
 // already renders unchanged.
 func escapeField(text, unsafe string) string {
+	// A CRLF pair and a lone CR are line breaks as much as a lone LF, and the
+	// byte loop below knows only the LF; the fields that reject a line break
+	// have already done so by the time this runs.
+	text = strings.ReplaceAll(text, "\r\n", "\n")
+	text = strings.ReplaceAll(text, "\r", "\n")
 	if !strings.ContainsAny(text, unsafe+"#") {
 		return text
 	}
@@ -46,6 +55,14 @@ func escapeField(text, unsafe string) string {
 	b.Grow(len(text))
 	for i := 0; i < len(text); i++ {
 		switch {
+		case text[i] == '<':
+			// Only the bare "<" is eaten; "<br/>" is left as the line break
+			// the renderer draws.
+			if strings.IndexByte(unsafe, '<') >= 0 && !strings.HasPrefix(text[i:], "<br/>") {
+				b.WriteString(internal.EntityEscape('<'))
+				continue
+			}
+			b.WriteByte(text[i])
 		case strings.IndexByte(unsafe, text[i]) >= 0:
 			b.WriteString(internal.EntityEscape(rune(text[i])))
 		case text[i] == '#' && internal.StartsEntity(text[i+1:]):

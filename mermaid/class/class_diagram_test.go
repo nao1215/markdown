@@ -162,11 +162,14 @@ func TestDiagram_QuoteEscapesControlChars(t *testing.T) {
 		NoteFor("CheckoutService", "head\rline").
 		Link("CheckoutService", "https://example.com/docs\\checkout", "tab\ttooltip")
 
+	// A line break is written as "<br/>", which the drawing honors as one, and
+	// a backslash as "#92;", which decodes to the character: the HTML forms
+	// written before v1.0.0 were only half decoded and drew a stray "&".
 	want := `classDiagram
     class CheckoutService
-    note "line1&#92;nline2"
-    note for CheckoutService "head&#92;rline"
-    link CheckoutService "https://example.com/docs&#92;checkout" "tab&#92;ttooltip"`
+    note "line1<br/>line2"
+    note for CheckoutService "head<br/>line"
+    link CheckoutService "https://example.com/docs#92;checkout" "tab#92;ttooltip"`
 
 	got := strings.ReplaceAll(d.String(), "\r\n", "\n")
 	if diff := cmp.Diff(want, got); diff != "" {
@@ -707,6 +710,20 @@ func TestRelationLabelEscapesTheCharactersThatEndTheStatement(t *testing.T) {
 				return d.RelationWithLabel("A", RelationshipAssociation, "B", "a#;b")
 			},
 			want: "    A --> B : a##59;b",
+		},
+		"a line break in a relation label": {
+			// Raw it split the statement and the second line drew as a stray
+			// class; "<br/>" is the line break the drawing honors.
+			build: func(d *Diagram) *Diagram {
+				return d.RelationWithLabel("A", RelationshipAssociation, "B", "a\nb")
+			},
+			want: "    A --> B : a<br/>b",
+		},
+		"a CRLF pair in a member is one line break": {
+			build: func(d *Diagram) *Diagram {
+				return d.Member("A", "a\r\nb")
+			},
+			want: "    A : a<br/>b",
 		},
 	}
 

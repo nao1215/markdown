@@ -21,7 +21,7 @@ func (f *Flowchart) Subgraph(id, title string) *Flowchart {
 		return f
 	}
 
-	f.body = append(f.body, fmt.Sprintf(`%ssubgraph %s["%s"]`, f.indent(), id, escapeText(title)))
+	f.body = append(f.body, fmt.Sprintf(`%ssubgraph %s["%s"]`, f.indent(), id, escapePlainText(title)))
 	f.depth++
 	return f
 }
