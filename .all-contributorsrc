@@ -25,7 +25,8 @@
       "avatar_url": "https://avatars.githubusercontent.com/u/17958166?v=4",
       "profile": "https://github.com/varmakarthik12",
       "contributions": [
-        "code"
+        "code",
+        "ideas"
       ]
     },
     {
@@ -53,6 +54,60 @@
       "profile": "https://github.com/amitaifrey",
       "contributions": [
         "code"
+      ]
+    },
+    {
+      "login": "wI2L",
+      "name": "William Poussier",
+      "avatar_url": "https://avatars.githubusercontent.com/u/6519569?v=4",
+      "profile": "https://github.com/wI2L",
+      "contributions": [
+        "ideas"
+      ]
+    },
+    {
+      "login": "hibare",
+      "name": "Shubham Hibare",
+      "avatar_url": "https://avatars.githubusercontent.com/u/20609766?v=4",
+      "profile": "https://hibare.in/",
+      "contributions": [
+        "bug"
+      ]
+    },
+    {
+      "login": "esacteksab",
+      "name": "Barry Morrison",
+      "avatar_url": "https://avatars.githubusercontent.com/u/689591?v=4",
+      "profile": "https://barrymorrison.com/",
+      "contributions": [
+        "ideas"
+      ]
+    },
+    {
+      "login": "chaunsin",
+      "name": "chaunsin",
+      "avatar_url": "https://avatars.githubusercontent.com/u/33649884?v=4",
+      "profile": "https://github.com/chaunsin",
+      "contributions": [
+        "ideas"
+      ]
+    },
+    {
+      "login": "EvilBit-Labs",
+      "name": "EvilBit Labs LLC",
+      "avatar_url": "https://avatars.githubusercontent.com/u/64295955?v=4",
+      "profile": "https://evilbitlabs.io",
+      "contributions": [
+        "financial"
+      ]
+    },
+    {
+      "login": "unclesp1d3r",
+      "name": "UncleSp1d3r",
+      "avatar_url": "https://avatars.githubusercontent.com/u/251112?v=4",
+      "profile": "https://unclesp1d3r.github.io",
+      "contributions": [
+        "financial"
       ]
     }
   ],
