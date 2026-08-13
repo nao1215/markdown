@@ -35,11 +35,15 @@ import (
 )
 
 func main() {
+	// Inside a step, append to the summary the runner renders; outside one,
+	// write a local file.
 	path := os.Getenv("GITHUB_STEP_SUMMARY")
+	flags := os.O_APPEND | os.O_CREATE | os.O_WRONLY
 	if path == "" {
 		path = "generated.md"
+		flags = os.O_TRUNC | os.O_CREATE | os.O_WRONLY
 	}
-	f, err := os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o600)
+	f, err := os.OpenFile(path, flags, 0o600)
 	if err != nil {
 		panic(err)
 	}

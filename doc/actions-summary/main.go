@@ -18,14 +18,22 @@ import (
 
 //go:generate go run main.go
 
+// summaryFileMode keeps the summary file readable by its owner alone, which is
+// all the Actions runner needs.
+const summaryFileMode = 0o600
+
 func main() {
+	// The variable path is the point of this program: the Actions runner
+	// names the file the summary page renders. Appending is only right
+	// there, where earlier steps may already have written; regenerating the
+	// committed sample replaces it.
 	path := os.Getenv("GITHUB_STEP_SUMMARY")
+	flags := os.O_APPEND | os.O_CREATE | os.O_WRONLY
 	if path == "" {
 		path = "generated.md"
+		flags = os.O_TRUNC | os.O_CREATE | os.O_WRONLY
 	}
-	// The variable path is the point of this program: the Actions runner
-	// names the file the summary page renders, and this appends to it.
-	f, err := os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o600) //nolint:gosec
+	f, err := os.OpenFile(path, flags, summaryFileMode) // #nosec G304 G703 -- opening the file GITHUB_STEP_SUMMARY names is this program's purpose
 	if err != nil {
 		panic(err)
 	}
