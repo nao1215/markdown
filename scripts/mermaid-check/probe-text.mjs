@@ -3,10 +3,11 @@
 // path copied from scripts/mermaid-check/check.mjs.
 import { readFileSync } from "node:fs";
 import { createServer } from "node:http";
-import { join, normalize, resolve, sep } from "node:path";
+import { dirname, join, normalize, resolve, sep } from "node:path";
+import { fileURLToPath } from "node:url";
 import puppeteer from "puppeteer";
 
-const root = resolve("/home/nao/ghq/github.com/nao1215/markdown/scripts/mermaid-check");
+const root = resolve(dirname(fileURLToPath(import.meta.url)));
 
 function mermaidBlocks(text) {
   const blocks = [];

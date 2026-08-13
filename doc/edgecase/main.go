@@ -121,10 +121,12 @@ func supported(diagram string) string {
 		"gitgraph":     everything,
 		"kanban":       everything,
 		"mindmap":      everything,
-		// packet puts its title in YAML front matter, and mermaid strips a "%%"
-		// comment out of that before the YAML is read, so a title holding one
-		// comes back cut short. Nothing the builder writes can prevent it: the
-		// stripping happens before the quoting is looked at.
+		// packet writes its title as a statement, and mermaid strips a "%%"
+		// comment out of the source before the packet grammar reads the line,
+		// so a title holding one comes back cut short. Nothing the builder
+		// writes can prevent it: the stripping happens before any escaping is
+		// looked at. The bare "<" that a front matter title cannot carry is
+		// fine here — the statement decodes "#60;", which the builder writes.
 		"packet":   everything.without("%%"),
 		"piechart": lineBreak + everything,
 		"quadrant": lineBreak + everything,
@@ -202,6 +204,9 @@ func shortLabel(diagram string) string {
 // instead; the probe leaves the character out of these titles and the limit is
 // documented at internal.FoldFrontMatterTitleCR. A title statement decodes
 // "#60;" and keeps the character, which is why the other types keep it here.
+// block, kanban and mindmap also write a front matter title, but their
+// renderers never draw one, so nothing can be eaten and their probes stay
+// whole; packet writes a title statement, not front matter.
 func frontMatterTitled(diagram string) bool {
 	switch diagram {
 	case "class", "flowchart", "gitgraph", "radar", "requirement", "state", "treemap":
