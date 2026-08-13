@@ -19,89 +19,6 @@ Complex code that increases the complexity of the library, such as generating ne
 - OS: Linux, macOS, Windows
 - Go: 1.23 or later
 
-## Write GitHub Actions job summaries
-
-Inside a GitHub Actions step, the file named by `GITHUB_STEP_SUMMARY` is rendered on the run's summary page as GitHub Flavored Markdown, mermaid diagrams included. Hand that file to `NewMarkdown` and a Go tool in CI reports with tables, alerts, and charts instead of log lines:
-
-```go
-package main
-
-import (
-	"io"
-	"os"
-
-	"github.com/nao1215/markdown"
-	"github.com/nao1215/markdown/mermaid/piechart"
-)
-
-func main() {
-	// Inside a step, append to the summary the runner renders; outside one,
-	// write a local file.
-	path := os.Getenv("GITHUB_STEP_SUMMARY")
-	flags := os.O_APPEND | os.O_CREATE | os.O_WRONLY
-	if path == "" {
-		path = "generated.md"
-		flags = os.O_TRUNC | os.O_CREATE | os.O_WRONLY
-	}
-	f, err := os.OpenFile(path, flags, 0o600)
-	if err != nil {
-		panic(err)
-	}
-	defer func() {
-		if err := f.Close(); err != nil {
-			panic(err)
-		}
-	}()
-
-	coverage := piechart.NewPieChart(
-		io.Discard,
-		piechart.WithTitle("Coverage"),
-		piechart.WithShowData(true),
-	).
-		LabelAndIntValue("covered", 92).
-		LabelAndIntValue("uncovered", 8).
-		String()
-
-	err = markdown.NewMarkdown(f, markdown.WithBlockSpacing()).
-		H2("Test Results").
-		Table(markdown.TableSet{
-			Header: []string{"Package", "Passed", "Failed"},
-			Rows: [][]string{
-				{"api", "120", "0"},
-				{"core", "89", "2"},
-			},
-		}).
-		Warning("2 tests failed in core; see the failed step for logs.").
-		CodeBlocks(markdown.SyntaxHighlightMermaid, coverage).
-		Build()
-
-	if err != nil {
-		panic(err)
-	}
-}
-```
-
-Plain text output: [markdown is here](./doc/actions-summary/generated.md)
-````text
-## Test Results
-
-| Package | Passed | Failed |
-|---------|---------|---------|
-| api | 120 | 0 |
-| core | 89 | 2 |
-
-> [!WARNING]  
-> 2 tests failed in core; see the failed step for logs.
-
-```mermaid
-%%{init: {"pie": {"textPosition": 0.75}, "themeVariables": {"pieOuterStrokeWidth": "5px"}} }%%
-pie showData
-    title Coverage
-    "covered" : 92
-    "uncovered" : 8
-```
-````
-
 ## Example
 ### Basic usage
 ```go
@@ -2448,6 +2365,89 @@ wardley-beta
     Payment service -> Card network
     evolve Payment service 0.9
 ```
+
+## Write GitHub Actions job summaries
+
+Inside a GitHub Actions step, the file named by `GITHUB_STEP_SUMMARY` is rendered on the run's summary page as GitHub Flavored Markdown, mermaid diagrams included. Hand that file to `NewMarkdown` and a Go tool in CI reports with tables, alerts, and charts instead of log lines:
+
+```go
+package main
+
+import (
+	"io"
+	"os"
+
+	"github.com/nao1215/markdown"
+	"github.com/nao1215/markdown/mermaid/piechart"
+)
+
+func main() {
+	// Inside a step, append to the summary the runner renders; outside one,
+	// write a local file.
+	path := os.Getenv("GITHUB_STEP_SUMMARY")
+	flags := os.O_APPEND | os.O_CREATE | os.O_WRONLY
+	if path == "" {
+		path = "generated.md"
+		flags = os.O_TRUNC | os.O_CREATE | os.O_WRONLY
+	}
+	f, err := os.OpenFile(path, flags, 0o600)
+	if err != nil {
+		panic(err)
+	}
+	defer func() {
+		if err := f.Close(); err != nil {
+			panic(err)
+		}
+	}()
+
+	coverage := piechart.NewPieChart(
+		io.Discard,
+		piechart.WithTitle("Coverage"),
+		piechart.WithShowData(true),
+	).
+		LabelAndIntValue("covered", 92).
+		LabelAndIntValue("uncovered", 8).
+		String()
+
+	err = markdown.NewMarkdown(f, markdown.WithBlockSpacing()).
+		H2("Test Results").
+		Table(markdown.TableSet{
+			Header: []string{"Package", "Passed", "Failed"},
+			Rows: [][]string{
+				{"api", "120", "0"},
+				{"core", "89", "2"},
+			},
+		}).
+		Warning("2 tests failed in core; see the failed step for logs.").
+		CodeBlocks(markdown.SyntaxHighlightMermaid, coverage).
+		Build()
+
+	if err != nil {
+		panic(err)
+	}
+}
+```
+
+Plain text output: [markdown is here](./doc/actions-summary/generated.md)
+````text
+## Test Results
+
+| Package | Passed | Failed |
+|---------|---------|---------|
+| api | 120 | 0 |
+| core | 89 | 2 |
+
+> [!WARNING]  
+> 2 tests failed in core; see the failed step for logs.
+
+```mermaid
+%%{init: {"pie": {"textPosition": 0.75}, "themeVariables": {"pieOuterStrokeWidth": "5px"}} }%%
+pie showData
+    title Coverage
+    "covered" : 92
+    "uncovered" : 8
+```
+````
 
 ## Creating an index for a directory full of markdown files
 The markdown package can create an index for Markdown files within the specified directory. This feature was added to generate indexes for Markdown documents produced by [nao1215/spectest](https://github.com/nao1215/spectest).
