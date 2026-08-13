@@ -195,21 +195,19 @@ func shortLabel(diagram string) string {
 	return "plain_label 1"
 }
 
-// frontMatterTitled are the diagram types whose renderer draws the title out
-// of YAML front matter. A bare "<" in one is eaten by the sanitizer along with
-// the rest of the title, and every escape form — "#60;", "&lt;", "&#60;" — is
-// drawn as the literal text it is, so there is nothing to write instead; the
-// probe leaves the character out of these titles and the limit is documented
-// at internal.FoldFrontMatterTitleCR. A title statement decodes "#60;" and
-// keeps the character, which is why the other types keep it here.
-var frontMatterTitled = map[string]bool{
-	"class":       true,
-	"flowchart":   true,
-	"gitgraph":    true,
-	"radar":       true,
-	"requirement": true,
-	"state":       true,
-	"treemap":     true,
+// frontMatterTitled reports whether the diagram type's renderer draws the
+// title out of YAML front matter. A bare "<" in one is eaten by the sanitizer
+// along with the rest of the title, and every escape form — "#60;", "&lt;",
+// "&#60;" — is drawn as the literal text it is, so there is nothing to write
+// instead; the probe leaves the character out of these titles and the limit is
+// documented at internal.FoldFrontMatterTitleCR. A title statement decodes
+// "#60;" and keeps the character, which is why the other types keep it here.
+func frontMatterTitled(diagram string) bool {
+	switch diagram {
+	case "class", "flowchart", "gitgraph", "radar", "requirement", "state", "treemap":
+		return true
+	}
+	return false
 }
 
 // title is the diagram title. Some types write it into YAML front matter and
@@ -223,7 +221,7 @@ var frontMatterTitled = map[string]bool{
 func title(diagram string) string {
 	t := strings.ReplaceAll(punctuation(diagram), "<br/>", "")
 	t = strings.ReplaceAll(t, "\n", "")
-	if frontMatterTitled[diagram] {
+	if frontMatterTitled(diagram) {
 		t = strings.ReplaceAll(t, "<", "")
 	}
 	return "title " + t
