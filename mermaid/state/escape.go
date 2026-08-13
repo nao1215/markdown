@@ -30,10 +30,15 @@ const (
 // holding "#59;" and text holding a semicolon would draw the same diagram; a
 // "#" anywhere else is ordinary text and comes out unchanged.
 //
+// A raw line break splits the statement the same way a semicolon does, and the
+// second line drew as a stray state; it is written as "<br/>", the line break
+// mermaid draws in these constructs.
+//
 // The lines of a multi line note need none of this: mermaid reads each as text
 // until "end note" and takes every character probed, colon and semicolon
 // included.
 func escapeStatement(text, unsafe string) string {
+	text = internal.LineBreaksToBr(text)
 	if !strings.ContainsAny(text, unsafe+"#") {
 		return text
 	}

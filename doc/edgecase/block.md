@@ -4,10 +4,11 @@ Every label below holds the punctuation this diagram type can carry. Generated b
 
 ```mermaid
 ---
-title: "title \"'#;[](){}🎉日本語:,*-|%%\\"
+title: "title \"'#;[](){}🎉日本語:,*-|`~&=+.?@$^_><%%\\"
 ---
 block
     columns 2
-    a["before &quot;'#;[](){}<br/>🎉日本語:,*-|%%&#92; after"] b{"x&quot;'#;[](){}<br/>🎉日本語:,*-|%%&#92;x"}
-    a -- "x&quot;'#;[](){}<br/>🎉日本語:,*-|%%&#92;x" --> b
+    a["before &quot;'#;[](){}<br/>🎉日本語:,*-|`~&=+.?@$^_>#60;%%#92; after"] b{"x&quot;'#;[](){}<br/>🎉日本語:,*-|`~&=+.?@$^_>#60;%%#92;x"}
+    a -- "x&quot;'#;[](){}<br/>🎉日本語:,*-|`~&=+.?@$^_>#60;%%#92;x" --> b
 ```
+<!-- every character here must be drawn: "'#;[](){}🎉日本語:,*-|`~&=+.?@$^_><%%\ -->

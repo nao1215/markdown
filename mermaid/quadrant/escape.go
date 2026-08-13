@@ -15,8 +15,12 @@ const (
 	// line break in most other diagram types, is not accepted here at all.
 	// A percent run is here too: it opens a comment, and on an axis or a
 	// quadrant line that loses the chart while on a point line it drops the
-	// point without a word.
-	labelUnsafe = `";[](){}:|<>%`
+	// point without a word. The tilde, the at sign and the caret joined the set
+	// when the probe grew past the first measurement: each one alone is a
+	// lexical error that loses the chart, measured the same way as the rest.
+	// A line break is in the set as well, written as "#10;", which this chart
+	// was measured to decode back into a real line break.
+	labelUnsafe = "\";[](){}:|<>%~@^\n"
 )
 
 // escapeLabel returns an axis or quadrant label ready to be written.
@@ -39,10 +43,14 @@ func escapePointName(name string) string {
 // out different from a caller's semicolon; a "#" that starts nothing reaches
 // every label here intact and is left alone.
 //
-// The title is left alone entirely. It is the one construct in a quadrant chart
-// that mermaid reads as the rest of its line, and it already takes every
-// character probed.
+// The title is handled separately: it is the one construct in a quadrant chart
+// that mermaid reads as the rest of its line, and it takes every character
+// probed except the "<" and the line break that internal.EscapeTitle covers.
 func escape(text, unsafe string) string {
+	// A CRLF pair and a lone CR are line breaks as much as a lone LF, and the
+	// byte loop below knows only the LF, so they are folded into one first.
+	text = strings.ReplaceAll(text, "\r\n", "\n")
+	text = strings.ReplaceAll(text, "\r", "\n")
 	if !strings.ContainsAny(text, unsafe+"#") {
 		return text
 	}

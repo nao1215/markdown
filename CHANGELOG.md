@@ -40,10 +40,37 @@ are untouched, which the golden files enforce.
 * A class annotation is emitted inside the class body, where GitHub accepts it [#115](https://github.com/nao1215/markdown/pull/115)
 * The index links to markdown files relative to itself, with URL separators [#142](https://github.com/nao1215/markdown/pull/142)
 
+Extending the probe set past the first measurement found more, fixed the same
+way [#187](https://github.com/nao1215/markdown/issues/187):
+
+* A raw line break in a label lost or silently corrupted every diagram type
+  that accepts one; it is written as `<br/>`, or as `#10;` where that is the
+  form the drawing decodes
+* A `~`, `@` or `^` lost a quadrant chart; a `+` or `@` lost a sequence
+  diagram from its participant name; a `^` in kanban metadata lost the board
+* A `<` in a title was eaten by the renderer's sanitizer along with the rest;
+  it is written as `#60;` in the title statements that decode it
+* A timeline colon was drawn as `&:`, a `#` cut a period short, and `%%` lost
+  a whole line — the timeline package was the one type the probe had missed
+* A backslash in a quoted class, xy chart, packet, block, git graph or
+  requirement string was drawn as `&\`, the half decoded HTML form; it is
+  written as `#92;`, which draws the character
+* An `&`, `<` or `>` in a git graph or xy chart string was drawn as the
+  literal text `&amp;`, `&lt;` or `&gt;`; a `<` in a block label or a
+  requirement name was read as an opening tag and ate the rest; a `"` in a
+  packet field or an xy chart title was drawn as the literal `&quot;` — each
+  is written as the entity form its drawing decodes
+* The renderer check now asserts, character by character, that everything an
+  edge-case document declares actually reaches the rendered SVG text; parse
+  and render alone had let each of the above ship
+
 `mermaid/arch` is the one place a label still cannot carry punctuation:
 mermaid's `architecture-beta` grammar accepts only `[A-Za-z0-9_ ]` and refuses
 its own escape form, so there is nothing to encode to. The package documentation
-says so [#171](https://github.com/nao1215/markdown/pull/171).
+says so [#171](https://github.com/nao1215/markdown/pull/171). A sankey node
+name refuses `<`, tab and zero-width characters along with non-ASCII text, and
+a front matter title draws every escape of `<` as literal text, so those two
+limits are documented the same way.
 
 A mermaid title that is not valid UTF-8 is reinterpreted rather than mangled,
 which is documented rather than changed [#155](https://github.com/nao1215/markdown/pull/155).

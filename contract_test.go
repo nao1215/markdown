@@ -19,6 +19,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/nao1215/markdown"
+	"github.com/nao1215/markdown/internal"
 	"github.com/nao1215/markdown/internal/buildertest"
 	"github.com/nao1215/markdown/internal/golden"
 	"github.com/nao1215/markdown/mermaid/arch"
@@ -1087,6 +1088,10 @@ func boundarySeeds() []string {
 // scalar built from arbitrary text can end the value early, turn into a comment,
 // resolve to a boolean, or fail to parse at all, and any of those loses the
 // whole diagram rather than one line of it.
+//
+// The title reads back as the text the drawing is given: the caller's text
+// after FoldFrontMatterTitleCR, which folds a carriage return into the line
+// feed the renderer draws.
 func FuzzFrontMatterTitle(f *testing.F) {
 	for _, seed := range boundarySeeds() {
 		f.Add(seed)
@@ -1113,7 +1118,7 @@ func FuzzFrontMatterTitle(f *testing.F) {
 		if err := yaml.Unmarshal([]byte(block), &parsed); err != nil {
 			t.Fatalf("the front matter of the diagram built with title %q is not valid YAML: %v\n%s", title, err, block)
 		}
-		if want := asYAMLReadsIt(title); parsed.Title != want {
+		if want := asYAMLReadsIt(internal.FoldFrontMatterTitleCR(title)); parsed.Title != want {
 			t.Errorf("the front matter title parsed as %q, want %q", parsed.Title, want)
 		}
 	})

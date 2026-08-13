@@ -4,18 +4,19 @@ Every label below holds the punctuation this diagram type can carry. Generated b
 
 ```mermaid
 ---
-title: "title \"'#;[](){}🎉日本語:,*-|%%\\"
+title: "title \"'#;[](){}🎉日本語:,*-|`~&=+.?@$^_>%%\\"
 ---
 requirementDiagram
-    requirement "x&quot;'#;[](){}<br/>🎉日本語:,*-|%%&#92;x" {
+    requirement "x&quot;'#;[](){}<br/>🎉日本語:,*-|`~&=+.?@$^_>#60;%%#92;x" {
         id: "1"
-        text: "before &quot;'#;[](){}<br/>🎉日本語:,*-|%%&#92; after"
+        text: "before &quot;'#;[](){}<br/>🎉日本語:,*-|`~&=+.?@$^_>#60;%%#92; after"
         risk: Low
         verifymethod: Test
     }
-    element "x&quot;'#;[](){}<br/>🎉日本語:,*-|%%&#92;x element" {
+    element "x&quot;'#;[](){}<br/>🎉日本語:,*-|`~&=+.?@$^_>#60;%%#92;x element" {
         type: "simulation"
         docRef: "./tests"
     }
-    "x&quot;'#;[](){}<br/>🎉日本語:,*-|%%&#92;x element" - satisfies -> "x&quot;'#;[](){}<br/>🎉日本語:,*-|%%&#92;x"
+    "x&quot;'#;[](){}<br/>🎉日本語:,*-|`~&=+.?@$^_>#60;%%#92;x element" - satisfies -> "x&quot;'#;[](){}<br/>🎉日本語:,*-|`~&=+.?@$^_>#60;%%#92;x"
 ```
+<!-- every character here must be drawn: "'#;[](){}🎉日本語:,*-|`~&=+.?@$^_><%%\ -->

@@ -6,6 +6,19 @@ import (
 	"github.com/nao1215/markdown/internal"
 )
 
+// escapePlainText returns text ready to be written inside a flowchart's plain
+// quoted label, the `["..."]` form.
+//
+// A raw line break inside that form is swallowed by the parser and the two
+// lines are joined into one word, so "first\nsecond" drew "firstsecond"; it is
+// written as "<br/>", the line break mermaid draws inside a label. The
+// markdown string forms, NodeWithMarkdown and NodeWithNewLines, keep their raw
+// line breaks: a "`...`" label reads them as the line breaks they are, which
+// is the whole point of those two methods.
+func escapePlainText(text string) string {
+	return escapeText(internal.LineBreaksToBr(text))
+}
+
 // escapeText returns text ready to be written inside a flowchart's quoted
 // label.
 //

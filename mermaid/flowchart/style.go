@@ -49,7 +49,7 @@ func (f *Flowchart) ClickHref(name, url, tooltip string) *Flowchart {
 	}
 
 	f.body = append(f.body,
-		fmt.Sprintf(`%sclick %s "%s" "%s"`, f.indent(), name, url, escapeText(tooltip)))
+		fmt.Sprintf(`%sclick %s "%s" "%s"`, f.indent(), name, url, escapePlainText(tooltip)))
 	return f
 }
 
@@ -64,7 +64,7 @@ func (f *Flowchart) ClickCall(name, callback, tooltip string) *Flowchart {
 	}
 
 	f.body = append(f.body,
-		fmt.Sprintf(`%sclick %s call %s "%s"`, f.indent(), name, ensureCall(callback), escapeText(tooltip)))
+		fmt.Sprintf(`%sclick %s call %s "%s"`, f.indent(), name, ensureCall(callback), escapePlainText(tooltip)))
 	return f
 }
 

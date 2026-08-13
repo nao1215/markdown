@@ -157,6 +157,15 @@ func (d *Diagram) setError(err error) {
 // so a name that holds one is quoted. Inside quotes a double quote stands for
 // itself only when it is doubled, which is what CSV says and what mermaid's
 // parser implements.
+//
+// The quoting cannot save every character. mermaid's sankey lexer refuses
+// non-ASCII text — an emoji, Japanese, a no-break space or a zero-width space
+// — and a tab, character by character, and the renderer's sanitizer eats a
+// bare "<" along with the rest of the name, collapsing two names into one
+// until the render fails with "circular link". The entity forms other diagram
+// types decode are refused by this lexer too, so there is nothing to escape
+// to; each of these was measured by rendering, and the limit is recorded here
+// rather than papered over.
 func field(fieldName, value string) (string, error) {
 	trimmed := strings.TrimSpace(value)
 	if trimmed == "" {

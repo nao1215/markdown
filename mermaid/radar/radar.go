@@ -68,7 +68,7 @@ func NewDiagram(w io.Writer, opts ...Option) *Diagram {
 
 	lines := make([]string, 0, radarLinesCap)
 	if trimmedTitle != noTitle {
-		lines = append(lines, "---", internal.FrontMatterTitle(trimmedTitle), "---")
+		lines = append(lines, "---", internal.FrontMatterTitle(internal.FoldFrontMatterTitleCR(trimmedTitle)), "---")
 	}
 	lines = append(lines, header)
 

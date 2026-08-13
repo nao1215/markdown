@@ -64,6 +64,14 @@ func TestDiagram(t *testing.T) {
 			},
 			want: lines("C4Context", "    title Ledger #35;1#59; v2"),
 		},
+		"a bare angle in a title becomes the entity": {
+			// The sanitizer eats a bare "<" with the rest of the title;
+			// "#60;" decodes to the character, and "<br/>" is left alone.
+			build: func(w io.Writer) *c4.Diagram {
+				return c4.NewDiagram(w, c4.WithTitle("cost < 10, a<br/>b"))
+			},
+			want: lines("C4Context", "    title cost #60; 10, a<br/>b"),
+		},
 		"a title is trimmed and a blank one writes no statement": {
 			build: func(w io.Writer) *c4.Diagram {
 				return c4.NewDiagram(w, c4.WithTitle("   "))

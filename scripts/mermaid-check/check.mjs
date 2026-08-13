@@ -301,8 +301,21 @@ const fail = (where, message) => {
   console.error(`${where}: ${message}\n`);
 };
 
+// drawnExpectation returns the characters a document declares its rendered SVG
+// text has to contain, from the marker doc/edgecase/main.go writes under a
+// diagram. Parsing and rendering alone cannot catch a character that the
+// sanitizer quietly eats or that the drawing shows as something else — a
+// backslash once reached readers as "&\" and an ampersand as the literal
+// "&amp;" — so the characters are asserted one by one, by code point.
+function drawnExpectation(source) {
+  const m = source.match(/<!-- every character here must be drawn: (.*?) -->/);
+  return m ? m[1] : "";
+}
+
 for (const file of await files()) {
-  for (const block of mermaidBlocks(readFileSync(file, "utf8"))) {
+  const source = readFileSync(file, "utf8");
+  const expected = drawnExpectation(source);
+  for (const block of mermaidBlocks(source)) {
     checked++;
     const where = `${file}:${block.line}`;
 
@@ -349,6 +362,17 @@ for (const file of await files()) {
       fail(
         where,
         `the title "${title.text}" is declared but does not appear in the rendered diagram`,
+      );
+    }
+    const missing = [...new Set(expected)].filter(
+      (ch) => ch !== " " && !drawn.text.includes(ch),
+    );
+    if (missing.length > 0) {
+      fail(
+        where,
+        `the document declares that every one of "${expected}" must be drawn, but ${missing
+          .map((ch) => JSON.stringify(ch))
+          .join(", ")} never reached the rendered SVG text`,
       );
     }
   }

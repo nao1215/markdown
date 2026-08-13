@@ -12,16 +12,18 @@ import (
 // A parenthesis or a closing brace ends it too, because the shapes those spell
 // elsewhere in mermaid are recognized here. An opening bracket and an opening
 // brace are not among them: mermaid takes either inside a label, and escaping
-// them would change output that already reaches the drawing.
+// them would change output that already reaches the drawing. A line break is
+// not among them either, because validateCardLabel rejects one before the
+// escaping runs.
 const labelUnsafe = "])(}"
 
 // metadataUnsafe is what a metadata value cannot carry, beyond the quoting the
 // YAML scalar does for itself.
 //
 // Task metadata is written "@{ ticket: 'value' }", which mermaid reads as YAML
-// and then draws. A closing brace ends the block, and a double quote is refused
-// by the kanban lexer before YAML ever sees the line.
-const metadataUnsafe = `"}`
+// and then draws. A closing brace ends the block, and a double quote or a
+// caret is refused by the kanban lexer before YAML ever sees the line.
+const metadataUnsafe = `"}^`
 
 // escapeLabel returns label ready to be written between the brackets of a card.
 //

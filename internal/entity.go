@@ -1,6 +1,9 @@
 package internal
 
-import "strconv"
+import (
+	"strconv"
+	"strings"
+)
 
 // Mermaid reads "#name;" and "#123;" inside the text of a diagram as the
 // character that name or number stands for. It is the only escape several of
@@ -51,4 +54,24 @@ func StartsEntity(s string) bool {
 // isEntityByte reports whether c may appear between the "#" and the ";".
 func isEntityByte(c byte) bool {
 	return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9')
+}
+
+// EscapeEntityOpeners returns s with every "#" that starts an entity written as
+// "#35;", and every other byte untouched.
+//
+// It is the first pass of an escape that goes on to write entities of its own:
+// run before those are inserted, it keeps a caller's literal "#92;" distinct
+// from the character the escape writes as "#92;", and it never touches the
+// escape's own output because that output is inserted afterwards.
+func EscapeEntityOpeners(s string) string {
+	var b strings.Builder
+	b.Grow(len(s))
+	for i := 0; i < len(s); i++ {
+		if s[i] == '#' && StartsEntity(s[i+1:]) {
+			b.WriteString(EntityEscape('#'))
+			continue
+		}
+		b.WriteByte(s[i])
+	}
+	return b.String()
 }

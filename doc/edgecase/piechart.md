@@ -5,7 +5,8 @@ Every label below holds the punctuation this diagram type can carry. Generated b
 ```mermaid
 %%{init: {"pie": {"textPosition": 0.75}, "themeVariables": {"pieOuterStrokeWidth": "5px"}} }%%
 pie showData
-    title title "'#;[](){}🎉日本語:,*-|#37;#37;\
-    "x#quot;'#;[](){}<br/>🎉日本語:,*-|%%\x" : 120
-    "x#quot;'#;[](){}<br/>🎉日本語:,*-|%%\x two" : 42.500000
+    title title "'#;[](){}🎉日本語:,*-|`~&=+.?@$^_>#60;#37;#37;\
+    "x<br/>#quot;'#;[](){}<br/>🎉日本語:,*-|`~&=+.?@$^_><%%\x" : 120
+    "x<br/>#quot;'#;[](){}<br/>🎉日本語:,*-|`~&=+.?@$^_><%%\x two" : 42.500000
 ```
+<!-- every character here must be drawn: "'#;[](){}🎉日本語:,*-|`~&=+.?@$^_><%%\ -->

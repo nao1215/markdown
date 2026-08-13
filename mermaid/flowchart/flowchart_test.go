@@ -313,6 +313,39 @@ func TestGoldenFlowchart(t *testing.T) {
 	}
 }
 
+// TestPlainLabelCarriesALineBreakAsBr covers the plain quoted forms: a raw
+// line break inside `["..."]` was swallowed and "first\nsecond" drew
+// "firstsecond", so it is written as the "<br/>" mermaid draws. The markdown
+// string forms keep their raw line breaks, which TestGoldenFlowchart pins via
+// NodeWithNewLines.
+func TestPlainLabelCarriesALineBreakAsBr(t *testing.T) {
+	t.Parallel()
+
+	got := NewFlowchart(io.Discard).
+		NodeWithText("A", "first\nsecond").
+		LinkWithArrowHeadAndText("A", "B", "a\r\nb").
+		String()
+
+	for _, want := range []string{`A["first<br/>second"]`, `A-->|"a<br/>b"|B`} {
+		if !strings.Contains(got, want) {
+			t.Errorf("flowchart =\n%s\nwant it to contain\n%s", got, want)
+		}
+	}
+}
+
+// TestFrontMatterTitleFoldsACarriageReturn covers the title: the YAML quoting
+// keeps a CR parseable, but the drawing loses the title where a line feed is
+// drawn as a line break, so a CR is folded into the line feed that works.
+func TestFrontMatterTitleFoldsACarriageReturn(t *testing.T) {
+	t.Parallel()
+
+	got := NewFlowchart(io.Discard, WithTitle("a\rb")).String()
+
+	if want := `title: "a\nb"`; !strings.Contains(got, want) {
+		t.Errorf("flowchart =\n%s\nwant it to contain\n%s", got, want)
+	}
+}
+
 // TestGoldenFlowchartOrientations pins the header each orientation option
 // produces. The options are mutually exclusive, so each needs its own diagram.
 func TestGoldenFlowchartOrientations(t *testing.T) {

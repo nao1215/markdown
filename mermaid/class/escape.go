@@ -19,10 +19,16 @@ import (
 // holding "#58;" and a label holding a colon would draw the same diagram; a "#"
 // anywhere else is ordinary text and comes out unchanged.
 //
+// A raw line break in these forms splits the statement, and the second half is
+// then read as a statement of its own: a relationship labeled "a\nb" drew a
+// stray class named "b". It is written as "<br/>", the line break mermaid
+// draws, which these unquoted forms were measured to carry.
+//
 // Everywhere else in this package is already quoted, and a class body member, a
 // class label and a note each take both characters as they are. Nothing here
 // touches those.
 func escapeAfterColon(text string) string {
+	text = internal.LineBreaksToBr(text)
 	if !strings.ContainsAny(text, ":;#") {
 		return text
 	}

@@ -145,7 +145,23 @@ func TestQuoteEscapesSpecialChars(t *testing.T) {
 	t.Parallel()
 
 	got := quote("a\\b\rc\nd\te\"f")
-	want := `"a&#92;b&#92;rc&#92;nd&#92;te&quot;f"`
+	// The defensive "<br/>" a line break becomes is itself entity-escaped
+	// here, because this drawing never honored it as a tag anyway.
+	want := `"a#92;b#60;br/#62;c#60;br/#62;d#92;te&quot;f"`
+	if diff := cmp.Diff(want, got); diff != "" {
+		t.Errorf("value is mismatch (-want +got):\n%s", diff)
+	}
+}
+
+// TestQuoteEscapesWhatTheDrawingShowsWrong covers the characters the drawing
+// showed as something else: raw, a commit id holding "&", "<" or ">" reached
+// the reader as the literal texts "&amp;", "&lt;" and "&gt;", and each entity
+// form decodes back into the character, measured by rendering.
+func TestQuoteEscapesWhatTheDrawingShowsWrong(t *testing.T) {
+	t.Parallel()
+
+	got := quote("a&b<c>d")
+	want := `"a#38;b#60;c#62;d"`
 	if diff := cmp.Diff(want, got); diff != "" {
 		t.Errorf("value is mismatch (-want +got):\n%s", diff)
 	}

@@ -160,7 +160,20 @@ func TestQuoteEscapesSpecialChars(t *testing.T) {
 	t.Parallel()
 
 	got := quote("a\\b\rc\nd\te\"f")
-	want := `"a&#92;b&#92;rc&#92;nd&#92;te&quot;f"`
+	want := `"a#92;b<br/>c<br/>d#92;te&quot;f"`
+	if diff := cmp.Diff(want, got); diff != "" {
+		t.Errorf("value is mismatch (-want +got):\n%s", diff)
+	}
+}
+
+// TestQuoteEscapesTheBareAngle covers the "<" the sanitizer reads as an
+// opening tag: a label of "a<b then c" drew "a" in every node shape, and
+// "#60;" decodes back into the character, measured by rendering.
+func TestQuoteEscapesTheBareAngle(t *testing.T) {
+	t.Parallel()
+
+	got := quote("a<b then c>d")
+	want := `"a#60;b then c>d"`
 	if diff := cmp.Diff(want, got); diff != "" {
 		t.Errorf("value is mismatch (-want +got):\n%s", diff)
 	}

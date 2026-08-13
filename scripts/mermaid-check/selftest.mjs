@@ -41,6 +41,10 @@ const cases = [
     expect: "does not appear in the rendered diagram",
   },
   {
+    file: "drawn-character-missing.mdfixture",
+    expect: "never reached the rendered SVG text",
+  },
+  {
     file: "valid.mdfixture",
     expect: null,
   },

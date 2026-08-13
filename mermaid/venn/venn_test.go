@@ -74,6 +74,14 @@ func TestDiagram(t *testing.T) {
 			},
 			want: lines("venn-beta", "    title Sets #35;1#59; v2"),
 		},
+		"a bare angle in a title becomes the entity": {
+			// The sanitizer eats a bare "<" with the rest of the title;
+			// "#60;" decodes to the character, and "<br/>" is left alone.
+			build: func(w io.Writer) *venn.Diagram {
+				return venn.NewDiagram(w, venn.WithTitle("cost < 10, a<br/>b"))
+			},
+			want: lines("venn-beta", "    title cost #60; 10, a<br/>b"),
+		},
 		"a quotation mark in a label becomes the entity mermaid decodes": {
 			build: func(w io.Writer) *venn.Diagram {
 				return venn.NewDiagram(w).SetWithLabel("a", `The "core"`)

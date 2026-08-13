@@ -39,6 +39,7 @@ import (
 	"github.com/nao1215/markdown/mermaid/sankey"
 	"github.com/nao1215/markdown/mermaid/sequence"
 	"github.com/nao1215/markdown/mermaid/state"
+	"github.com/nao1215/markdown/mermaid/timeline"
 	"github.com/nao1215/markdown/mermaid/treemap"
 	"github.com/nao1215/markdown/mermaid/userjourney"
 	"github.com/nao1215/markdown/mermaid/venn"
@@ -59,16 +60,29 @@ const (
 // the entries in supported below.
 //
 // It reads as a set rather than a string so that an entry can say what it
-// leaves out and why, in the same breath. Twenty of the twenty one types below
-// take the whole thing; writing "everything" and "everything.without(emoji)"
-// keeps the exceptions where a reader will see them, instead of asking anyone
-// to diff two long strings of punctuation to find the one that is missing.
+// leaves out and why, in the same breath. Twenty one of the twenty four types
+// below take the whole thing; writing "everything" and
+// "everything.without(emoji)" keeps the exceptions where a reader will see
+// them, instead of asking anyone to diff two long strings of punctuation to
+// find the one that is missing.
 type probe string
 
 // everything is every character a mermaid label is measured against: the
-// punctuation that means something to at least one diagram type, a line break,
-// an emoji and a word of Japanese.
-const everything probe = `"'#;[](){}<br/>` + emoji + japanese + `:,*-|%%\`
+// punctuation that means something to at least one diagram type, a "<br/>"
+// line break, an emoji and a word of Japanese. The bare ">" and "<" are in
+// that order so they cannot be read as a tag, which is what a bare "<"
+// otherwise starts, and the backslash stays at the end, in front of a letter:
+// several renderers read a label as markdown, where a backslash in front of
+// punctuation is an escape that quietly consumes the backslash.
+const everything probe = `"'#;[](){}<br/>` + emoji + japanese + `:,*-|` + "`" + `~&=+.?@$^_><%%\`
+
+// lineBreak is a raw line break, probed separately from everything: the
+// builders that encode one take it here, and the builders that reject one with
+// an error cannot, because their document would then hold the error's partial
+// output rather than a diagram. It goes in front of everything rather than
+// after it so that the backslash at everything's end keeps its letter
+// neighbor.
+const lineBreak probe = "\n"
 
 // without returns the probe set with each occurrence of s removed.
 func (p probe) without(s string) probe {
@@ -79,9 +93,12 @@ func (p probe) without(s string) probe {
 //
 // Every entry was measured rather than guessed: each character was put through
 // its diagram type on its own and rendered, and the ones that survived are
-// here. Twenty of the twenty one take the whole probe set. The three that do
-// not each name the mermaid limitation that keeps a character out, because a
-// gap with no reason beside it reads as unfinished work when it is not.
+// here. Twenty one of the twenty four take the whole punctuation set. The
+// three that do not each name the mermaid limitation that keeps a character
+// out, because a gap with no reason beside it reads as unfinished work when it
+// is not. A raw line break is the other axis: the types whose builders encode
+// one carry lineBreak too, and the types whose builders reject one with an
+// error do not, which is that builder's documented answer rather than a gap.
 //
 // A gap closed by a fix belongs in its entry the moment the fix lands, which is
 // what keeps this file honest: the labels only ever get harder.
@@ -97,20 +114,22 @@ func supported(diagram string) string {
 		"architecture": "",
 		"block":        everything,
 		"c4":           everything,
-		"class":        everything,
-		"er":           everything,
-		"flowchart":    everything,
-		"gantt":        everything,
+		"class":        lineBreak + everything,
+		"er":           lineBreak + everything,
+		"flowchart":    lineBreak + everything,
+		"gantt":        lineBreak + everything,
 		"gitgraph":     everything,
 		"kanban":       everything,
 		"mindmap":      everything,
-		// packet puts its title in YAML front matter, and mermaid strips a "%%"
-		// comment out of that before the YAML is read, so a title holding one
-		// comes back cut short. Nothing the builder writes can prevent it: the
-		// stripping happens before the quoting is looked at.
+		// packet writes its title as a statement, and mermaid strips a "%%"
+		// comment out of the source before the packet grammar reads the line,
+		// so a title holding one comes back cut short. Nothing the builder
+		// writes can prevent it: the stripping happens before any escaping is
+		// looked at. The bare "<" that a front matter title cannot carry is
+		// fine here — the statement decodes "#60;", which the builder writes.
 		"packet":   everything.without("%%"),
-		"piechart": everything,
-		"quadrant": everything,
+		"piechart": lineBreak + everything,
+		"quadrant": lineBreak + everything,
 		"radar":    everything,
 		// requirement is the one type whose labels carry everything and whose
 		// title still cannot: see the note on title below.
@@ -118,10 +137,17 @@ func supported(diagram string) string {
 		// sankey refuses non-ASCII text in a node name. Its parser takes the
 		// name apart character by character and an emoji or a word of Japanese
 		// is not among the characters it knows, so there is nothing to quote
-		// around it.
-		"sankey":      everything.without(emoji).without(japanese),
-		"sequence":    everything,
-		"state":       everything,
+		// around it. A bare "<" is refused another way: the renderer's
+		// sanitizer eats the rest of the name, two names collapse into one,
+		// and the diagram fails with "circular link"; the entity form is
+		// refused by the lexer, so there is nothing to escape to here either.
+		// The "><" pair is removed together because a lone without("<") would
+		// also gut the "<br/>" this type carries, and the bare ">" it takes is
+		// put back beside it.
+		"sankey":      everything.without(emoji).without(japanese).without("><") + ">",
+		"sequence":    lineBreak + everything,
+		"state":       lineBreak + everything,
+		"timeline":    everything,
 		"treemap":     everything,
 		"userjourney": everything,
 		// venn writes a set label as the entity form mermaid decodes and its
@@ -171,15 +197,39 @@ func shortLabel(diagram string) string {
 	return "plain_label 1"
 }
 
+// frontMatterTitled reports whether the diagram type's renderer draws the
+// title out of YAML front matter. A bare "<" in one is eaten by the sanitizer
+// along with the rest of the title, and every escape form — "#60;", "&lt;",
+// "&#60;" — is drawn as the literal text it is, so there is nothing to write
+// instead; the probe leaves the character out of these titles and the limit is
+// documented at internal.FoldFrontMatterTitleCR. A title statement decodes
+// "#60;" and keeps the character, which is why the other types keep it here.
+// block, kanban and mindmap also write a front matter title, but their
+// renderers never draw one, so nothing can be eaten and their probes stay
+// whole; packet writes a title statement, not front matter.
+func frontMatterTitled(diagram string) bool {
+	switch diagram {
+	case "class", "flowchart", "gitgraph", "radar", "requirement", "state", "treemap":
+		return true
+	}
+	return false
+}
+
 // title is the diagram title. Some types write it into YAML front matter and
 // others into a statement of their own, so it breaks on a different set of
 // characters again.
 //
-// A line break is left out of it because the renderer honours one: the title
-// then no longer reads as the text that was asked for, and the check that the
-// title reaches the drawing cannot tell that apart from a title that was lost.
+// A line break is left out of it, in both its "<br/>" and raw spellings,
+// because the renderer honours one: the title then no longer reads as the text
+// that was asked for, and the check that the title reaches the drawing cannot
+// tell that apart from a title that was lost.
 func title(diagram string) string {
-	return "title " + strings.ReplaceAll(punctuation(diagram), "<br/>", "")
+	t := strings.ReplaceAll(punctuation(diagram), "<br/>", "")
+	t = strings.ReplaceAll(t, "\n", "")
+	if frontMatterTitled(diagram) {
+		t = strings.ReplaceAll(t, "<", "")
+	}
+	return "title " + t
 }
 
 func main() {
@@ -193,6 +243,11 @@ func main() {
 }
 
 // write puts one diagram in a document of its own.
+//
+// The comment under the diagram lists every character the drawing has to show,
+// and scripts/mermaid-check/check.mjs fails the build when one is missing from
+// the rendered SVG text. Parsing and rendering alone cannot catch a character
+// that is quietly eaten or drawn as something else, which has shipped before.
 func write(d diagram) {
 	f, err := os.Create(d.file + ".md")
 	if err != nil {
@@ -204,16 +259,26 @@ func write(d diagram) {
 		}
 	}()
 
-	err = markdown.NewMarkdown(f, markdown.WithBlockSpacing()).
+	m := markdown.NewMarkdown(f, markdown.WithBlockSpacing()).
 		H1(d.name+" rendering edge cases").
 		PlainText("Every label below holds the punctuation this diagram type can carry. "+
 			"Generated by doc/edgecase/main.go and rendered in continuous integration, "+
 			"so a quoting defect fails the build rather than reaching a diagram.").
-		CodeBlocks(markdown.SyntaxHighlightMermaid, d.build(d.file)).
-		Build()
-	if err != nil {
+		CodeBlocks(markdown.SyntaxHighlightMermaid, d.build(d.file))
+	if expect := drawn(d.file); expect != "" {
+		m = m.PlainText("<!-- every character here must be drawn: " + expect + " -->")
+	}
+	if err := m.Build(); err != nil {
 		panic(err)
 	}
+}
+
+// drawn returns the characters the rendered SVG text has to contain, which is
+// the supported set minus the two line break spellings: "<br/>" and a raw
+// line break are drawn as breaks, not as their characters.
+func drawn(diagram string) string {
+	chars := strings.ReplaceAll(supported(diagram), "<br/>", "")
+	return strings.ReplaceAll(chars, "\n", "")
 }
 
 // diagram is one mermaid subpackage's document.
@@ -247,6 +312,7 @@ func diagrams() []diagram {
 		{name: "Sankey", file: "sankey", build: sankeyDiagram},
 		{name: "Sequence", file: "sequence", build: sequenceDiagram},
 		{name: "State", file: "state", build: stateDiagram},
+		{name: "Timeline", file: "timeline", build: timelineDiagram},
 		{name: "Treemap", file: "treemap", build: treemapDiagram},
 		{name: "User journey", file: "userjourney", build: userJourney},
 		{name: "Venn", file: "venn", build: vennDiagram},
@@ -443,6 +509,17 @@ func stateDiagram(diagram string) string {
 		Transition("Draft", "Placed").
 		TransitionWithNote("Placed", "Draft", shortLabel(diagram)).
 		NoteRight("Draft", label(diagram)).
+		String()
+}
+
+// timelineDiagram is the timeline's edge case document. It was the one type
+// missing from this file, and measuring it found the colon that drew as "&:",
+// the "#" that cut a period short and the "%%" that lost a whole line.
+func timelineDiagram(diagram string) string {
+	return timeline.NewDiagram(io.Discard, timeline.WithTitle(title(diagram))).
+		Section(shortLabel(diagram)).
+		Period(shortLabel(diagram), label(diagram)).
+		Event(shortLabel(diagram) + " two").
 		String()
 }
 

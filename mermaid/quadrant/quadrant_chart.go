@@ -37,7 +37,10 @@ func NewChart(w io.Writer, opts ...Option) *Chart {
 
 	lines := []string{"quadrantChart"}
 	if c.title != noTitle {
-		lines = append(lines, fmt.Sprintf("    title %s", c.title))
+		// The title takes every character the labels cannot, so only the "<"
+		// the sanitizer eats and the line break the grammar cannot cross are
+		// escaped.
+		lines = append(lines, fmt.Sprintf("    title %s", internal.EscapeTitle(c.title)))
 	}
 
 	return &Chart{

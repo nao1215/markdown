@@ -582,6 +582,28 @@ func TestLabelsEscapeWhatQuadrantCannotRead(t *testing.T) {
 			build: func(w io.Writer) *Chart { return NewChart(w).Quadrant1("a#58;b") },
 			want:  "    quadrant-1 a#35;58#59;b",
 		},
+		"a tilde in an axis label": {
+			build: func(w io.Writer) *Chart { return NewChart(w).XAxis("v1~v2") },
+			want:  "    x-axis v1#126;v2",
+		},
+		"an at sign in a point name": {
+			build: func(w io.Writer) *Chart { return NewChart(w).Point("a@b", 0.5, 0.5) },
+			want:  "    a#64;b: [0.50, 0.50]",
+		},
+		"a caret in a quadrant label": {
+			build: func(w io.Writer) *Chart { return NewChart(w).Quadrant1("x^2") },
+			want:  "    quadrant-1 x#94;2",
+		},
+		"a line break becomes the entity the chart decodes": {
+			// "<br/>" is not accepted here, and "#10;" was measured to decode
+			// back into a real line break.
+			build: func(w io.Writer) *Chart { return NewChart(w).Quadrant2("a\nb") },
+			want:  "    quadrant-2 a#10;b",
+		},
+		"a CRLF pair is one line break, not two": {
+			build: func(w io.Writer) *Chart { return NewChart(w).Quadrant3("a\r\nb") },
+			want:  "    quadrant-3 a#10;b",
+		},
 	}
 
 	for name, tt := range tests {
@@ -598,7 +620,8 @@ func TestLabelsEscapeWhatQuadrantCannotRead(t *testing.T) {
 
 // TestTitleKeepsItsPunctuation pins the other half: the title is the one
 // construct in a quadrant chart that mermaid reads as the rest of its line, and
-// it already takes every character probed. Escaping there would change output
+// it takes every character probed except the "<" the sanitizer eats and the
+// line break the grammar cannot cross. Escaping more there would change output
 // that is correct today.
 func TestTitleKeepsItsPunctuation(t *testing.T) {
 	t.Parallel()
@@ -606,6 +629,20 @@ func TestTitleKeepsItsPunctuation(t *testing.T) {
 	got := NewChart(io.Discard, WithTitle(`Reach: "now" (100%%) [urgent]`)).String()
 
 	if want := `    title Reach: "now" (100%%) [urgent]`; !strings.Contains(got, want) {
+		t.Errorf("chart =\n%s\nwant it to contain\n%s", got, want)
+	}
+}
+
+// TestTitleEscapesAngleAndLineBreak covers the two characters a quadrant title
+// cannot carry as they are: a bare "<" is eaten by the sanitizer, and a line
+// break splits the statement. Both entity forms were measured to decode in the
+// drawing.
+func TestTitleEscapesAngleAndLineBreak(t *testing.T) {
+	t.Parallel()
+
+	got := NewChart(io.Discard, WithTitle("cost < 10\nper unit")).String()
+
+	if want := "    title cost #60; 10#10;per unit"; !strings.Contains(got, want) {
 		t.Errorf("chart =\n%s\nwant it to contain\n%s", got, want)
 	}
 }

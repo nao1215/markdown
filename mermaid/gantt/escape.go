@@ -21,9 +21,14 @@ import (
 // draw the same task. A "#" anywhere else is ordinary text and comes out
 // unchanged, which is what keeps the golden files as they are.
 //
+// A raw line break ends the statement early too, and the rest of the name is
+// read as a line of its own; it is written as "<br/>", the line break this
+// chart draws in a task name.
+//
 // The section name and the title need none of this: mermaid reads each as the
 // rest of its line, and a colon in one already reaches the drawing intact.
 func escapeTaskName(name string) string {
+	name = internal.LineBreaksToBr(name)
 	if !strings.ContainsAny(name, ":#") {
 		return name
 	}

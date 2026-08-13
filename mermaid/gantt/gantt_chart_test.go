@@ -561,6 +561,20 @@ func TestTaskNameEscapesTheColonThatEndsIt(t *testing.T) {
 			},
 			want: "    PR #123 merged :2024-01-01, 2d",
 		},
+		"a line break in a task name becomes the break mermaid draws": {
+			// Raw it ended the statement and handed the second line to the
+			// parser as a line of its own.
+			build: func(g *Chart) *Chart {
+				return g.Task("first\nsecond", "2024-01-01", "2d")
+			},
+			want: "    first<br/>second :2024-01-01, 2d",
+		},
+		"a line break in a section name becomes the break mermaid draws": {
+			build: func(g *Chart) *Chart {
+				return g.Section("first\r\nsecond")
+			},
+			want: "    section first<br/>second",
+		},
 	}
 
 	for name, tt := range tests {
@@ -587,5 +601,18 @@ func TestSectionAndTitleKeepTheirColon(t *testing.T) {
 		if !strings.Contains(got, want) {
 			t.Errorf("chart =\n%s\nwant it to contain\n%s", got, want)
 		}
+	}
+}
+
+// TestTitleEscapesAngleAndLineBreak covers the two characters a gantt title
+// cannot carry as they are: a bare "<" is eaten by the sanitizer, and a line
+// break splits the statement. Both entity forms decode in the drawing.
+func TestTitleEscapesAngleAndLineBreak(t *testing.T) {
+	t.Parallel()
+
+	got := NewChart(io.Discard, WithTitle("cost < 10\nper unit")).String()
+
+	if want := "    title cost #60; 10#10;per unit"; !strings.Contains(got, want) {
+		t.Errorf("chart =\n%s\nwant it to contain\n%s", got, want)
 	}
 }

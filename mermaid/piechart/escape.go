@@ -19,7 +19,11 @@ import (
 // at all: mermaid reads "#quot;" as a quotation mark, so a label holding one
 // has to be spelled differently from a label holding the mark itself. A "#"
 // anywhere else is ordinary text and comes out unchanged.
+//
+// A raw line break ends the quoted label early and the lexer refuses the whole
+// chart, so it is written as "<br/>", the line break mermaid draws inside one.
 func escapeLabel(label string) string {
+	label = internal.LineBreaksToBr(label)
 	if !strings.ContainsAny(label, `"#`) {
 		return label
 	}
@@ -49,8 +53,14 @@ func escapeLabel(label string) string {
 //
 // A lone "%" is left alone, and so is a "#" that starts nothing. Both already
 // reach the drawing intact, and their output is pinned by the golden files.
+//
+// A "<" that does not open a "<br/>" is eaten by the sanitizer, and a raw line
+// break splits the statement and loses the chart; both entity forms were
+// measured to decode in the drawing, the latter into a real line break.
 func escapeTitle(title string) string {
-	if !strings.ContainsAny(title, "%#") {
+	title = strings.ReplaceAll(title, "\r\n", "\n")
+	title = strings.ReplaceAll(title, "\r", "\n")
+	if !strings.ContainsAny(title, "%#<\n") {
 		return title
 	}
 
@@ -60,6 +70,10 @@ func escapeTitle(title string) string {
 		switch {
 		case title[i] == '%' && adjacentPercent(title, i):
 			b.WriteString(internal.EntityEscape('%'))
+		case title[i] == '<' && !strings.HasPrefix(title[i:], "<br/>"):
+			b.WriteString(internal.EntityEscape('<'))
+		case title[i] == '\n':
+			b.WriteString(internal.EntityEscape('\n'))
 		case title[i] == '#' && internal.StartsEntity(title[i+1:]):
 			b.WriteString(internal.EntityEscape('#'))
 		default:

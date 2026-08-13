@@ -816,6 +816,16 @@ func TestMessageTextEscapesWhatEndsIt(t *testing.T) {
 			build: func(w io.Writer) *Diagram { return NewDiagram(w).SyncRequest("A", "B", "100%% done") },
 			want:  "    A->>B: 100%% done",
 		},
+		"a line break in a message becomes the entity": {
+			// A raw line break splits the statement and loses the diagram;
+			// "#10;" was measured to decode back into a real line break.
+			build: func(w io.Writer) *Diagram { return NewDiagram(w).SyncRequest("A", "B", "a\nb") },
+			want:  "    A->>B: a#10;b",
+		},
+		"a CRLF pair in a note is one line break": {
+			build: func(w io.Writer) *Diagram { return NewDiagram(w).NoteOver("A", "a\r\nb") },
+			want:  "    note over A: a#10;b",
+		},
 	}
 
 	for name, tt := range tests {
@@ -880,6 +890,20 @@ func TestParticipantNameEscapesWhatEndsIt(t *testing.T) {
 			// package cannot tell that apart from one name holding a comma.
 			build: func(w io.Writer) *Diagram { return NewDiagram(w).NoteOver("Alice,Bob", "m") },
 			want:  "    note over Alice,Bob: m",
+		},
+		"a plus in a name could be declared but never messaged": {
+			build: func(w io.Writer) *Diagram {
+				return NewDiagram(w).Participant("a+b").SyncRequest("a+b", "c", "read")
+			},
+			want: "    a#43;b->>c: read",
+		},
+		"an at sign in a name cannot even be declared": {
+			build: func(w io.Writer) *Diagram { return NewDiagram(w).Participant("ops@eu") },
+			want:  "    participant ops#64;eu",
+		},
+		"a line break in a name becomes the entity": {
+			build: func(w io.Writer) *Diagram { return NewDiagram(w).Participant("a\nb") },
+			want:  "    participant a#10;b",
 		},
 	}
 

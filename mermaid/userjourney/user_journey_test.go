@@ -456,6 +456,22 @@ func TestFieldsEscapeTheirOwnPunctuation(t *testing.T) {
 			build: func(w io.Writer) *Diagram { return NewDiagram(w).Section("a#59;b") },
 			want:  "    section a#35;59#59;b",
 		},
+		"a bare angle in a title becomes the entity": {
+			// The sanitizer eats a bare "<" with the rest of the title;
+			// "#60;" decodes to the character.
+			build: func(w io.Writer) *Diagram { return NewDiagram(w, WithTitle("cost < 10")) },
+			want:  "    title cost #60; 10",
+		},
+		"a br in a title is left as it is": {
+			build: func(w io.Writer) *Diagram { return NewDiagram(w, WithTitle("a<br/>b")) },
+			want:  "    title a<br/>b",
+		},
+		"a line break in a title becomes the entity": {
+			// The other fields reject one; a title carries it as the entity a
+			// title decodes into a real line break.
+			build: func(w io.Writer) *Diagram { return NewDiagram(w, WithTitle("a\nb")) },
+			want:  "    title a#10;b",
+		},
 	}
 
 	for name, tt := range tests {
