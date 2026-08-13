@@ -13,3 +13,4 @@ erDiagram
     }
 
 ```
+<!-- every character here must be drawn: "'#;[](){}🎉日本語:,*-|`~&=+.?@$^_><%%\ -->

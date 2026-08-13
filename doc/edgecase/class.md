@@ -15,3 +15,4 @@ classDiagram
     Account ..> Ledger : x<br/>"'##59;[](){}<br/>🎉日本語#58;,*-|`~&=+.?@$^_><%%\x
     note for Account "before <br/>&quot;'#;[](){}<br/>🎉日本語:,*-|`~&=+.?@$^_><%%#92; after"
 ```
+<!-- every character here must be drawn: "'#;[](){}🎉日本語:,*-|`~&=+.?@$^_><%%\ -->

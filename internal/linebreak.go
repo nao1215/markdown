@@ -63,6 +63,33 @@ func FoldFrontMatterTitleCR(title string) string {
 	return strings.ReplaceAll(title, "\r", "\n")
 }
 
+// EscapeBareAngle returns s with every "<" that does not open a "<br/>"
+// written as the entity form "#60;", and everything else untouched.
+//
+// The renderer's sanitizer reads a bare "<" followed by a letter as the start
+// of an HTML tag and eats the rest of the text, in quoted labels as much as in
+// titles: a block label, a git graph commit id, a requirement name and an xy
+// chart label each drew "a" where the caller asked for "a<b then c", measured
+// by rendering. "#60;" decodes to the character in every one of them. "<br/>"
+// is left alone because it renders today, and run this after
+// EscapeEntityOpeners: the "#60;" written here must not be escaped again.
+func EscapeBareAngle(s string) string {
+	if !strings.ContainsRune(s, '<') {
+		return s
+	}
+
+	var b strings.Builder
+	b.Grow(len(s))
+	for i := 0; i < len(s); i++ {
+		if s[i] == '<' && !strings.HasPrefix(s[i:], "<br/>") {
+			b.WriteString(EntityEscape('<'))
+			continue
+		}
+		b.WriteByte(s[i])
+	}
+	return b.String()
+}
+
 // EscapeTitleAngle returns a title ready to be written into the `title`
 // statement of a diagram, with every "<" that does not open a "<br/>" written
 // as the entity form "#60;".

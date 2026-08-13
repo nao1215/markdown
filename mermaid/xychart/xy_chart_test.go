@@ -129,7 +129,7 @@ func TestDiagram_QuoteEscapesSpecialChars(t *testing.T) {
 	// A backslash is written as "#92;", which decodes to the character: the
 	// HTML form written before v1.0.0 was only half decoded and drew "&\".
 	want := `xychart
-    title "Revenue &quot;Q1&quot;#92;FY26"
+    title "Revenue #quot;Q1#quot;#92;FY26"
     x-axis ["Jan#92;2026", "Feb &quot;2026&quot;"]
     y-axis "Revenue &quot;k$&quot;#92;path" 0 --> 100
     bar [1, 2]`
@@ -149,6 +149,20 @@ func TestTitleEscapesTheBareAngle(t *testing.T) {
 	got := NewDiagram(io.Discard, WithTitle("cost < 10")).String()
 
 	if want := `    title "cost #60; 10"`; !strings.Contains(got, want) {
+		t.Errorf("chart =\n%s\nwant it to contain\n%s", got, want)
+	}
+}
+
+// TestLabelEscapesWhatTheDrawingShowsWrong covers the characters an axis label
+// showed as something else: raw, "&", "<" and ">" reached the reader as the
+// literal texts "&amp;", "&lt;" and "&gt;", or the label was eaten from the
+// "<" on, and each entity form decodes back into the character.
+func TestLabelEscapesWhatTheDrawingShowsWrong(t *testing.T) {
+	t.Parallel()
+
+	got := NewDiagram(io.Discard).XAxisLabels("a&b<c>d", "e").String()
+
+	if want := `    x-axis ["a#38;b#60;c#62;d", e]`; !strings.Contains(got, want) {
 		t.Errorf("chart =\n%s\nwant it to contain\n%s", got, want)
 	}
 }

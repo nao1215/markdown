@@ -10,3 +10,4 @@ wardley-beta
     Customer -> Checkout (web)
     evolve Checkout (web) 0.9
 ```
+<!-- every character here must be drawn: "'#;[](){}🎉日本語:,*-|`~&=+.?@$^_><%%\ -->

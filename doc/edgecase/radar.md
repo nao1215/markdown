@@ -13,3 +13,4 @@ radar-beta
   max 100
   min 0
 ```
+<!-- every character here must be drawn: "'#;[](){}🎉日本語:,*-|`~&=+.?@$^_><%%\ -->

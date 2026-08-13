@@ -8,3 +8,4 @@ venn-beta
     set a["before #quot;'#;[](){}<br/>🎉日本語:,*-|`~&=+.?@$^_><%%\ after"]
     set b["x#quot;'#;[](){}<br/>🎉日本語:,*-|`~&=+.?@$^_><%%\x"]
 ```
+<!-- every character here must be drawn: "'#;[](){}🎉日本語:,*-|`~&=+.?@$^_><%%\ -->

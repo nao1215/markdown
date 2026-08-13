@@ -28,6 +28,31 @@ func TestLineBreaksToBr(t *testing.T) {
 	}
 }
 
+func TestEscapeBareAngle(t *testing.T) {
+	t.Parallel()
+
+	tests := map[string]struct {
+		in   string
+		want string
+	}{
+		"no angle is left alone":          {in: "plain", want: "plain"},
+		"a bare angle becomes the entity": {in: "a<b then c", want: "a#60;b then c"},
+		"a br stays a line break":         {in: "a<br/>b", want: "a<br/>b"},
+		"an angle before a br is escaped": {in: "a<<br/>b", want: "a#60;<br/>b"},
+		"a closing angle is left alone":   {in: "a>b", want: "a>b"},
+	}
+
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			if got := EscapeBareAngle(tt.in); got != tt.want {
+				t.Errorf("EscapeBareAngle(%q) = %q, want %q", tt.in, got, tt.want)
+			}
+		})
+	}
+}
+
 func TestFoldFrontMatterTitleCR(t *testing.T) {
 	t.Parallel()
 

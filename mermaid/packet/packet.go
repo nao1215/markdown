@@ -187,13 +187,13 @@ func containsNewline(value string) bool {
 
 // quote returns value as the double quoted string a packet field takes.
 //
-// A backslash is written as "#92;", mermaid's own entity form, measured to be
-// drawn as the character: the HTML form "&#92;" written before v1.0.0 was only
-// half decoded, so a caller's backslash was drawn as "&\". A tab keeps the
-// visible "\t" spelling without the stray "&". A line break is written as
-// "<br/>" defensively: every text field rejects one before it gets here. A "#" that
-// would start an entity is escaped first, which keeps a caller's literal
-// "#92;" distinct from a caller's backslash.
+// A backslash is written as "#92;" and a quotation mark as "#quot;", mermaid's
+// own entity forms, measured to be drawn as the characters: the HTML forms
+// written before v1.0.0 reached the drawing as "&\" and as the literal text
+// "&quot;". A tab keeps the visible "\t" spelling without the stray "&". A
+// line break is written as "<br/>" defensively: every text field rejects one
+// before it gets here. A "#" that would start an entity is escaped first,
+// which keeps a caller's literal "#92;" distinct from a caller's backslash.
 func quote(value string) string {
 	escaped := internal.EscapeEntityOpeners(normalizeQuoted(value))
 	escaped = strings.ReplaceAll(escaped, `\`, "#92;")
@@ -201,7 +201,7 @@ func quote(value string) string {
 	escaped = strings.ReplaceAll(escaped, "\r", "<br/>")
 	escaped = strings.ReplaceAll(escaped, "\n", "<br/>")
 	escaped = strings.ReplaceAll(escaped, "\t", "#92;t")
-	escaped = strings.ReplaceAll(escaped, `"`, "&quot;")
+	escaped = strings.ReplaceAll(escaped, `"`, "#quot;")
 	return `"` + escaped + `"`
 }
 

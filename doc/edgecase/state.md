@@ -13,3 +13,4 @@ stateDiagram-v2
     Placed --> Draft : x<br/>"'##59;[](){}<br/>🎉日本語:,*-|`~&=+.?@$^_><%%\x
     note right of Draft : before <br/>"'##59;[](){}<br/>🎉日本語#58;,*-|`~&=+.?@$^_><%%\ after
 ```
+<!-- every character here must be drawn: "'#;[](){}🎉日本語:,*-|`~&=+.?@$^_><%%\ -->

@@ -397,7 +397,13 @@ func formatRefName(name string) string {
 // A backslash is written as "#92;", mermaid's own entity form, measured to be
 // drawn as the character: the HTML form "&#92;" written before v1.0.0 was only
 // half decoded, so a caller's backslash was drawn as "&\". A tab keeps the
-// visible "\t" spelling without the stray "&". A line break is written as
+// visible "\t" spelling without the stray "&". An ampersand, a "<" and a ">"
+// are written as their entity forms: raw, the drawing showed the caller the
+// literal texts "&amp;", "&lt;" and "&gt;" instead of the characters, measured
+// by rendering, and each entity decodes back cleanly. "<br/>" gets no
+// exception, because this drawing never honored it as a line break: it drew
+// the literal "<br>", and the entity form draws the caller's text exactly. A
+// line break is written as
 // "<br/>" defensively: every text field rejects one before it gets here. A "#" that
 // would start an entity is escaped first, which keeps a caller's literal
 // "#92;" distinct from a caller's backslash.
@@ -407,6 +413,9 @@ func quote(v string) string {
 	escaped = strings.ReplaceAll(escaped, "\r\n", "<br/>")
 	escaped = strings.ReplaceAll(escaped, "\r", "<br/>")
 	escaped = strings.ReplaceAll(escaped, "\n", "<br/>")
+	escaped = strings.ReplaceAll(escaped, "&", "#38;")
+	escaped = strings.ReplaceAll(escaped, "<", "#60;")
+	escaped = strings.ReplaceAll(escaped, ">", "#62;")
 	escaped = strings.ReplaceAll(escaped, "\t", "#92;t")
 	escaped = strings.ReplaceAll(escaped, `"`, "&quot;")
 	return `"` + escaped + `"`

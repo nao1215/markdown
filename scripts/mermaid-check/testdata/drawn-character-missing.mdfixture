@@ -1,0 +1,11 @@
+# A document that declares a character its drawing never shows
+
+The label draws "hello", but the marker below also demands a "<", which the
+flowchart never draws: the checker has to notice the gap.
+
+```mermaid
+flowchart TD
+    A["hello"]
+```
+
+<!-- every character here must be drawn: hello< -->

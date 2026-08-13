@@ -243,6 +243,19 @@ func TestQuoteEscapesSpecialChars(t *testing.T) {
 	}
 }
 
+// TestQuoteEscapesTheBareAngle covers the "<" the sanitizer reads as an
+// opening tag: a requirement named "a<b then c" drew "a", and "#60;" decodes
+// back into the character, measured by rendering.
+func TestQuoteEscapesTheBareAngle(t *testing.T) {
+	t.Parallel()
+
+	got := quote("a<b then c>d")
+	want := `"a#60;b then c>d"`
+	if diff := cmp.Diff(want, got); diff != "" {
+		t.Errorf("value is mismatch (-want +got):\n%s", diff)
+	}
+}
+
 func TestDiagram_Error(t *testing.T) {
 	t.Parallel()
 
