@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 
 	md "github.com/nao1215/markdown"
+	"github.com/nao1215/markdown/mermaid/piechart"
 	"github.com/nao1215/markdown/mermaid/sequence"
 )
 
@@ -1351,4 +1352,51 @@ func ExampleIndex() {
 	// Output:
 	// ### guide
 	// - [Usage](usage.md)
+}
+
+// Example_gitHubActionsJobSummary writes the markdown a GitHub Actions job
+// summary is made of: inside a step, open the file named by the
+// GITHUB_STEP_SUMMARY environment variable for appending and hand it to
+// NewMarkdown in place of os.Stdout; the run's summary page renders the
+// result, mermaid diagrams included.
+func Example_gitHubActionsJobSummary() {
+	coverage := piechart.NewPieChart(
+		io.Discard,
+		piechart.WithTitle("Coverage"),
+		piechart.WithShowData(true),
+	).
+		LabelAndIntValue("covered", 92).
+		LabelAndIntValue("uncovered", 8).
+		String()
+
+	err := md.NewMarkdown(os.Stdout, md.WithBlockSpacing()).
+		H2("Test Results").
+		Table(md.TableSet{
+			Header: []string{"Package", "Passed", "Failed"},
+			Rows: [][]string{
+				{"api", "120", "0"},
+				{"core", "89", "2"},
+			},
+		}).
+		CodeBlocks(md.SyntaxHighlightMermaid, coverage).
+		Build()
+	if err != nil {
+		fmt.Println("build:", err)
+	}
+
+	// Output:
+	// ## Test Results
+	//
+	// | Package | Passed | Failed |
+	// |---------|---------|---------|
+	// | api | 120 | 0 |
+	// | core | 89 | 2 |
+	//
+	// ```mermaid
+	// %%{init: {"pie": {"textPosition": 0.75}, "themeVariables": {"pieOuterStrokeWidth": "5px"}} }%%
+	// pie showData
+	//     title Coverage
+	//     "covered" : 92
+	//     "uncovered" : 8
+	// ```
 }
