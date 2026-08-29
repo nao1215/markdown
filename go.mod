@@ -2,8 +2,6 @@ module github.com/nao1215/markdown
 
 go 1.23
 
-toolchain go1.24.0
-
 require (
 	github.com/google/go-cmp v0.7.0
 	github.com/karrick/godirwalk v1.17.0
