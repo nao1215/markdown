@@ -20,10 +20,17 @@ jobs:
           - "ubuntu-latest"
           - "windows-latest"
           - "macos-latest"
+        # The floor go.mod declares and the newest release. markdown is a
+        # library most of the other repositories depend on, so the 1.23 floor is
+        # the promise that matters and this is the only place it is checked.
+        # "stable" tracks each Go release without an edit -- and it is not "1",
+        # because setup-go resolves "1" from its own manifest, which lags a
+        # fresh release and would leave the ceiling quietly behind. The
+        # intermediate releases were dropped: with nine jobs already, they cost
+        # more than they catch between a verified floor and a verified ceiling.
         go:
           - "1.23"
-          - "1.24"
-          - "1.25"
+          - "stable"
       fail-fast: false
     runs-on: ${{ matrix.os }}
     timeout-minutes: 10
