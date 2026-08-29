@@ -29,7 +29,11 @@ jobs:
         with:
           go-version: "stable"
 
+      # The pin has to keep up with the Go above it: golangci-lint type-checks
+      # the standard library it is pointed at, and v2.12.2 cannot parse Go
+      # 1.27's (generic methods), so it fails on the toolchain rather than on
+      # this repository's code.
       - name: Run golangci-lint as an enforced gate
         uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9.3.0
         with:
-          version: v2.12.2
+          version: v2.13.2
