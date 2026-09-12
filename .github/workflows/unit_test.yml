@@ -51,3 +51,36 @@ jobs:
         run: |
           pkgs="$(go list ./... | grep -v '/doc/')"
           go test -cover -coverpkg="$(echo "$pkgs" | paste -sd,)" -coverprofile=coverage.out $pkgs
+
+  cross_build:
+    name: Cross build (${{ matrix.goos }})
+
+    # The matrix above runs on the three operating systems GitHub hosts runners
+    # for. This is the cheap other half: whether the module compiles for the
+    # BSDs at all. markdown has no OS-specific code of its own, but the
+    # tablewriter chain it renders through does — go-isatty, go-colorable and
+    # go-runewidth all carry per-system files — so this is where a dependency
+    # dropping a BSD would show up. Today all three build. A leg takes seconds
+    # and produces no binary.
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    strategy:
+      fail-fast: false
+      matrix:
+        goos: [freebsd, openbsd, netbsd]
+
+    env:
+      GOOS: ${{ matrix.goos }}
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: "stable"
+
+      - name: Build
+        run: go build ./...
