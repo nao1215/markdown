@@ -5,7 +5,7 @@ go 1.23
 require (
 	github.com/google/go-cmp v0.7.0
 	github.com/karrick/godirwalk v1.17.0
-	github.com/olekukonko/tablewriter v1.1.4
+	github.com/olekukonko/tablewriter v1.1.5
 	github.com/yuin/goldmark v1.8.6
 	gopkg.in/yaml.v3 v3.0.1
 )
