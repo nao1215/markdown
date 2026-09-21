@@ -18,7 +18,7 @@ Complex code that increases the complexity of the library, such as generating ne
 
 ## Supported OS and go version
 - OS: Linux, macOS, Windows
-- Go: 1.23 or later
+- Go: 1.26 or later
 
 ## Example
 ### Basic usage
