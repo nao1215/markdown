@@ -56,7 +56,7 @@ func main() {
 			},
 		}).
 		H2("Image").
-		PlainTextf(md.Image("sample_image", "./sample.png")).
+		PlainTextf("%s", md.Image("sample_image", "./sample.png")).
 		Build()
 
 	// Output:

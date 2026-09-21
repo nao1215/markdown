@@ -1723,30 +1723,32 @@ func readmeSamples(t *testing.T, readme string) map[string]string {
 func exportedSymbols(t *testing.T, dir string) ([]string, map[string]bool) {
 	t.Helper()
 
-	fset := token.NewFileSet()
-	pkgs, err := parser.ParseDir(fset, dir, nil, parser.ParseComments)
+	names, err := filepath.Glob(filepath.Join(dir, "*.go"))
 	if err != nil {
-		t.Fatalf("parse %s: %v", dir, err)
+		t.Fatalf("list %s: %v", dir, err)
 	}
 
+	fset := token.NewFileSet()
 	want := []string{}
 	examples := map[string]bool{}
-	for _, pkg := range pkgs {
-		for name, file := range pkg.Files {
-			if strings.HasSuffix(name, "_test.go") {
-				// go/doc reports the examples godoc will actually show: it
-				// leaves out anything that takes an argument, returns a value,
-				// or has no output to check against, which a scan for the name
-				// alone would count.
-				for _, example := range doc.Examples(file) {
-					if example.Output != "" {
-						examples["Example"+example.Name] = true
-					}
-				}
-				continue
-			}
-			want = append(want, documentedSymbols(file)...)
+	for _, name := range names {
+		file, err := parser.ParseFile(fset, name, nil, parser.ParseComments)
+		if err != nil {
+			t.Fatalf("parse %s: %v", name, err)
 		}
+		if strings.HasSuffix(name, "_test.go") {
+			// go/doc reports the examples godoc will actually show: it
+			// leaves out anything that takes an argument, returns a value,
+			// or has no output to check against, which a scan for the name
+			// alone would count.
+			for _, example := range doc.Examples(file) {
+				if example.Output != "" {
+					examples["Example"+example.Name] = true
+				}
+			}
+			continue
+		}
+		want = append(want, documentedSymbols(file)...)
 	}
 	return want, examples
 }

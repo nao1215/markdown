@@ -111,23 +111,26 @@ func main() {
 // inventory reads one package and returns what it exports, along with what the
 // consistency checks found in it.
 func inventory(dir string) pkg {
-	fset := token.NewFileSet()
-	parsed, err := parser.ParseDir(fset, dir, func(fi os.FileInfo) bool {
-		return !strings.HasSuffix(fi.Name(), "_test.go")
-	}, 0)
+	names, err := filepath.Glob(filepath.Join(dir, "*.go"))
 	if err != nil {
 		panic(err)
 	}
 
+	fset := token.NewFileSet()
 	p := pkg{dir: dir}
-	for name, files := range parsed {
-		if strings.HasSuffix(name, "_test") || name == "main" {
+	for _, name := range names {
+		if strings.HasSuffix(name, "_test.go") {
 			continue
 		}
-		p.name = name
-		for _, file := range files.Files {
-			p.symbols = append(p.symbols, exported(file)...)
+		file, err := parser.ParseFile(fset, name, nil, 0)
+		if err != nil {
+			panic(err)
 		}
+		if file.Name.Name == "main" {
+			continue
+		}
+		p.name = file.Name.Name
+		p.symbols = append(p.symbols, exported(file)...)
 	}
 
 	sort.Slice(p.symbols, func(i, j int) bool {
