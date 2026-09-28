@@ -1,10 +1,7 @@
 name: Coverage
 
-# octocov comments the coverage delta on the pull request, so this workflow
-# needs write access to pull requests; everything else stays read-only.
 permissions:
   contents: read
-  pull-requests: write
 
 on:
   workflow_dispatch:
@@ -23,6 +20,12 @@ jobs:
 
     runs-on: ${{ matrix.platform }}
     timeout-minutes: 10
+    # octocov comments the coverage delta on the pull request and keeps its
+    # report in a workflow artifact (artifact:// datastore).
+    permissions:
+      contents: read
+      actions: write
+      pull-requests: write
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -39,6 +42,8 @@ jobs:
       - name: Run tests with coverage report output
         run: |
           pkgs="$(go list ./... | grep -v '/doc/')"
+          # $pkgs is split on purpose: each package is its own argument.
+          # shellcheck disable=SC2086
           go test -cover -coverpkg="$(echo "$pkgs" | paste -sd,)" -coverprofile=coverage.out $pkgs
 
-      - uses: k1LoW/octocov-action@a167dc0dee441b7ffc45e1b862ab55ec0d87f278 # v1
+      - uses: k1LoW/octocov-action@a167dc0dee441b7ffc45e1b862ab55ec0d87f278 # v1.5.2

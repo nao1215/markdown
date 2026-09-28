@@ -6,11 +6,14 @@ on:
       - 'v*'
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   release:
     runs-on: ubuntu-latest
+    # action-gh-release creates the GitHub Release for the pushed tag.
+    permissions:
+      contents: write
     timeout-minutes: 10
     steps:
       - name: Checkout code
