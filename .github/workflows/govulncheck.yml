@@ -32,13 +32,13 @@ jobs:
     # Every Go line this repository supports: a standard-library advisory is
     # fixed in a specific patch of a specific minor, so an advisory fixed in the
     # newest Go can still be live for someone building with the minimum.
-    # Keep the first entry equal to the minor line of the go directive in go.mod
-    # (setup-go then installs its newest patch).
+    # Keep the first entry equal to the go directive in go.mod, patch included,
+    # so the scan measures the oldest Go a caller may build with.
     strategy:
       fail-fast: false
       matrix:
         go:
-          - "1.26"
+          - "1.26.9"
           - "stable"
 
     steps:
