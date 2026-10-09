@@ -1,6 +1,6 @@
 module github.com/nao1215/markdown
 
-go 1.26.9
+go 1.26.0
 
 require (
 	github.com/google/go-cmp v0.7.0
