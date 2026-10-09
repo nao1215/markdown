@@ -14,6 +14,10 @@ jobs:
     timeout-minutes: 10
     env:
       GO111MODULE: on
+      # The gosec image ships its own Go (1.26.5 on 2026-10-09) with
+      # GOTOOLCHAIN=local, which cannot load a module that asks for a newer
+      # patch. "auto" lets it fetch the toolchain go.mod names.
+      GOTOOLCHAIN: auto
     steps:
       - name: Checkout Source
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
