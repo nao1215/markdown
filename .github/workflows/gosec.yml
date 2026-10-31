@@ -24,6 +24,6 @@ jobs:
         with:
           persist-credentials: false
       - name: Run Gosec Security Scanner
-        uses: securego/gosec@deb54465fea23d19a77f037e11e6589021f8501d # master as of 2026-08-29
+        uses: securego/gosec@4504603eddc5a91a7b7713932d6d1d3792126103 # v2.30.0 action image fix
         with:
           args: --exclude-dir=examples --exclude-dir=aws ./...
