@@ -13,5 +13,11 @@
     "jsdom": "^28.0.0",
     "mermaid": "^11.16.1",
     "puppeteer": "^25.6.0"
+  },
+  "overrides": {
+    "dompurify": "3.4.17",
+    "katex": "0.18.2",
+    "undici": "7.30.1",
+    "zod": "4.6.6"
   }
 }

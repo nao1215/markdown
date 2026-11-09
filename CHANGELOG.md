@@ -3,6 +3,8 @@
 ### Changed
 
 * golang.org/x/sys is v0.49.0 (indirect, through fatih/color and tablewriter). The Go minimum stays 1.26.
+* github.com/yuin/goldmark, used only by the tests that parse the generated markdown, is v1.8.7 (was v1.8.6).
+* The mermaid render check (`scripts/mermaid-check`, development only) pins its transitive dompurify, katex, undici and zod to the first releases that fix their published advisories.
 * CI checks that every dependency linked on Linux, Windows and macOS carries a license that allows redistribution (go-licenses v2.0.1).
 
 ## [v1.1.1](https://github.com/nao1215/markdown/compare/v1.1.0...v1.1.1) (2026-09-28)
