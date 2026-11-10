@@ -2512,10 +2512,11 @@ Next Description
   
 ## Verifying releases
 
-Each GitHub Release carries a source archive (`markdown-<tag>.tar.gz`), `checksums.txt`, a keyless cosign signature of it (`checksums.txt.sigstore.json`) and the build provenance of the archive (`markdown-<tag>.intoto.jsonl`). Download them from the release page, then verify:
+Each GitHub Release made from now on carries a source archive (`markdown-<tag>.tar.gz`), `checksums.txt`, a keyless cosign signature of it (`checksums.txt.sigstore.json`) and the build provenance of the archive (`markdown-<tag>.intoto.jsonl`). Download them from the release page (replace `<tag>` with the release tag), then verify:
 
 ```bash
-gh attestation verify markdown-v1.1.2.tar.gz --repo nao1215/markdown
+gh attestation verify markdown-<tag>.tar.gz --repo nao1215/markdown \
+  --bundle markdown-<tag>.intoto.jsonl
 
 cosign verify-blob --bundle checksums.txt.sigstore.json \
   --certificate-identity-regexp '^https://github.com/nao1215/markdown/' \
