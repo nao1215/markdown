@@ -2510,6 +2510,21 @@ Next Description
 - [Test Title](expected/index.md)
 ```
   
+## Verifying releases
+
+Each GitHub Release carries a source archive (`markdown-<tag>.tar.gz`), `checksums.txt`, a keyless cosign signature of it (`checksums.txt.sigstore.json`) and the build provenance of the archive (`markdown-<tag>.intoto.jsonl`). Download them from the release page, then verify:
+
+```bash
+gh attestation verify markdown-v1.1.2.tar.gz --repo nao1215/markdown
+
+cosign verify-blob --bundle checksums.txt.sigstore.json \
+  --certificate-identity-regexp '^https://github.com/nao1215/markdown/' \
+  --certificate-oidc-issuer https://token.actions.githubusercontent.com \
+  checksums.txt
+
+sha256sum --check checksums.txt
+```
+
 ## License
 [MIT License](./LICENSE)
 
