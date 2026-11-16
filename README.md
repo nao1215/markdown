@@ -5,6 +5,7 @@
 [![Go Reference](https://pkg.go.dev/badge/github.com/nao1215/markdown.svg)](https://pkg.go.dev/github.com/nao1215/markdown)
 [![MultiPlatformUnitTest](https://github.com/nao1215/markdown/actions/workflows/unit_test.yml/badge.svg)](https://github.com/nao1215/markdown/actions/workflows/unit_test.yml)
 [![reviewdog](https://github.com/nao1215/markdown/actions/workflows/reviewdog.yml/badge.svg)](https://github.com/nao1215/markdown/actions/workflows/reviewdog.yml)
+[![Trivy](https://github.com/nao1215/markdown/actions/workflows/trivy.yml/badge.svg)](https://github.com/nao1215/markdown/actions/workflows/trivy.yml)
 [![Gosec](https://github.com/nao1215/markdown/actions/workflows/gosec.yml/badge.svg)](https://github.com/nao1215/markdown/actions/workflows/gosec.yml)
 ![Coverage](https://raw.githubusercontent.com/nao1215/octocovs-central-repo/main/badges/nao1215/markdown/coverage.svg)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/nao1215/markdown/badge)](https://scorecard.dev/viewer/?uri=github.com/nao1215/markdown)

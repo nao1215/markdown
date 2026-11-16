@@ -2,6 +2,7 @@
 
 ### Changed
 
+* CI scans the repository with gosec and Trivy on every pull request (Trivy covers dependency vulnerabilities, committed secrets and misconfigurations, and also runs daily). Workflow actions are recorded in `.github/workflows/actions.lock`, which CI verifies against the pinned commits.
 * Releases now attach a source archive, `checksums.txt`, a keyless cosign signature of the checksums and the build provenance of the archive to the GitHub Release. See "Verifying releases" in the README.
 
 ## [v1.1.2](https://github.com/nao1215/markdown/compare/v1.1.1...v1.1.2) (2026-11-09)
