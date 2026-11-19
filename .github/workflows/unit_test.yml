@@ -10,6 +10,12 @@ on:
   pull_request:
     branches: [main]
 
+# A new push to a pull request cancels the run for the previous commit, so
+# superseded runs do not hold the account's shared job slots.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   unit_test:
     name: Unit test (${{ matrix.os }}, Go ${{ matrix.go }})
@@ -50,7 +56,7 @@ jobs:
         shell: bash
         run: |
           pkgs="$(go list ./... | grep -v '/doc/')"
-          go test -cover -coverpkg="$(echo "$pkgs" | paste -sd,)" -coverprofile=coverage.out $pkgs
+          go test -count=1 -cover -coverpkg="$(echo "$pkgs" | paste -sd,)" -coverprofile=coverage.out $pkgs
 
   cross_build:
     name: Cross build (${{ matrix.goos }})

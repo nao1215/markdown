@@ -10,6 +10,12 @@ permissions:
 # After editing any workflow, regenerate actions.lock with
 # `python3 scripts/lock_actions.py` (needs `gh extension install github/gh-actions-lock`).
 # It keeps the full-SHA references that Scorecard reads.
+# A new push to a pull request cancels the run for the previous commit, so
+# superseded runs do not hold the account's shared job slots.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   verify:
     runs-on: ubuntu-latest

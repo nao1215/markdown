@@ -11,6 +11,7 @@
 * gitleaks now also scans pushes to main, not only pull requests, and skips Dependabot runs.
 * Property-based tests (rapid, with goldmark reading the output back) check escaped tables, lists, headings and code blocks for generated input, and a metamorphic test checks that `WithBlockSpacing` never changes which blocks a document parses into. rapid is a test-only dependency.
 * Mutation testing (gremlins) runs on the lines each pull request changes and weekly on every package; the first full run killed 91.84% of the mutants.
+* A new push to a pull request cancels the CI runs of the previous commit, the unit tests run with `-count=1` so a restored build cache cannot replay old results, and govulncheck is pinned at v1.10.0.
 * golang.org/x/sys is v0.50.0 and goccy/go-json v0.12.0 (indirect, through tablewriter). The Go minimum stays 1.26.
 * Releases now attach a source archive, `checksums.txt`, a keyless cosign signature of the checksums and the build provenance of the archive to the GitHub Release. See "Verifying releases" in the README.
 
