@@ -2530,6 +2530,20 @@ cosign verify-blob --bundle checksums.txt.sigstore.json \
 sha256sum --check checksums.txt
 ```
 
+## Testing
+
+| Technique | Bug class caught here |
+|---|---|
+| [Unit tests and godoc examples](markdown_test.go) | Wrong bytes from a builder method, on Linux, macOS and Windows |
+| [Golden files](testdata/golden) | Unintended changes to a whole generated document |
+| [Parsing the output back](contract_test.go) | Output that reads fine but renders as something else: a table that loses a column, a list that swallows a paragraph |
+| [Property-based tests](contract_test.go) | Escaped tables, lists, headings and code blocks that do not keep their shape for some input |
+| [Metamorphic tests](contract_test.go) | Blocks that merge or change kind depending on `WithBlockSpacing` |
+| [Fuzzing](.github/workflows/fuzz.yml) | Escaping, anchors and fences that break on arbitrary text |
+| [Mermaid render check](scripts/mermaid-check) | Diagrams that the real mermaid renderer rejects or draws differently |
+
+The commands and CI jobs for each are in [doc/testing.md](doc/testing.md).
+
 ## License
 [MIT License](./LICENSE)
 
