@@ -48,6 +48,7 @@ import (
 	extast "github.com/yuin/goldmark/extension/ast"
 	"github.com/yuin/goldmark/text"
 	"gopkg.in/yaml.v3"
+	"pgregory.net/rapid"
 )
 
 // TestBuildContract asserts the error handling every builder in this module
@@ -1877,4 +1878,283 @@ func TestABuilderBelongsToOneGoroutine(t *testing.T) {
 			t.Errorf("document %d = %q, want it to contain %q", i, document, want)
 		}
 	}
+}
+
+// Property-based tests: rapid draws the text, and goldmark (GFM) is the oracle
+// that reads the document back. Each property states what must survive the
+// round trip for any input, not only for the examples the other tests list.
+// A failure prints the seed and a shrunk input; `go test -run <Name>
+// -rapid.seed=<seed>` replays it and `-rapid.checks=10000` searches longer.
+
+// buildDoc runs fn against a fresh builder and returns the document.
+func buildDoc(t *rapid.T, fn func(*markdown.Markdown) *markdown.Markdown) string {
+	buf := &bytes.Buffer{}
+	if err := fn(markdown.NewMarkdown(buf)).Build(); err != nil {
+		t.Fatalf("Build() = %v, want nil", err)
+	}
+	return buf.String()
+}
+
+// parseDoc reads the document back as parse does, for use inside rapid.
+func parseDoc(src string) (ast.Node, []byte) {
+	md := goldmark.New(goldmark.WithExtensions(extension.GFM, extension.Footnote))
+	source := []byte(src)
+	return md.Parser().Parse(text.NewReader(source)), source
+}
+
+// anyCell draws cell text from all of Unicode, weighted toward the characters
+// that end a cell or a row, or start inline markup.
+func anyCell() *rapid.Generator[string] {
+	special := rapid.SampledFrom([]string{"|", "\\", "\n", "\r", "\r\n", "`", "*", "_", "[", "]", "<", ">", "&", " ", "\t", "-", ":", "#"})
+	piece := rapid.OneOf(special, rapid.String(), rapid.StringMatching(`[a-z]{1,4}`))
+	return rapid.Custom(func(t *rapid.T) string {
+		return strings.Join(rapid.SliceOfN(piece, 0, 6).Draw(t, "pieces"), "")
+	})
+}
+
+func TestPropertyAnEscapedTableKeepsItsShape(t *testing.T) {
+	t.Parallel()
+
+	rapid.Check(t, func(t *rapid.T) {
+		cols := rapid.IntRange(1, 4).Draw(t, "cols")
+		header := make([]string, cols)
+		for i := range header {
+			header[i] = rapid.StringMatching(`[a-z]{1,6}`).Draw(t, "header")
+		}
+		rows := rapid.SliceOfN(rapid.SliceOfN(anyCell(), cols, cols), 1, 4).Draw(t, "rows")
+
+		document := buildDoc(t, func(m *markdown.Markdown) *markdown.Markdown {
+			return m.Table(markdown.TableSet{Header: header, Rows: rows, EscapeCells: true})
+		})
+		root, _ := parseDoc(document)
+		tables := nodesOfKind(root, extast.KindTable)
+		if len(tables) != 1 {
+			t.Fatalf("the document parsed with %d tables, want 1:\n%s", len(tables), document)
+		}
+		bodyRows := nodesOfKind(tables[0], extast.KindTableRow)
+		if len(bodyRows) != len(rows) {
+			t.Fatalf("the table parsed with %d body rows, want %d:\n%s", len(bodyRows), len(rows), document)
+		}
+		for i, row := range bodyRows {
+			if got := row.ChildCount(); got != cols {
+				t.Fatalf("row %d parsed with %d cells, want %d:\n%s", i, got, cols, document)
+			}
+		}
+	})
+}
+
+// plainWords draws text that carries no markdown of its own, so whatever the
+// parser reads back must be exactly that text.
+func plainWords() *rapid.Generator[string] {
+	return rapid.StringMatching(`[A-Za-z0-9]+( [A-Za-z0-9]+){0,4}`)
+}
+
+func TestPropertyListsParseWithTheirItems(t *testing.T) {
+	t.Parallel()
+
+	rapid.Check(t, func(t *rapid.T) {
+		items := rapid.SliceOfN(plainWords(), 1, 8).Draw(t, "items")
+		ordered := rapid.Bool().Draw(t, "ordered")
+		document := buildDoc(t, func(m *markdown.Markdown) *markdown.Markdown {
+			if ordered {
+				return m.OrderedList(items...)
+			}
+			return m.BulletList(items...)
+		})
+		root, source := parseDoc(document)
+		lists := nodesOfKind(root, ast.KindList)
+		if len(lists) != 1 {
+			t.Fatalf("the document parsed with %d lists, want 1:\n%s", len(lists), document)
+		}
+		list, ok := lists[0].(*ast.List)
+		if !ok {
+			t.Fatalf("the list node is a %T", lists[0])
+		}
+		if got := list.IsOrdered(); got != ordered {
+			t.Fatalf("the list parsed as ordered=%v, want %v:\n%s", got, ordered, document)
+		}
+		got := nodesOfKind(lists[0], ast.KindListItem)
+		if len(got) != len(items) {
+			t.Fatalf("the list parsed with %d items, want %d:\n%s", len(got), len(items), document)
+		}
+		for i, item := range got {
+			if text := cellText(item, source); text != items[i] {
+				t.Fatalf("item %d parsed as %q, want %q:\n%s", i, text, items[i], document)
+			}
+		}
+	})
+}
+
+func TestPropertyHeadingsParseAtTheirLevel(t *testing.T) {
+	t.Parallel()
+
+	rapid.Check(t, func(t *rapid.T) {
+		type heading struct {
+			level int
+			text  string
+		}
+		hs := rapid.SliceOfN(rapid.Custom(func(t *rapid.T) heading {
+			return heading{level: rapid.IntRange(1, 6).Draw(t, "level"), text: plainWords().Draw(t, "text")}
+		}), 1, 8).Draw(t, "headings")
+
+		document := buildDoc(t, func(m *markdown.Markdown) *markdown.Markdown {
+			for _, h := range hs {
+				switch h.level {
+				case 1:
+					m.H1(h.text)
+				case 2:
+					m.H2(h.text)
+				case 3:
+					m.H3(h.text)
+				case 4:
+					m.H4(h.text)
+				case 5:
+					m.H5(h.text)
+				default:
+					m.H6(h.text)
+				}
+			}
+			return m
+		})
+		root, source := parseDoc(document)
+		got := nodesOfKind(root, ast.KindHeading)
+		if len(got) != len(hs) {
+			t.Fatalf("the document parsed with %d headings, want %d:\n%s", len(got), len(hs), document)
+		}
+		for i, n := range got {
+			h, ok := n.(*ast.Heading)
+			if !ok {
+				t.Fatalf("the heading node is a %T", n)
+			}
+			if h.Level != hs[i].level || cellText(h, source) != hs[i].text {
+				t.Fatalf("heading %d parsed as H%d %q, want H%d %q:\n%s", i, h.Level, cellText(h, source), hs[i].level, hs[i].text, document)
+			}
+		}
+	})
+}
+
+func TestPropertyACodeBlockHoldsItsContent(t *testing.T) {
+	t.Parallel()
+
+	rapid.Check(t, func(t *rapid.T) {
+		lines := rapid.SliceOfN(anyCell().Filter(func(s string) bool {
+			return !strings.ContainsAny(s, "\r\n")
+		}), 1, 6).Draw(t, "lines")
+		content := strings.Join(lines, "\n")
+		document := buildDoc(t, func(m *markdown.Markdown) *markdown.Markdown {
+			return m.CodeBlocks(markdown.SyntaxHighlightGo, content)
+		})
+		root, source := parseDoc(document)
+		blocks := nodesOfKind(root, ast.KindFencedCodeBlock)
+		if len(blocks) != 1 {
+			t.Fatalf("the document parsed with %d code blocks, want 1:\n%s", len(blocks), document)
+		}
+		var b strings.Builder
+		l := blocks[0].Lines()
+		for i := 0; i < l.Len(); i++ {
+			seg := l.At(i)
+			b.Write(seg.Value(source))
+		}
+		// The builder writes the platform line feed (CRLF on Windows), so
+		// the lines read back are compared with LF endings.
+		got := strings.TrimSuffix(strings.ReplaceAll(b.String(), "\r\n", "\n"), "\n")
+		if got != content {
+			t.Fatalf("the code block holds %q, want %q:\n%s", got, content, document)
+		}
+	})
+}
+
+// blockKinds lists the kinds of the top-level blocks of a parsed document.
+func blockKinds(root ast.Node) []string {
+	var kinds []string
+	for n := root.FirstChild(); n != nil; n = n.NextSibling() {
+		kinds = append(kinds, n.Kind().String())
+	}
+	return kinds
+}
+
+// A document op appends one block to a builder.
+type docOp struct {
+	name  string
+	apply func(*markdown.Markdown) *markdown.Markdown
+}
+
+func anyOp() *rapid.Generator[docOp] {
+	return rapid.Custom(func(t *rapid.T) docOp {
+		words := plainWords().Draw(t, "words")
+		switch rapid.IntRange(0, 12).Draw(t, "op") {
+		case 0:
+			return docOp{"H1", func(m *markdown.Markdown) *markdown.Markdown { return m.H1(words) }}
+		case 1:
+			return docOp{"H3", func(m *markdown.Markdown) *markdown.Markdown { return m.H3(words) }}
+		case 2:
+			return docOp{"PlainText", func(m *markdown.Markdown) *markdown.Markdown { return m.PlainText(words) }}
+		case 3:
+			return docOp{"BulletList", func(m *markdown.Markdown) *markdown.Markdown { return m.BulletList(words, words) }}
+		case 4:
+			return docOp{"OrderedList", func(m *markdown.Markdown) *markdown.Markdown { return m.OrderedList(words) }}
+		case 5:
+			return docOp{"CodeBlocks", func(m *markdown.Markdown) *markdown.Markdown { return m.CodeBlocks(markdown.SyntaxHighlightGo, words) }}
+		case 6:
+			return docOp{"Blockquote", func(m *markdown.Markdown) *markdown.Markdown { return m.Blockquote(words) }}
+		case 7:
+			return docOp{"Table", func(m *markdown.Markdown) *markdown.Markdown {
+				return m.Table(markdown.TableSet{Header: []string{"h"}, Rows: [][]string{{words}}})
+			}}
+		case 8:
+			return docOp{"HorizontalRule", func(m *markdown.Markdown) *markdown.Markdown { return m.HorizontalRule() }}
+		case 9:
+			return docOp{"CheckBox", func(m *markdown.Markdown) *markdown.Markdown {
+				return m.CheckBox([]markdown.CheckBoxSet{{Text: words}, {Checked: true, Text: words}})
+			}}
+		case 10:
+			return docOp{"Details", func(m *markdown.Markdown) *markdown.Markdown { return m.Details(words, words) }}
+		case 11:
+			return docOp{"H2", func(m *markdown.Markdown) *markdown.Markdown { return m.H2(words) }}
+		default:
+			return docOp{"Note", func(m *markdown.Markdown) *markdown.Markdown { return m.Note(words) }}
+		}
+	})
+}
+
+// TestMetamorphicBlockSpacingKeepsTheStructure: WithBlockSpacing only adds
+// blank lines between blocks, so the same calls with and without it must parse
+// into the same sequence of blocks.
+func TestMetamorphicBlockSpacingKeepsTheStructure(t *testing.T) {
+	t.Parallel()
+
+	rapid.Check(t, func(t *rapid.T) {
+		// Consecutive PlainText lines are one paragraph without the option and
+		// one paragraph each with it; that difference is the option's purpose.
+		ops := rapid.SliceOfN(anyOp(), 1, 8).Filter(func(ops []docOp) bool {
+			for i := 1; i < len(ops); i++ {
+				if ops[i-1].name == "PlainText" && ops[i].name == "PlainText" {
+					return false
+				}
+			}
+			return true
+		}).Draw(t, "ops")
+		names := make([]string, 0, len(ops))
+		for _, op := range ops {
+			names = append(names, op.name)
+		}
+		render := func(opts ...markdown.Option) string {
+			buf := &bytes.Buffer{}
+			m := markdown.NewMarkdown(buf, opts...)
+			for _, op := range ops {
+				m = op.apply(m)
+			}
+			if err := m.Build(); err != nil {
+				t.Fatalf("Build() = %v", err)
+			}
+			return buf.String()
+		}
+		compact, spaced := render(), render(markdown.WithBlockSpacing())
+		rootCompact, _ := parseDoc(compact)
+		rootSpaced, _ := parseDoc(spaced)
+		a, b := blockKinds(rootCompact), blockKinds(rootSpaced)
+		if strings.Join(a, ",") != strings.Join(b, ",") {
+			t.Fatalf("%v parse differently:\ncompact %v\n%s\nspaced %v\n%s", names, a, compact, b, spaced)
+		}
+	})
 }
