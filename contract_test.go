@@ -929,6 +929,48 @@ func TestAnUnescapedPipeIsWhyEscapeCellsExists(t *testing.T) {
 	}
 }
 
+// TestAHorizontalRuleAfterTextStaysARule pins that a rule written right after
+// a line of text is a thematic break. "---" on the line under a paragraph is a
+// setext heading underline, so without the blank line in between the text
+// became an H2 and the rule disappeared.
+func TestAHorizontalRuleAfterTextStaysARule(t *testing.T) {
+	t.Parallel()
+
+	before := map[string]func(*markdown.Markdown) *markdown.Markdown{
+		"plain text": func(m *markdown.Markdown) *markdown.Markdown { return m.PlainText("Above") },
+		"two lines": func(m *markdown.Markdown) *markdown.Markdown {
+			return m.PlainText("Above" + internal.LineFeed() + "still above")
+		},
+		"bold text": func(m *markdown.Markdown) *markdown.Markdown { return m.PlainText(markdown.Bold("Above")) },
+		"a link": func(m *markdown.Markdown) *markdown.Markdown {
+			return m.PlainText(markdown.Link("Above", "https://example.com"))
+		},
+		// Text that only starts like a block construct is still paragraph text.
+		"a hashtag":    func(m *markdown.Markdown) *markdown.Markdown { return m.PlainText("#hashtag") },
+		"seven hashes": func(m *markdown.Markdown) *markdown.Markdown { return m.PlainText("####### seven") },
+		"a pipe":       func(m *markdown.Markdown) *markdown.Markdown { return m.PlainText("| literal") },
+		"an autolink":  func(m *markdown.Markdown) *markdown.Markdown { return m.PlainText("<https://example.com>") },
+	}
+
+	for name, write := range before {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			document := build(t, func(m *markdown.Markdown) *markdown.Markdown {
+				return write(m).HorizontalRule().PlainText("Below")
+			})
+			root, _ := parse(t, document)
+
+			if headings := nodesOfKind(root, ast.KindHeading); len(headings) != 0 {
+				t.Errorf("the text above the rule parsed as a heading: %q", document)
+			}
+			if rules := nodesOfKind(root, ast.KindThematicBreak); len(rules) != 1 {
+				t.Errorf("the document parsed with %d thematic breaks, want 1: %q", len(rules), document)
+			}
+		})
+	}
+}
+
 // TestHeadingTextDoesNotProduceExtraHeadings pins that text carrying its own
 // markdown cannot turn one heading into several.
 func TestHeadingTextDoesNotProduceExtraHeadings(t *testing.T) {

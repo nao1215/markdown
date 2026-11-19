@@ -362,7 +362,8 @@ func ExampleMarkdown_CodeBlocks() {
 	// ```
 }
 
-// ExampleMarkdown_HorizontalRule writes a thematic break.
+// ExampleMarkdown_HorizontalRule writes a thematic break. After a line of text
+// it adds the blank line that keeps the text from becoming a heading.
 func ExampleMarkdown_HorizontalRule() {
 	_ = md.NewMarkdown(os.Stdout).
 		PlainText("Above").
@@ -372,6 +373,7 @@ func ExampleMarkdown_HorizontalRule() {
 
 	// Output:
 	// Above
+	//
 	// ---
 	// Below
 }
