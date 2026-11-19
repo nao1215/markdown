@@ -724,6 +724,34 @@ func TestTableOfContentsWithSpecialCharacters(t *testing.T) {
 		}
 	})
 
+	t.Run("Table of contents keeps underscores and combining marks like GitHub", func(t *testing.T) {
+		t.Parallel()
+
+		// GitHub keeps every word character in an anchor: letters, marks,
+		// digits and the connector punctuation "_". Dropping "_" or a mark
+		// points the link at an anchor the rendered page does not have.
+		m := NewMarkdown(os.Stdout)
+		m.TableOfContents(TableOfContentsDepthH2).
+			H2("snake_case option").
+			H2("cafe\u0301").
+			H2("हिन्दी")
+
+		want := TableOfContentsMarkerBegin + internal.LineFeed() +
+			"- [snake_case option](#snake_case-option)" + internal.LineFeed() +
+			"- [cafe\u0301](#cafe\u0301)" + internal.LineFeed() +
+			"- [हिन्दी](#हिन्दी)" + internal.LineFeed() +
+			TableOfContentsMarkerEnd + internal.LineFeed() +
+			internal.LineFeed() +
+			"## snake_case option" + internal.LineFeed() +
+			"## cafe\u0301" + internal.LineFeed() +
+			"## हिन्दी"
+		got := m.String()
+
+		if diff := cmp.Diff(want, got); diff != "" {
+			t.Errorf("value is mismatch (-want +got):\n%s", diff)
+		}
+	})
+
 	t.Run("Table of contents handles unicode and duplicate headers", func(t *testing.T) {
 		t.Parallel()
 
@@ -2936,7 +2964,7 @@ func FuzzGitHubAnchor(f *testing.F) {
 		anchor := generateGitHubAnchor(heading)
 
 		for _, r := range anchor {
-			if r == '-' || unicode.IsLetter(r) || unicode.IsNumber(r) {
+			if r == '-' || unicode.IsLetter(r) || unicode.IsMark(r) || unicode.IsNumber(r) || unicode.Is(unicode.Pc, r) {
 				continue
 			}
 			t.Errorf("anchor %q from heading %q contains %q", anchor, heading, r)
