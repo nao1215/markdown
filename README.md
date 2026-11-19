@@ -2540,6 +2540,7 @@ sha256sum --check checksums.txt
 | [Property-based tests](contract_test.go) | Escaped tables, lists, headings and code blocks that do not keep their shape for some input |
 | [Metamorphic tests](contract_test.go) | Blocks that merge or change kind depending on `WithBlockSpacing` |
 | [Fuzzing](.github/workflows/fuzz.yml) | Escaping, anchors and fences that break on arbitrary text |
+| [Mutation testing](.github/workflows/mutation.yml) | Tests that run changed code without checking its result |
 | [Mermaid render check](scripts/mermaid-check) | Diagrams that the real mermaid renderer rejects or draws differently |
 
 The commands and CI jobs for each are in [doc/testing.md](doc/testing.md).

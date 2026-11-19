@@ -1,0 +1,76 @@
+name: Mutation
+# Mutation testing rewrites one expression at a time and checks that a test
+# fails. It reruns the tests once per mutant, so it is too slow for every pull
+# request: the full run is weekly, and pull requests mutate only the lines
+# they change (gremlins --diff, run from the module root so the paths that
+# git diff prints match the files gremlins mutates).
+on:
+  schedule:
+    - cron: '0 3 * * 0'
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - '**.go'
+      - go.mod
+      - go.sum
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  GREMLINS_VERSION: v0.6.0
+  # A mutant that allocates without bound (e.g. an endless write loop) takes the
+  # hosted runner down with "runner has received a shutdown signal" and no log.
+  # A 4 GiB cap per process makes it die as a killed mutant instead.
+  MUTANT_MEMORY_KIB: '4194304'
+
+# doc/ holds the sample programs whose main() no test calls (coverage.yml
+# leaves them out for the same reason), so their mutants are excluded.
+jobs:
+  mutation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      # gremlins v0.6.0 needs Go 1.25 or later to build, so this job uses the
+      # latest Go rather than the go.mod floor (the floor has its own unit test
+      # job). Do not set GOTOOLCHAIN=local here.
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: stable
+      - name: Install gremlins
+        run: go install "github.com/go-gremlins/gremlins/cmd/gremlins@${GREMLINS_VERSION}"
+      - name: Mutate the lines this pull request changes
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          # gremlins treats each hunk's added lines as one range, so with the
+          # default 3 lines of context a second change in the same hunk is not
+          # mutated. Zero context gives one hunk per change.
+          GIT_CONFIG_COUNT: '2'
+          GIT_CONFIG_KEY_0: diff.context
+          GIT_CONFIG_VALUE_0: '0'
+          GIT_CONFIG_KEY_1: diff.interHunkContext
+          GIT_CONFIG_VALUE_1: '0'
+        # Run from the module root: gremlins compares git diff paths as given.
+        run: |
+          ulimit -v "$MUTANT_MEMORY_KIB"
+          gremlins unleash --diff "$BASE_SHA" --workers 2 --timeout-coefficient 10 --exclude-files '^doc/' --output mutation.json .
+      - name: Mutate every package
+        if: github.event_name != 'pull_request'
+        run: |
+          ulimit -v "$MUTANT_MEMORY_KIB"
+          gremlins unleash --workers 2 --timeout-coefficient 10 --exclude-files '^doc/' --output mutation.json .
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: mutation-report
+          path: mutation.json
+          if-no-files-found: ignore

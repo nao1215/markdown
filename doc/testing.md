@@ -10,6 +10,7 @@ How markdown is tested, the command that runs each kind of test locally, and the
 | Property-based tests | `contract_test.go` (`TestProperty*`) | `go test -run TestProperty .` | `unit_test.yml` |
 | Metamorphic tests | `contract_test.go` (`TestMetamorphic*`) | `go test -run TestMetamorphic .` | `unit_test.yml` |
 | Fuzzing | `Fuzz*` in `contract_test.go`, `markdown_test.go`, `testdata/fuzz/` | `go test -run '^$' -fuzz '^FuzzEscapeTableCell$' -fuzztime 1m .` | `fuzz.yml` (seed corpus on every run, real fuzzing on the schedule) |
+| Mutation testing | `.github/workflows/mutation.yml` | `gremlins unleash --workers 2 --exclude-files '^doc/' .` | `mutation.yml` (lines a pull request changes; every package weekly) |
 | Mermaid render check | `scripts/mermaid-check` | `make render-check` | `doc_render.yml` |
 
 ## Parsing the output back
@@ -26,3 +27,13 @@ The properties use [rapid](https://pkg.go.dev/pgregory.net/rapid) and goldmark a
 ## Metamorphic tests
 
 `WithBlockSpacing` only adds blank lines between blocks, so any sequence of builder calls must parse into the same sequence of blocks with and without it. The one intended difference, consecutive `PlainText` lines that form one paragraph without the option, is left out. The relation found that `PlainText(...).HorizontalRule()` used to write a setext heading.
+
+## Mutation testing
+
+[gremlins](https://github.com/go-gremlins/gremlins) v0.6.0 changes one expression at a time and checks that a test fails. A pull request mutates only the lines it changes; the weekly run mutates every package.
+
+| Date | Killed | Lived | Not covered | Efficacy (killed / (killed + lived)) |
+|---|---|---|---|---|
+| 2026-11-19 | 889 | 79 | 109 | 91.84% |
+
+The sample programs under `doc/` are excluded. The not-covered mutants are mostly in the mermaid builders (79) and `internal/` (22); the lived ones cluster in `markdown.go` (14), `mermaid/venn` (7), `mermaid/xychart` and `internal/golden` (6 each). The CI job does not gate on the score; a drop below the recorded value is a reason to look at the new lived mutants.
