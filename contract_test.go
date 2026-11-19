@@ -2055,7 +2055,10 @@ func TestPropertyACodeBlockHoldsItsContent(t *testing.T) {
 			seg := l.At(i)
 			b.Write(seg.Value(source))
 		}
-		if got := strings.TrimSuffix(b.String(), "\n"); got != content {
+		// The builder writes the platform line feed (CRLF on Windows), so
+		// the lines read back are compared with LF endings.
+		got := strings.TrimSuffix(strings.ReplaceAll(b.String(), "\r\n", "\n"), "\n")
+		if got != content {
 			t.Fatalf("the code block holds %q, want %q:\n%s", got, content, document)
 		}
 	})
