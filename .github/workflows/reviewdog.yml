@@ -7,6 +7,12 @@ permissions:
   contents: read
 
 # Every job posts its findings as a pull request review (github-pr-review).
+# A new push to a pull request cancels the run for the previous commit, so
+# superseded runs do not hold the account's shared job slots.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   golangci-lint:
     name: golangci-lint

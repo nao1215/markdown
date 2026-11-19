@@ -10,6 +10,12 @@ on:
   pull_request:
     branches: [main]
 
+# A new push to a pull request cancels the run for the previous commit, so
+# superseded runs do not hold the account's shared job slots.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   unit_test:
     name: Unit test (linux)
@@ -44,6 +50,6 @@ jobs:
           pkgs="$(go list ./... | grep -v '/doc/')"
           # $pkgs is split on purpose: each package is its own argument.
           # shellcheck disable=SC2086
-          go test -cover -coverpkg="$(echo "$pkgs" | paste -sd,)" -coverprofile=coverage.out $pkgs
+          go test -count=1 -cover -coverpkg="$(echo "$pkgs" | paste -sd,)" -coverprofile=coverage.out $pkgs
 
       - uses: k1LoW/octocov-action@a167dc0dee441b7ffc45e1b862ab55ec0d87f278 # v1.5.2
