@@ -945,6 +945,11 @@ func TestAHorizontalRuleAfterTextStaysARule(t *testing.T) {
 		"a link": func(m *markdown.Markdown) *markdown.Markdown {
 			return m.PlainText(markdown.Link("Above", "https://example.com"))
 		},
+		// Text that only starts like a block construct is still paragraph text.
+		"a hashtag":    func(m *markdown.Markdown) *markdown.Markdown { return m.PlainText("#hashtag") },
+		"seven hashes": func(m *markdown.Markdown) *markdown.Markdown { return m.PlainText("####### seven") },
+		"a pipe":       func(m *markdown.Markdown) *markdown.Markdown { return m.PlainText("| literal") },
+		"an autolink":  func(m *markdown.Markdown) *markdown.Markdown { return m.PlainText("<https://example.com>") },
 	}
 
 	for name, write := range before {

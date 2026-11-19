@@ -324,16 +324,27 @@ func endsWithParagraph(block string) bool {
 	last := strings.TrimLeft(lines[len(lines)-1], " ")
 	switch {
 	case last == "",
-		strings.HasPrefix(last, "#"),
-		strings.HasPrefix(last, "|"),
+		isATXHeading(last),
 		strings.HasPrefix(last, "```"),
 		strings.HasPrefix(last, "~~~"),
-		strings.HasPrefix(last, "<"),
 		last == horizontalRule,
 		listKind(last) != "":
 		return false
 	}
 	return true
+}
+
+// isATXHeading reports whether line is an ATX heading: one to six "#" followed
+// by a space, a tab or the end of the line. "#hashtag" is paragraph text.
+func isATXHeading(line string) bool {
+	n := 0
+	for n < len(line) && line[n] == '#' {
+		n++
+	}
+	if n == 0 || n > 6 {
+		return false
+	}
+	return n == len(line) || line[n] == ' ' || line[n] == '\t'
 }
 
 // isQuoteBlock reports whether the block is a blockquote or an alert.
