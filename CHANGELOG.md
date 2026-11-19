@@ -3,6 +3,8 @@
 ### Changed
 
 * CI scans the repository with gosec and Trivy on every pull request (Trivy covers dependency vulnerabilities, committed secrets and misconfigurations, and also runs daily). Workflow actions are recorded in `.github/workflows/actions.lock`, which CI verifies against the pinned commits.
+* gitleaks now also scans pushes to main, not only pull requests, and skips Dependabot runs.
+* golang.org/x/sys is v0.50.0 and goccy/go-json v0.12.0 (indirect, through tablewriter). The Go minimum stays 1.26.
 * Releases now attach a source archive, `checksums.txt`, a keyless cosign signature of the checksums and the build provenance of the archive to the GitHub Release. See "Verifying releases" in the README.
 
 ## [v1.1.2](https://github.com/nao1215/markdown/compare/v1.1.1...v1.1.2) (2026-11-09)

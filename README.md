@@ -1,14 +1,17 @@
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
 [![All Contributors](https://img.shields.io/badge/all_contributors-11-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
-[![Mentioned in Awesome Go](https://awesome.re/mentioned-badge.svg)](https://github.com/avelino/awesome-go)
-[![Go Reference](https://pkg.go.dev/badge/github.com/nao1215/markdown.svg)](https://pkg.go.dev/github.com/nao1215/markdown)
-[![MultiPlatformUnitTest](https://github.com/nao1215/markdown/actions/workflows/unit_test.yml/badge.svg)](https://github.com/nao1215/markdown/actions/workflows/unit_test.yml)
-[![reviewdog](https://github.com/nao1215/markdown/actions/workflows/reviewdog.yml/badge.svg)](https://github.com/nao1215/markdown/actions/workflows/reviewdog.yml)
-[![Trivy](https://github.com/nao1215/markdown/actions/workflows/trivy.yml/badge.svg)](https://github.com/nao1215/markdown/actions/workflows/trivy.yml)
-[![Gosec](https://github.com/nao1215/markdown/actions/workflows/gosec.yml/badge.svg)](https://github.com/nao1215/markdown/actions/workflows/gosec.yml)
+[![CI](https://github.com/nao1215/markdown/actions/workflows/unit_test.yml/badge.svg)](https://github.com/nao1215/markdown/actions/workflows/unit_test.yml)
 ![Coverage](https://raw.githubusercontent.com/nao1215/octocovs-central-repo/main/badges/nao1215/markdown/coverage.svg)
+[![Gitleaks](https://github.com/nao1215/markdown/actions/workflows/gitleaks.yml/badge.svg)](https://github.com/nao1215/markdown/actions/workflows/gitleaks.yml)
+[![Trivy](https://github.com/nao1215/markdown/actions/workflows/trivy.yml/badge.svg)](https://github.com/nao1215/markdown/actions/workflows/trivy.yml)
+[![govulncheck](https://github.com/nao1215/markdown/actions/workflows/govulncheck.yml/badge.svg)](https://github.com/nao1215/markdown/actions/workflows/govulncheck.yml)
+[![Gosec](https://github.com/nao1215/markdown/actions/workflows/gosec.yml/badge.svg)](https://github.com/nao1215/markdown/actions/workflows/gosec.yml)
+[![reviewdog](https://github.com/nao1215/markdown/actions/workflows/reviewdog.yml/badge.svg)](https://github.com/nao1215/markdown/actions/workflows/reviewdog.yml)
+[![Go Reference](https://pkg.go.dev/badge/github.com/nao1215/markdown.svg)](https://pkg.go.dev/github.com/nao1215/markdown)
+[![License](https://img.shields.io/github/license/nao1215/markdown)](./LICENSE)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/nao1215/markdown/badge)](https://scorecard.dev/viewer/?uri=github.com/nao1215/markdown)
+[![Mentioned in Awesome Go](https://awesome.re/mentioned-badge.svg)](https://github.com/avelino/awesome-go)
 
 # What is markdown package
 
