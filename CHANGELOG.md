@@ -3,6 +3,7 @@
 ### Fixed
 
 * `HorizontalRule` right after a line of text (`PlainText("Above").HorizontalRule()`) wrote `Above` and `---` on consecutive lines, which markdown reads as a setext heading: the text became an H2 and the rule disappeared. A blank line now separates them. After headings, lists, tables, code blocks and blank lines the output is unchanged.
+* Table of contents links keep the characters GitHub keeps in a heading anchor: `_` and other connector punctuation, and combining marks. `## snake_case option` linked to `#snakecase-option` instead of `#snake_case-option`, and headings in scripts that use combining marks (Devanagari, decomposed accents) linked to anchors the page did not have.
 
 ### Changed
 

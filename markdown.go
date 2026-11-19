@@ -674,6 +674,10 @@ func (m *Markdown) generateTableOfContents() []string {
 	return tocLines
 }
 
+// generateGitHubAnchor returns the anchor GitHub gives a heading: the text in
+// lower case with spaces turned into hyphens, keeping the word characters
+// (letters, combining marks, numbers and connector punctuation such as "_")
+// and hyphens, and dropping everything else.
 func generateGitHubAnchor(text string) string {
 	text = strings.ToLower(text)
 
@@ -684,7 +688,7 @@ func generateGitHubAnchor(text string) string {
 		switch {
 		case r == ' ' || r == '-':
 			b.WriteRune('-')
-		case unicode.IsLetter(r) || unicode.IsNumber(r):
+		case unicode.IsLetter(r) || unicode.IsMark(r) || unicode.IsNumber(r) || unicode.Is(unicode.Pc, r):
 			b.WriteRune(r)
 		}
 	}
