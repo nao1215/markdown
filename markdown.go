@@ -304,6 +304,10 @@ func needsBlankLine(prev, next string, always bool) bool {
 	case isQuoteBlock(prev):
 		// Anything on the line after a quote is read as part of it.
 		return true
+	case next == horizontalRule && endsWithParagraph(prev):
+		// "---" under a line of text is a setext heading underline: the text
+		// would become an H2 and the rule would disappear.
+		return true
 	case prevList != "" && !sameList:
 		// A different kind of list starts a new list, so it needs the blank line
 		// as much as a paragraph or a table does.
@@ -311,6 +315,25 @@ func needsBlankLine(prev, next string, always bool) bool {
 	default:
 		return false
 	}
+}
+
+// endsWithParagraph reports whether the last line of the block is paragraph
+// text, the only kind of line a "---" below it turns into a heading.
+func endsWithParagraph(block string) bool {
+	lines := strings.Split(normalizeLineFeedsTo(block, "\n"), "\n")
+	last := strings.TrimLeft(lines[len(lines)-1], " ")
+	switch {
+	case last == "",
+		strings.HasPrefix(last, "#"),
+		strings.HasPrefix(last, "|"),
+		strings.HasPrefix(last, "```"),
+		strings.HasPrefix(last, "~~~"),
+		strings.HasPrefix(last, "<"),
+		last == horizontalRule,
+		listKind(last) != "":
+		return false
+	}
+	return true
 }
 
 // isQuoteBlock reports whether the block is a blockquote or an alert.
@@ -750,10 +773,14 @@ func (m *Markdown) CodeBlocks(lang SyntaxHighlight, text string) *Markdown {
 	return m
 }
 
+// horizontalRule is the line HorizontalRule writes.
+const horizontalRule = "---"
+
 // HorizontalRule is markdown horizontal rule.
-// It will be converted to "---".
+// It will be converted to "---". Right after a line of text it is preceded by
+// a blank line, because "---" under text would make that text a heading.
 func (m *Markdown) HorizontalRule() *Markdown {
-	m.body = append(m.body, "---")
+	m.body = append(m.body, horizontalRule)
 	return m
 }
 

@@ -1,5 +1,9 @@
 ## Unreleased
 
+### Fixed
+
+* `HorizontalRule` right after a line of text (`PlainText("Above").HorizontalRule()`) wrote `Above` and `---` on consecutive lines, which markdown reads as a setext heading: the text became an H2 and the rule disappeared. A blank line now separates them. After headings, lists, tables, code blocks and blank lines the output is unchanged.
+
 ### Changed
 
 * CI scans the repository with gosec and Trivy on every pull request (Trivy covers dependency vulnerabilities, committed secrets and misconfigurations, and also runs daily). Workflow actions are recorded in `.github/workflows/actions.lock`, which CI verifies against the pinned commits.
